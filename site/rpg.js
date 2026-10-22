@@ -231,7 +231,7 @@ function drawMon(x, k, X, Y, t, s){
 }
 
 /* ---------- sound: voice blips, effects, and chiptune music ---------- */
-const VOICES = { 'Joseph':[120,'triangle'], 'Angelica':[400,'sine'], 'Olga':[360,'triangle'], 'Joshua':[640,'square'], 'Vecino Ernesto':[170,'square'], 'Mami Elsa':[470,'sine'], 'Tintín':[210,'square'], 'Carolina':[440,'triangle'], 'Diana':[420,'sine'], 'Juandi':[260,'triangle'], 'Coach JP':[200,'triangle'], 'Ana':[520,'sine'], 'Diego':[180,'triangle'], 'Tyler':[240,'square'], 'Steven':[160,'triangle'], 'Baba':[380,'sine'], 'Deda':[115,'square'], 'Alejandro':[980,'square'], 'Dayla':[760,'square'], 'Big Duck':[620,'square'], 'Boss Whiskers':[95,'sawtooth'], 'Sergeant Hairball':[150,'sawtooth'], 'Hairball':[520,'sawtooth'], '???':[300,'sawtooth'], 'Sign':[300,'sine'], 'Rhead House':[330,'sine'], 'Dog Park Gate':[300,'sine'] };
+const VOICES = { 'Joseph':[120,'triangle'], 'Angelica':[400,'sine'], 'Olga':[360,'triangle'], 'Joshua':[640,'square'], 'Vecino Ernesto':[170,'square'], 'Mami Elsa':[470,'sine'], 'Titin':[210,'square'], 'Carolina':[440,'triangle'], 'Diana':[420,'sine'], 'Juandi':[260,'triangle'], 'Coach JP':[200,'triangle'], 'Ana':[520,'sine'], 'Diego':[180,'triangle'], 'Tyler':[240,'square'], 'Steven':[160,'triangle'], 'Baba':[380,'sine'], 'Deda':[115,'square'], 'Alejandro':[980,'square'], 'Dayla':[760,'square'], 'Big Duck':[620,'square'], 'Boss Whiskers':[95,'sawtooth'], 'Sergeant Hairball':[150,'sawtooth'], 'Hairball':[520,'sawtooth'], '???':[300,'sawtooth'], 'Sign':[300,'sine'], 'Rhead House':[330,'sine'], 'Dog Park Gate':[300,'sine'] };
 let AC = null, MASTER = null;
 function audio(){ if(!AC){ try{ AC = new (window.AudioContext || window.webkitAudioContext)(); MASTER = AC.createGain(); MASTER.gain.value = 1; MASTER.connect(AC.destination); }catch(e){ return null; } } if(AC.state === 'suspended') AC.resume(); return AC; }
 function tone(type, f, t, d, v, f2){ const o = AC.createOscillator(), g = AC.createGain(); o.type = type; o.frequency.setValueAtTime(f, t); if(f2) o.frequency.exponentialRampToValueAtTime(f2, t + d); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + .01); g.gain.exponentialRampToValueAtTime(0.0001, t + d); o.connect(g).connect(MASTER); o.start(t); o.stop(t + d + .02); }
@@ -311,7 +311,7 @@ function makeNPCs(api){
       lines: (me, W) => lost(W) ? [L ? 'Laurochka!' : 'Davidka!', 'Dayla is gone?! Bozhe moi! (My God!)', 'You go find her. But first: did you eat? You cannot rescue a dog on an empty stomach.'] : [L ? 'Laurochka! Privet! (Hi!)' : 'Davidka! Privet! (Hi!)', 'My shop opens soon. For family, special discount… maybe. 😏'] },
     { id:'elsa', name:'Mami Elsa', x:31, y:11, d:0, wander:1, av:npcAv(b, { skin:'#C98E68', hair:'#B4B0AC', style:'pony', shirt:'#E07A93', bottom:'skirt', pants:'#6C5B9E' }), gift:1,
       lines: (me, W, c) => lost(W) && !c.st.got_elsa ? ['¡Ay, Dios mío! ¿Y Dayla? (Oh my God! And Dayla?)', 'Voy a rezar por ella. (I’m going to pray for her.)', 'Tome, mi amor, unas arepas para el camino. (Here, my love, some arepas for the road.)', '(Got 3 Arepas! Eat them in battle to heal.)'] : ['¡Ay, mi amor! ¿Ya comió? (Oh, my love! Have you eaten?)', '¡Coma, coma! (Eat, eat!) 🫓'] },
-    { id:'tintin', name:'Tintín', x:35, y:16, d:0, av:npcAv(b, { skin:'#E3B08C', hair:'#3A281E', style:'short', glasses:'square', shirt:'#F2C14E', pants:'#2A2F3A' }), taxi:1,
+    { id:'tintin', name:'Titin', x:35, y:16, d:0, av:npcAv(b, { skin:'#E3B08C', hair:'#3A281E', style:'short', glasses:'square', shirt:'#F2C14E', pants:'#2A2F3A' }), taxi:1,
       lines: () => [`¡Quiubo, ${son}! ¡Súbase al taxi! (What’s up! Hop in the taxi!)`, '¿Para dónde lo llevo? Para la familia es gratis. (Where to? It’s free for family.)'] },
     { id:'carolina', name:'Carolina', x:12, y:19, d:0, wander:1, av:npcAv(b, { skin:'#E3B08C', hair:'#3A281E', style:'long', shirt:'#F2C14E', pants:'#3B4F6B', lashes:'natural' }),
       lines: (me, W) => lost(W) ? ['¿Dayla se perdió? ¡No puede ser! (Dayla is lost? It can’t be!)', 'Cuando la encuentren, le compro un juguete nuevo. (When you find her, I’ll buy her a new toy.) 🛍️'] : ['¡Hola, mi amor! (Hi, my love!)', '¡Vamos de compras! Hay descuentos en todas las tiendas. (Let’s go shopping! There are sales at every store.) 🛍️'] },
@@ -432,7 +432,7 @@ function makeBogotaNPCs(api){
       lines: (me, W, c) => c.st.got_elsa2 ? ['¡Coma, coma! (Eat, eat!) 🫓'] : ['¡Ay, mi amor! ¡Bienvenido a mi casa vieja! (Welcome to my old house!)', 'Para subir Monserrate necesita energía. (To climb Monserrate you need energy.)', '(Got 3 Arepas!)'] },
     { id:'diana', name:'Diana', x:21, y:15, d:0, av:npcAv(b, { skin:'#D9A07A', hair:'#171210', style:'bob', shirt:'#7FB6D9', bottom:'longskirt', pants:'#F2E6D8', lashes:'natural' }),
       lines: () => ['¡Hola! Isn’t the cathedral beautiful?', 'I’m praying you find Dayla soon. “The LORD is my shepherd; I shall not want.” (Psalm 23:1)'] },
-    { id:'tintin', name:'Tintín', x:24, y:28, d:0, av:npcAv(b, { skin:'#E3B08C', hair:'#3A281E', style:'short', glasses:'square', shirt:'#F2C14E', pants:'#2A2F3A' }), taxi:1,
+    { id:'tintin', name:'Titin', x:24, y:28, d:0, av:npcAv(b, { skin:'#E3B08C', hair:'#3A281E', style:'short', glasses:'square', shirt:'#F2C14E', pants:'#2A2F3A' }), taxi:1,
       lines: () => [`¡Quiubo, ${son}! Aquí también tengo taxi. (I have a taxi here too.)`, '¿Para dónde? (Where to?)'] },
     { id:'condor', name:'Cóndorito', x:34, y:14, d:2, bird:1,
       lines: (me, W) => W.b_condor ? ['¡Vamos, parcero! (Let’s go, buddy!) 🦅'] : ['¡Alto ahí! (Stop right there!) Who goes up MY mountain?', '…A little brown dog? Sí, she ran right past me, chasing a glowing duck. Then the cats came.', 'Those cats ruffled my feathers. Nobody ruffles Cóndorito’s feathers!', 'I’ll fly you up the rest of the way, parcero. (buddy) Vamos!', '(Cóndorito joined your team! Tap 🐾 near gaps to fly across.)'],
@@ -470,7 +470,7 @@ function start(host, api){
   const cv = $('.rpg-cv'), cx = cv.getContext('2d');
   const me = api.me, other = me === 'david' ? 'laura' : 'david', ME = api.nameOf(me);
   const sheets = { [me]: heroSheet(api.avatar(me)), [other]: heroSheet(api.avatar(other)) };
-  const SHEETS = { dayla: dogSheet(), alejandro: dogSheet({ B:'#D9A066', D:'#B07A40', Wt:'#F2D7B0', long:1 }), lunita: dogSheet({ B:'#C98E5A', D:'#8A5A36', Wt:'#E9C49A' }), papu: dogSheet({ B:'#8E8A93', D:'#6E6A72', Wt:'#C4C0C8' }), moka: dogSheet({ B:'#7B4B2F', D:'#5A3520', Wt:'#C9A47A' }) };
+  const SHEETS = { dayla: dogSheet(), alejandro: dogSheet({ B:'#2A201C', D:'#1A1414', Wt:'#F4F4F4', long:1 }), lunita: dogSheet({ B:'#C98E5A', D:'#8A5A36', Wt:'#E9C49A' }), papu: dogSheet({ B:'#8E8A93', D:'#6E6A72', Wt:'#C4C0C8' }), moka: dogSheet({ B:'#7B4B2F', D:'#5A3520', Wt:'#C9A47A' }) };
   let npcs = HOME ? makeNPCs(api) : makeBogotaNPCs(api);
   const saved = api.load() || {};
   const st = Object.assign({ hp:10, mhp:10, dhp:5, dmhp:5, lv:1, xp:0, coins:0, items:{ snack:1 }, diary:{}, partner:null }, saved);
@@ -554,7 +554,7 @@ function start(host, api){
     const fx2 = p.x + [0, -14, 14, 0][p.d], fy2 = p.y + [14, 0, 0, -14][p.d];
     const n = npcs.find(n => Math.hypot(n.x - fx2, n.y - fy2) < 16);
     if(n){ n.d = [3, 2, 1, 0][p.d]; n.t = 3;
-      if(n.taxi){ say(n.name, n.lines(ME, W, { st }), null, (HOME ? TAXI : TAXI_B).map(([l, a, b2, nm]) => [l, () => taxiTo(a, b2, nm)]).concat([['✈️ Airport', () => say('Tintín', ['¿El aeropuerto? ¡Todavía no! Pronto. (The airport? Not yet! Soon.) ✈️'])], ['No, gracias', null]])); return; }
+      if(n.taxi){ say(n.name, n.lines(ME, W, { st }), null, (HOME ? TAXI : TAXI_B).map(([l, a, b2, nm]) => [l, () => taxiTo(a, b2, nm)]).concat([['✈️ Airport', () => say('Titin', ['¿El aeropuerto? ¡Todavía no! Pronto. (The airport? Not yet! Soon.) ✈️'])], ['No, gracias', null]])); return; }
       say(n.name, n.lines(ME, W, { st }), () => {
         if(n.gift && HOME && W.p_start && !W.p_done && !st.got_elsa){ st.got_elsa = 1; st.items.snack += 3; saveNow(); api.sfx('success'); }
         if(n.gift && !HOME && !st.got_elsa2){ st.got_elsa2 = 1; st.items.snack += 3; saveNow(); api.sfx('success'); }

@@ -1835,7 +1835,7 @@ function notifyCard(){
 }
 function accountCard(){
   const imp = meta('imported');
-  return `<section class="card stack" style="gap:10px"><h2>Account</h2><div class="between"><span class="muted" style="overflow-wrap:anywhere">${esc((S.user && S.user.email) || 'Signed in')}</span><button class="btn small" data-act="sign-out">Sign out</button></div><p class="fine" style="margin:0">App version: Oct 22, 2026 · update 16</p></section>
+  return `<section class="card stack" style="gap:10px"><h2>Account</h2><div class="between"><span class="muted" style="overflow-wrap:anywhere">${esc((S.user && S.user.email) || 'Signed in')}</span><button class="btn small" data-act="sign-out">Sign out</button></div><p class="fine" style="margin:0">App version: Oct 22, 2026 · update 17</p></section>
   <section class="card stack" style="gap:10px"><h2>Move data from the old app</h2>
     ${imp ? `<p class="fine" style="margin:0">Done on ${esc(fmtDate(new Date(imp.at), { month:'short', day:'numeric', year:'numeric' }))}: ${imp.records} records and ${imp.photos} photos.</p>` : `<p class="fine" style="margin:0">Brings over everything you saved in the Claude version: lists, chat, money, photos and the rest. Do this once, on one phone.</p>`}
     ${S.importMsg ? `<div class="banner">${esc(S.importMsg)}</div>` : ''}
@@ -6012,7 +6012,7 @@ function rpgArt(){
     + `${r(9,10,3,2,'#F2C14E')}${r(10,8,2,2,'#F2C14E')}${r(12,9,1,1,'#F28C38')}${r(11,8,1,1,'#2A201C')}`
     + `${r(1,9,1,2,'#6B4226')}${r(2,10,4,2,'#6B4226')}${r(5,10,1,2,'#F7F2EA')}${r(5,8,3,3,'#6B4226')}${r(7,10,1,1,'#F7F2EA')}${r(5,7,1,1,'#4A2C18')}${r(7,7,1,1,'#4A2C18')}${r(6,9,1,1,'#1A1414')}${r(2,12,1,1,'#6B4226')}${r(5,12,1,1,'#F7F2EA')}</svg>`;
 }
-function rpgStatus(){ const w = gdoc('rpg_world_' + (S.me || 'david')) || {}; return w.p_done ? 'Prologue done ✓ · Chapter 1 soon' : w.p_start ? 'Prologue · in progress' : 'New story adventure'; }
+function rpgStatus(){ const w = gdoc('rpg_world_' + (S.me || 'david')) || {}; return w.b_done ? 'Chapter 1 done ✓ · Chapter 2 soon' : w.b_in ? 'Chapter 1: Bogotá' : w.p_done ? 'Prologue done ✓ · Chapter 1 is open!' : w.p_start ? 'Prologue · in progress' : 'New story adventure'; }
 function rpgRaining(){ try{ const w = meta('weather'), d = w && Array.isArray(w.days) ? w.days.find(x => x.date === ymd(new Date())) : null; return !!d && /rain|shower|storm|thunder|drizzle/i.test(String(d.cond || '')); }catch(e){ return false; } }
 function closeRPG(){ try{ window.RheadRPG && window.RheadRPG.stop(); }catch(e){} const h = document.getElementById('rpg-host'); if(h) h.remove(); document.documentElement.classList.remove('rpg-open'); }
 function openRPG(){
@@ -6028,7 +6028,7 @@ function openRPG(){
     raining: rpgRaining, soundOn: () => SET.sound !== false, close: closeRPG };
   const go2 = () => { try{ window.RheadRPG.start(host, api); }catch(e){ console.error(e); host.innerHTML = '<div class="rpg-load">The game couldn’t load. Close and try again.<br><br><button class="btn" onclick="this.closest(\'.rpg-host\').remove();document.documentElement.classList.remove(\'rpg-open\')">Close</button></div>'; } };
   if(window.RheadRPG) return go2();
-  const sc = document.createElement('script'); sc.src = '/rpg.js?v=12'; sc.onload = go2; sc.onerror = () => { host.innerHTML = '<div class="rpg-load">No connection right now.</div>'; setTimeout(closeRPG, 1800); }; document.head.appendChild(sc);
+  const sc = document.createElement('script'); sc.src = '/rpg.js?v=13'; sc.onload = go2; sc.onerror = () => { host.innerHTML = '<div class="rpg-load">No connection right now.</div>'; setTimeout(closeRPG, 1800); }; document.head.appendChild(sc);
 }
 /* ---------- Guess Who? ---------- */
 const GW_NAMES = ['Bruno','Coco','Pepe','Maple','Rosa','Theo','Lulu','Rafa','Nina','Otis','Pía','Gus','Mila','Dante','Juno','Tito','Lola','Ezra','Bea','Iggy','Sol','Kiko','Vera','Moe','Paz','Rex','Ivy','Nico','Wren','Fito','Gigi','Hank','Luz','Abe','Tula','Remy'];

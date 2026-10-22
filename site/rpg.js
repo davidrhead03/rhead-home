@@ -197,13 +197,18 @@ const MONS = {
   hairball: { name:'Hairball', hp:3, atk:1, coins:3, xp:3, emo:'🐈', diary:'Smells like old tuna. Hisses at nothing. Wears a tiny helmet for no reason. 1/10.' },
   sarge: { name:'Sergeant Hairball', hp:10, atk:2, coins:15, xp:10, boss:1, emo:'🪖', diary:'Yells a LOT. Probably sad inside. I would still bite his tail. 3/10.' },
   duck: { name:'Big Duck', emo:'🦆', diary:'MY duck. Best duck. Squeaky, chewy, perfect. Why did it quack?? 11/10.' },
-  alejandro: { name:'Alejandro', emo:'🐕', diary:'My best friend. Long. Loud. Brave. Smells great. 10/10.' }
+  alejandro: { name:'Alejandro', emo:'🐕', diary:'My best friend. Long. Loud. Brave. Smells great. 10/10.' },
+  lunita: { name:'Lunita', emo:'🐕', diary:'FAST. Barks at everything. Saw me first. We are friends now. 9/10.' },
+  papu: { name:'Papu', emo:'🐶', diary:'Gray. Snorts like a little tractor. Very serious guard. 8/10.' },
+  moka: { name:'Moka', emo:'🐶', diary:'Brown like me! Always chewing something mysterious. 9/10.' },
+  condor: { name:'Cóndorito', emo:'🦅', diary:'Big bird. Bald head. Dramatic. Let me ride on his back once. 10/10, would fly again.' },
+  capi: { name:'Captain Hairball', hp:9, atk:2, coins:25, xp:14, boss:1, emo:'🎖️', diary:'Red helmet. Bossy. Chased me up a whole mountain. Rude. 2/10.' }
 };
-const DIARY = ['duck', 'alejandro', 'hairball', 'sarge'];
+const DIARY = ['duck', 'alejandro', 'hairball', 'sarge', 'lunita', 'papu', 'moka', 'condor', 'capi'];
 function drawMon(x, k, X, Y, t, s){
   s = s || 1; const P = (a, b, w, h, c) => { x.fillStyle = c; x.fillRect(Math.round(X + a * s), Math.round(Y + b * s), Math.ceil(w * s), Math.ceil(h * s)); };
   const bob = Math.round(Math.sin(t * 6) * 1);
-  if(k === 'hairball' || k === 'sarge'){ const big = k === 'sarge', c = big ? '#6E6A72' : '#8E8A93', d = big ? '#4E4A52' : '#6E6A72', o = big ? 0 : 2, w = big ? 20 : 14;
+  if(k === 'hairball' || k === 'sarge' || k === 'capi'){ const big = k !== 'hairball', c = big ? '#6E6A72' : '#8E8A93', d = big ? '#4E4A52' : '#6E6A72', o = big ? 0 : 2, w = big ? 20 : 14;
     const tl = Math.sin(t * 4) > 0 ? 1 : 0;
     P(o + 1, w - 1, w - 2, 2, 'rgba(0,0,0,.2)');
     P(o + 1, 7 + bob, w - 2, w - 9, c); P(o, 9 + bob, w, w - 12, c); P(o + 2, 9 + bob, 3, w - 12, d);
@@ -213,7 +218,8 @@ function drawMon(x, k, X, Y, t, s){
     P(o + 3, 5 + bob, 3, 1, d); P(o + w - 6, 5 + bob, 3, 1, d);
     P(o + w / 2 - 1, 8 + bob, 2, 1, '#E0566B');
     P(o + w - 1, 9 + bob - tl, 2, 2, c); P(o + w, 6 + bob - tl, 2, 4, c);
-    P(o + 2, 1 + bob, w - 4, 2, big ? '#4F6B4F' : '#5B6B82'); P(o + 1, 3 + bob, w - 2, 1, big ? '#3B523B' : '#3B4F6B'); if(big){ P(o + w / 2 - 1, 0 + bob, 2, 1, '#F2C14E'); }
+    P(o + 2, 1 + bob, w - 4, 2, k === 'capi' ? '#C9473D' : big ? '#4F6B4F' : '#5B6B82'); P(o + 1, 3 + bob, w - 2, 1, k === 'capi' ? '#93303A' : big ? '#3B523B' : '#3B4F6B'); if(big){ P(o + w / 2 - 1, 0 + bob, 2, 1, '#F2C14E'); }
+  } else if(k === 'condor'){ P(2, 13, 12, 2, 'rgba(0,0,0,.18)'); P(3, 6 + bob, 10, 6, '#2A201C'); P(0, 7 + bob, 4, 4, '#2A201C'); P(12, 7 + bob, 4, 4, '#2A201C'); P(1, 9 + bob, 2, 1, '#F4F4F4'); P(13, 9 + bob, 2, 1, '#F4F4F4'); P(4, 4 + bob, 8, 3, '#FFFFFF'); P(6, 0 + bob, 5, 5, '#D98A7A'); P(9, 1 + bob, 1, 1, '#1A1414'); P(11, 2 + bob, 2, 2, '#E2AE55'); P(5, 12, 2, 2, '#9AA3AD'); P(9, 12, 2, 2, '#9AA3AD');
   } else if(k === 'duck'){ P(2, 12, 10, 2, 'rgba(0,0,0,.18)'); P(2, 6 + bob, 10, 6, '#F2C14E'); P(1, 8 + bob, 12, 3, '#F2C14E'); P(4, 1 + bob, 6, 6, '#F2C14E'); P(9, 4 + bob, 4, 2, '#F28C38'); P(7, 3 + bob, 1, 1, '#1A1414'); P(3, 7 + bob, 4, 2, '#E2AE55'); P(4, 12, 2, 1, '#F28C38'); P(8, 12, 2, 1, '#F28C38'); }
   else if(k === 'whiskers'){ const fur = '#F4EFE8', sh = '#D9D1C6';
     P(0, 10, 28, 20, '#C9473D'); P(2, 12, 24, 18, '#A93A4C');
@@ -250,6 +256,7 @@ const SONGS = {
   sad: { bpm:76, div:2, lead:[76,0,0,74,72,0,0,0, 71,0,0,72,74,0,0,0, 72,0,0,71,69,0,0,0, 68,0,0,69,71,0,0,0], bass:[45,0,52,0,57,0,52,0, 43,0,50,0,55,0,50,0, 41,0,48,0,53,0,48,0, 40,0,47,0,52,0,47,0] },
   battle: { bpm:150, div:4, lead:[69,0,72,69,76,0,74,72, 71,0,74,71,76,0,74,71, 69,0,72,69,76,0,79,77, 76,74,72,71,69,0,0,0], bass:[45,45,57,45,45,57,45,57, 43,43,55,43,43,55,43,55, 41,41,53,41,41,53,41,53, 40,40,52,40,44,44,56,44] },
   boss: { bpm:132, div:2, lead:[62,0,65,0,69,0,68,0, 62,0,65,0,70,0,69,0, 62,65,69,74,73,0,70,0, 69,0,65,0,64,0,61,0], bass:[38,0,38,50,38,0,38,50, 34,0,34,46,34,0,34,46, 36,0,36,48,36,0,36,48, 33,0,33,45,37,0,37,49] },
+  bogota: { bpm:100, div:2, shaker:1, lead:[67,0,70,0,74,0,72,70, 69,0,72,0,70,0,69,67, 65,0,69,0,72,0,70,69, 67,0,0,0,62,0,65,0, 67,0,70,0,74,0,75,74, 72,0,70,0,69,0,70,72, 74,0,72,0,70,0,69,65, 67,0,0,0,0,0,0,0], bass:[43,0,50,0,43,0,50,0, 41,0,48,0,41,0,48,0, 39,0,46,0,39,0,46,0, 38,0,45,0,38,0,50,0] },
   victory: { bpm:140, div:2, once:1, lead:[72,76,79,84,0,79,84,0], bass:[48,52,55,60,0,55,60,0] }
 };
 const MUS = (() => { let cur = null, step = 0, nextT = 0, timer = null, want = null, on = true;
@@ -258,7 +265,7 @@ const MUS = (() => { let cur = null, step = 0, nextT = 0, timer = null, want = n
   function tick(){ if(!cur || !AC) return; const S = SONGS[cur], dur = 60 / S.bpm / S.div;
     while(nextT < AC.currentTime + .2){ const i = step % S.lead.length, a = S.lead[i], b = S.bass[i % S.bass.length];
       if(a) tone('square', hz(a), nextT, dur * .9, .028); if(b) tone('triangle', hz(b), nextT, dur * .95, .05);
-      if(S.div === 4 && i % 4 === 0) noise(nextT, .03, .03);
+      if(S.div === 4 && i % 4 === 0) noise(nextT, .03, .03); if(S.shaker && i % 2 === 1) noise(nextT, .025, .025);
       nextT += dur; step++; if(S.once && step >= S.lead.length){ const back = want === cur ? 'home' : want; cur = null; if(back && back !== 'victory') setTimeout(() => play(back), 300); return; } } }
   function play(name){ want = name; if(!on || !SOUND_ON() || !audio()) return; if(cur === name) return; cur = name; step = 0; nextT = AC.currentTime + .05; if(!timer) timer = setInterval(tick, 60); }
   function stop(){ cur = null; if(timer){ clearInterval(timer); timer = null; } }
@@ -340,22 +347,118 @@ const SIGNS = [
 const AREAS = [ [0, 0, MW, 26, 'The Neighbourhood'], [PARK.x, PARK.y, PARK.x + PARK.w, PARK.y + PARK.h, 'Dog Park'], [POOL.x, POOL.y, POOL.x + POOL.w, POOL.y + POOL.h, 'Pool'], [LOT.x, LOT.y, LOT.x + LOT.w, LOT.y + LOT.h, 'Parking Lot'], [COURT.x, COURT.y, COURT.x + COURT.w, COURT.y + COURT.h, 'Rhead Court'] ];
 const GATE = { x: PARK.gx * T + 8, y: PARK.y * T + 8 };
 
+/* =============== Chapter 1: Bogotá =============== */
+const BOG = {
+  houses: [
+    { id:'cathedral', x:15, y:10, w:11, h:5, roof:'#8E7B6B', wall:'#F1E6D2', door:5, name:'The Cathedral', sign:'⛪ The Cathedral on the plaza. Diana says it’s her favourite place in the city.' },
+    { id:'h1', x:3, y:3, w:5, h:3, roof:'#B5523B', wall:'#F2C14E', door:2, name:'Yellow house', sign:'🏠 A bright yellow house. Someone inside is listening to vallenato.' },
+    { id:'h2', x:9, y:3, w:5, h:3, roof:'#B5523B', wall:'#58AEDD', door:2, name:'Blue house', sign:'🏠 A blue house with flower pots in every window.' },
+    { id:'elsa', x:15, y:3, w:6, h:3, roof:'#B5523B', wall:'#E07A93', door:2, name:'Mami Elsa’s old house', sign:'🫓 Mami Elsa’s old house. It still smells like arepas.' },
+    { id:'h4', x:22, y:3, w:4, h:3, roof:'#B5523B', wall:'#7FD07A', door:1, name:'Green house', sign:'🏠 A green house. A cat watches you from the window. Suspicious.' },
+    { id:'h5', x:3, y:28, w:5, h:3, roof:'#B5523B', wall:'#F4A6B8', door:2, name:'Pink house', sign:'🏠 A pink house with a little bakery sign: “Pan de bono”.' },
+    { id:'h6', x:28, y:27, w:5, h:3, roof:'#B5523B', wall:'#F2E6D8', door:2, name:'White house', sign:'🏠 A white house with a huge Colombia flag on the balcony.' },
+    { id:'h7', x:35, y:27, w:5, h:3, roof:'#B5523B', wall:'#B39CE0', door:2, name:'Purple house', sign:'🏠 A purple house. Somebody is frying empanadas. You are now hungry.' },
+    { id:'sanct', x:31, y:2, w:6, h:2, roof:'#C9473D', wall:'#FBF6EE', door:3, name:'The mountain chapel', sign:'⛪ The little white chapel at the top of Monserrate. The whole city is below you.' }
+  ],
+  signs: [
+    { x:23, y:25, text:'↑ Plaza · ↗ Monserrate · ↙ Portal home' },
+    { x:28, y:22, text:'⛰️ Monserrate. 3,152 m above the sea. Bring a jacket!' }
+  ],
+  areas: [ [0, 0, MW, MH, 'Bogotá'], [8, 16, 23, 26, 'The Plaza'], [26, 0, MW, 22, 'Monserrate'] ],
+  portal: { x: 6 * 16 + 8, y: 35 * 16 + 8 },
+  spawn: [6, 33]
+};
+function buildBogota(){
+  const m = [], R = rng(57);
+  for(let y = 0; y < MH; y++){ m.push([]); for(let x = 0; x < MW; x++) m[y].push('c'); }
+  const set = (x, y, c) => { if(x >= 0 && y >= 0 && x < MW && y < MH) m[y][x] = c; };
+  for(let y = 0; y < MH; y++) for(let x = 0; x < MW; x++) if(x < 2 || x >= MW - 2 || y >= MH - 2 || y < 1) set(x, y, 'T');
+  // the mountain
+  for(let y = 0; y < 22; y++) for(let x = 26; x < MW; x++) set(x, y, 'M');
+  const S = (x0, y0, x1, y1) => { for(let y = Math.min(y0, y1); y <= Math.max(y0, y1); y++) for(let x = Math.min(x0, x1); x <= Math.max(x0, x1); x++) set(x, y, 'S'); };
+  S(30, 21, 30, 14); S(30, 14, 37, 14); S(37, 14, 37, 8); S(37, 8, 31, 8); S(31, 8, 31, 6); for(let y = 1; y < 7; y++) for(let x = 29; x < 40; x++) set(x, y, 'S');
+  set(37, 11, 'X'); set(37, 10, 'X'); set(36, 11, 'M'); set(38, 11, 'M');
+  set(30, 22, 'B'); for(let x = 27; x < 30; x++) set(x, 22, 'c');
+  // the plaza
+  for(let y = 16; y < 26; y++) for(let x = 8; x < 23; x++) set(x, y, 'q');
+  for(let y = 20; y < 22; y++) for(let x = 15; x < 17; x++) set(x, y, 'h');
+  // houses
+  BOG.houses.forEach(h => { for(let y = h.y; y < h.y + h.h; y++) for(let x = h.x; x < h.x + h.w; x++) set(x, y, 'h'); if(h.id !== 'sanct') set(h.x + h.door, h.y + h.h, 'c'); });
+  // little park around the portal
+  for(let y = 33; y < 38; y++) for(let x = 3; x < 10; x++) set(x, y, '.');
+  for(let i = 0; i < 26; i++){ const x = 2 + Math.floor(R() * 24), y = 7 + Math.floor(R() * 30); if(m[y][x] === 'c' && !(y >= 15 && y <= 26) && !(x >= 3 && x <= 10 && y >= 32)) set(x, y, R() < .7 ? 'T' : 'b'); }
+  return m;
+}
+function bogTiles(x, tx, ty, ch, map){
+  const px = tx * T, py = ty * T, h = hash(tx, ty), P = (dx, dy, w, hh, col) => { x.fillStyle = col; x.fillRect(px + dx, py + dy, w, hh); };
+  if(ch === 'c' || ch === 'T' || ch === 'b' || ch === 'B'){ P(0, 0, T, T, '#C9BBA8'); for(let i = 0; i < 4; i++) P((i % 2) * 8 + (ty % 2) * 4, Math.floor(i / 2) * 8, 7, 7, h < .5 ? '#BFAF9A' : '#D3C6B4'); }
+  if(ch === 'q'){ P(0, 0, T, T, '#E2D6C2'); P(0, 0, T, 1, '#CDBFA8'); P(0, 0, 1, T, '#CDBFA8'); if(h < .15) P(6, 6, 3, 3, '#D3C6B4'); }
+  if(ch === 'M'){ P(0, 0, T, T, h < .5 ? '#4E8A55' : '#467F4D'); if(h < .3) P(3 + Math.floor(h * 20), 5, 5, 4, '#8E8A85'); if(h > .8) P(6, 2, 4, 6, '#2F6B3E'); }
+  if(ch === 'S'){ P(0, 0, T, T, '#A9A49E'); P(0, 4, T, 1, '#8E8A85'); P(0, 9, T, 1, '#8E8A85'); P(0, 14, T, 1, '#8E8A85'); }
+  if(ch === 'X'){ P(0, 0, T, T, '#2A3350'); P(0, 0, T, 2, '#4E8A55'); P(2, 7, 12, 2, 'rgba(255,255,255,.25)'); }
+  if(ch === 'B'){ for(const ox of [1, 6, 11]){ P(ox, 6, 4, 8, '#F28C38'); P(ox, 9, 4, 2, '#FFFFFF'); P(ox - 1, 14, 6, 2, '#C96A20'); } }
+  if(ch === '.'){ P(0, 0, T, T, h < .5 ? '#74C062' : '#6DBB5A'); }
+  if(ch === 'T') { P(6, 9, 4, 7, '#7B4B2F'); }
+  if(ch === 'b'){ P(2, 5, 12, 10, '#3F8C4A'); P(4, 5, 4, 3, '#5DAF5F'); P(9, 9, 2, 2, '#F2C14E'); }
+}
+const condorPal = { name: 'Cóndorito', move: 'dive-bomb', emo: '🦅' };
+function objectiveB(W){
+  if(!W.b_ale || !W.b_sam) return 'Find Laura’s friends Alejandra and Samuel Clavijo on the plaza. They’re great at solving mysteries.';
+  if(!W.b_dogs) return 'Ask the street dogs (Lunita, Papu and Moka) if they saw Dayla. They hang out near the south street.';
+  if(!W.b_condor) return 'Climb Monserrate! The trail starts east of the plaza. Watch out for Hairballs on the stairs.';
+  if(!W.b_gap) return 'There’s a gap in the trail. Stand by it and tap 🐾 so Cóndorito can fly you across.';
+  if(!W.b_done) return 'Reach the top of Monserrate. Something big is waiting there.';
+  return 'Chapter 1 complete! The portal points to New York. Chapter 2 is coming soon.';
+}
+function makeBogotaNPCs(api){
+  const b = api.baseAv(), L = api.me === 'laura', son = L ? 'mija' : 'mijo';
+  const done = W => W.b_done;
+  return [
+    { id:'alejandra', name:'Alejandra', x:18, y:19, d:0, av:npcAv(b, { skin:'#E3B08C', hair:'#5B3B27', style:'pony', glasses:'round', shirt:'#58AEDD', pants:'#3B4F6B', lashes:'natural' }),
+      lines: (me, W) => W.b_ale ? ['The dogs around here see everything. Ask them!'] : [`¡${me}! ¿Qué haces en Bogotá? (What are you doing in Bogotá?)`, '…Dayla went through a PORTAL? Okay. Okay. Samuel, we have a case.', 'Somebody saw a little brown dog running across this plaza this morning, chasing a glowing duck.'], end: W => W.b_ale ? null : { b_ale: 1 } },
+    { id:'samuel', name:'Samuel', x:20, y:19, d:0, av:npcAv(b, { skin:'#E3B08C', hair:'#3A281E', style:'curls', glasses:'round', shirt:'#4F8761', pants:'#2A2F3A' }),
+      lines: (me, W) => W.b_sam ? ['Talk to the street dogs. Lunita is the fast one, she sees everything.'] : ['¡Quiubo! (Hey!) Alejandra told me everything.', 'I checked the map: cat footprints everywhere, all going east… toward Monserrate.', 'But we need to be sure. The street dogs down the south street will know.'], end: W => W.b_sam ? null : { b_sam: 1 } },
+    { id:'lunita', name:'Lunita', x:12, y:30, d:0, wander:2, dogc:'lunita',
+      lines: (me, W) => W.b_dogs ? ['*yip!* (Lunita points her nose at the mountain again.)'] : ['*YIP YIP YIP!* 🐕', '(Lunita runs in circles, then points her nose straight at the big mountain.)', '(She saw Dayla! Dayla ran up Monserrate, chasing a glowing duck!)'], end: W => W.b_dogs ? null : { b_dogs: 1 } },
+    { id:'papu', name:'Papu', x:14, y:31, d:0, dogc:'papu', lines: () => ['*snort… snort* 🐶', '(Papu the French bulldog snorts very seriously. He is guarding the street.)'] },
+    { id:'moka', name:'Moka', x:16, y:31, d:0, dogc:'moka', lines: () => ['*SNORT!* 🐶', '(Moka is chewing something. You decide not to ask what.)'] },
+    { id:'diego', name:'Diego', x:13, y:24, d:0, wander:1, av:npcAv(b, { skin:'#D9A07A', hair:'#2A201C', style:'side', facial:'mustache', shirt:'#C9473D', pants:'#3B4F6B' }),
+      lines: (me, W) => [`¡${son}! Welcome to Bogotá, my city.`, done(W) ? 'You saw Dayla? ¡Qué bueno! (Great!) She’s close, I know it.' : 'Monserrate is very high. Take it slow, the air is thin up there. 😮‍💨'] },
+    { id:'carolina', name:'Carolina', x:20, y:24, d:0, wander:1, av:npcAv(b, { skin:'#E3B08C', hair:'#3A281E', style:'long', shirt:'#F2C14E', pants:'#3B4F6B', lashes:'natural' }),
+      lines: () => ['¡Mi amor! ¡Por fin en Bogotá! (My love! Finally in Bogotá!)', 'Cuando encontremos a Dayla, nos vamos de compras al centro. (When we find Dayla, we’re going shopping downtown.) 🛍️'] },
+    { id:'juandi', name:'Juandi', x:10, y:21, d:0, wander:1, av:npcAv(b, { skin:'#D9A07A', hair:'#171210', style:'short', shirt:'#F2C14E', pants:'#3B4F6B', bottom:'shorts' }),
+      lines: () => ['Welcome to my city! ⚽', 'Fun fact: Bogotá is 2,600 meters up. That’s why I can run forever at sea level. 😎'] },
+    { id:'elsa', name:'Mami Elsa', x:17, y:7, d:0, wander:1, av:npcAv(b, { skin:'#C98E68', hair:'#B4B0AC', style:'pony', shirt:'#E07A93', bottom:'skirt', pants:'#6C5B9E' }), gift:1,
+      lines: (me, W, c) => c.st.got_elsa2 ? ['¡Coma, coma! (Eat, eat!) 🫓'] : ['¡Ay, mi amor! ¡Bienvenido a mi casa vieja! (Welcome to my old house!)', 'Para subir Monserrate necesita energía. (To climb Monserrate you need energy.)', '(Got 3 Arepas!)'] },
+    { id:'diana', name:'Diana', x:21, y:15, d:0, av:npcAv(b, { skin:'#D9A07A', hair:'#171210', style:'bob', shirt:'#7FB6D9', bottom:'longskirt', pants:'#F2E6D8', lashes:'natural' }),
+      lines: () => ['¡Hola! Isn’t the cathedral beautiful?', 'I’m praying you find Dayla soon. “The LORD is my shepherd; I shall not want.” (Psalm 23:1)'] },
+    { id:'tintin', name:'Tintín', x:24, y:28, d:0, av:npcAv(b, { skin:'#E3B08C', hair:'#3A281E', style:'short', glasses:'square', shirt:'#F2C14E', pants:'#2A2F3A' }), taxi:1,
+      lines: () => [`¡Quiubo, ${son}! Aquí también tengo taxi. (I have a taxi here too.)`, '¿Para dónde? (Where to?)'] },
+    { id:'condor', name:'Cóndorito', x:34, y:14, d:2, bird:1,
+      lines: (me, W) => W.b_condor ? ['¡Vamos, parcero! (Let’s go, buddy!) 🦅'] : ['¡Alto ahí! (Stop right there!) Who goes up MY mountain?', '…A little brown dog? Sí, she ran right past me, chasing a glowing duck. Then the cats came.', 'Those cats ruffled my feathers. Nobody ruffles Cóndorito’s feathers!', 'I’ll fly you up the rest of the way, parcero. (buddy) Vamos!', '(Cóndorito joined your team! Tap 🐾 near gaps to fly across.)'],
+      end: W => W.b_condor ? null : { b_condor: 1, _joinc: 1 } }
+  ];
+}
+
 /* ---------- game ---------- */
 function start(host, api){
   stop();
   SOUND_ON = () => api.soundOn();
-  const map = buildMap();
+  const LOC = (api.loadWorld() || {}).loc === 'bogota' ? 'bogota' : 'home', HOME = LOC === 'home';
+  const HS = HOME ? HOUSES : BOG.houses, SG = HOME ? SIGNS : BOG.signs, AR = HOME ? AREAS : BOG.areas, PT = HOME ? PORTAL : BOG.portal;
+  const map = HOME ? buildMap() : buildBogota();
   const bg = cnv(MW * T, MH * T), bx = bg.getContext('2d'), top = cnv(MW * T, MH * T), tx = top.getContext('2d');
-  for(let y = 0; y < MH; y++) for(let x = 0; x < MW; x++) drawTile(bx, null, x, y, map[y][x], map);
-  HOUSES.forEach(h => { drawHouse(bx, h); drawRoof(tx, h); });
-  drawHoops(bx);
-  (() => { const px = 21 * T, py = 14 * T - 8; bx.fillStyle = '#A9A49E'; bx.fillRect(px - 6, py, 44, 26); bx.fillStyle = '#58AEDD'; bx.fillRect(px - 3, py + 3, 38, 20); bx.fillStyle = '#C4BFB8'; bx.fillRect(px + 12, py - 6, 8, 18); bx.fillStyle = '#BFE6F5'; bx.fillRect(px + 14, py - 10, 4, 6); })();
+  for(let y = 0; y < MH; y++) for(let x = 0; x < MW; x++){ if(HOME) drawTile(bx, null, x, y, map[y][x], map); else bogTiles(bx, x, y, map[y][x], map); }
+  HS.forEach(h => { drawHouse(bx, h); drawRoof(tx, h); });
+  if(HOME) drawHoops(bx);
+  if(!HOME){ const px = 15 * T, py = 20 * T; bx.fillStyle = '#A9A49E'; bx.fillRect(px - 2, py + 6, 36, 26); bx.fillStyle = '#7B7F86'; bx.fillRect(px + 10, py - 14, 12, 26); bx.fillStyle = '#5B6B82'; bx.fillRect(px + 12, py - 22, 8, 10); bx.fillRect(px + 13, py - 26, 6, 5); }
+  if(HOME) (() => { const px = 21 * T, py = 14 * T - 8; bx.fillStyle = '#A9A49E'; bx.fillRect(px - 6, py, 44, 26); bx.fillStyle = '#58AEDD'; bx.fillRect(px - 3, py + 3, 38, 20); bx.fillStyle = '#C4BFB8'; bx.fillRect(px + 12, py - 6, 8, 18); bx.fillStyle = '#BFE6F5'; bx.fillRect(px + 14, py - 10, 4, 6); })();
   for(let y = 0; y < MH; y++) for(let x = 0; x < MW; x++) if(map[y][x] === 'T') drawCanopy(tx, x, y);
-  SIGNS.forEach(s => { const px = s.x * T, py = s.y * T; bx.fillStyle = '#7B4B2F'; bx.fillRect(px + 7, py + 8, 2, 8); bx.fillStyle = '#C79A63'; bx.fillRect(px + 2, py + 2, 12, 8); bx.fillStyle = '#9A6440'; bx.fillRect(px + 2, py + 9, 12, 1); bx.fillRect(px + 4, py + 5, 8, 1); map[s.y][s.x] = 'r'; });
-  for(let y = 13; y < 16; y++) for(let x = 21; x < 23; x++) map[y][x] = 'h';
-  (() => { const px = 36 * T + 2, py = 15 * T + 2; bx.fillStyle = 'rgba(0,0,0,.18)'; bx.fillRect(px, py + 18, 30, 4); bx.fillStyle = '#F2C14E'; bx.fillRect(px, py + 6, 30, 13); bx.fillRect(px + 6, py, 18, 8); bx.fillStyle = '#BFE6F5'; bx.fillRect(px + 8, py + 2, 6, 5); bx.fillRect(px + 16, py + 2, 6, 5); bx.fillStyle = '#2A201C'; bx.fillRect(px + 4, py + 17, 6, 5); bx.fillRect(px + 20, py + 17, 6, 5); bx.fillRect(px + 11, py - 3, 8, 3); bx.fillStyle = '#FFFFFF'; bx.fillRect(px + 12, py - 2, 6, 1); bx.fillStyle = '#C9A24E'; for(let i = 0; i < 30; i += 4) bx.fillRect(px + i, py + 12, 2, 2); map[15][36] = map[15][37] = map[16][36] = map[16][37] = 'h'; })();
+  SG.forEach(s => { const px = s.x * T, py = s.y * T; bx.fillStyle = '#7B4B2F'; bx.fillRect(px + 7, py + 8, 2, 8); bx.fillStyle = '#C79A63'; bx.fillRect(px + 2, py + 2, 12, 8); bx.fillStyle = '#9A6440'; bx.fillRect(px + 2, py + 9, 12, 1); bx.fillRect(px + 4, py + 5, 8, 1); map[s.y][s.x] = 'r'; });
+  if(HOME) for(let y = 13; y < 16; y++) for(let x = 21; x < 23; x++) map[y][x] = 'h';
+  ((tx0, ty0) => { const px = tx0 * T + 2, py = ty0 * T + 2; bx.fillStyle = 'rgba(0,0,0,.18)'; bx.fillRect(px, py + 18, 30, 4); bx.fillStyle = '#F2C14E'; bx.fillRect(px, py + 6, 30, 13); bx.fillRect(px + 6, py, 18, 8); bx.fillStyle = '#BFE6F5'; bx.fillRect(px + 8, py + 2, 6, 5); bx.fillRect(px + 16, py + 2, 6, 5); bx.fillStyle = '#2A201C'; bx.fillRect(px + 4, py + 17, 6, 5); bx.fillRect(px + 20, py + 17, 6, 5); bx.fillRect(px + 11, py - 3, 8, 3); bx.fillStyle = '#FFFFFF'; bx.fillRect(px + 12, py - 2, 6, 1); bx.fillStyle = '#C9A24E'; for(let i = 0; i < 30; i += 4) bx.fillRect(px + i, py + 12, 2, 2); map[ty0][tx0] = map[ty0][tx0 + 1] = map[ty0 + 1][tx0] = map[ty0 + 1][tx0 + 1] = 'h'; })(HOME ? 36 : 25, HOME ? 15 : 29);
   // parked cars
-  [[20, 32, '#C9473D'], [24, 32, '#3E6E8E'], [22, 35, '#E9E2D6']].forEach(([cx0, cy0, col]) => { const px = cx0 * T + 1, py = cy0 * T; bx.fillStyle = 'rgba(0,0,0,.2)'; bx.fillRect(px + 1, py + 26, 14, 3); bx.fillStyle = col; bx.fillRect(px, py + 2, 14, 24); bx.fillStyle = '#BFE6F5'; bx.fillRect(px + 2, py + 5, 10, 5); bx.fillRect(px + 2, py + 18, 10, 4); bx.fillStyle = shade(col, -.25); bx.fillRect(px, py + 11, 14, 6); map[cy0][cx0] = map[cy0 + 1][cx0] = 'h'; });
+  (HOME ? [[20, 32, '#C9473D'], [24, 32, '#3E6E8E'], [22, 35, '#E9E2D6']] : []).forEach(([cx0, cy0, col]) => { const px = cx0 * T + 1, py = cy0 * T; bx.fillStyle = 'rgba(0,0,0,.2)'; bx.fillRect(px + 1, py + 26, 14, 3); bx.fillStyle = col; bx.fillRect(px, py + 2, 14, 24); bx.fillStyle = '#BFE6F5'; bx.fillRect(px + 2, py + 5, 10, 5); bx.fillRect(px + 2, py + 18, 10, 4); bx.fillStyle = shade(col, -.25); bx.fillRect(px, py + 11, 14, 6); map[cy0][cx0] = map[cy0 + 1][cx0] = 'h'; });
 
   host.innerHTML = `<canvas class="rpg-cv"></canvas>
     <div class="rpg-top"><button class="rpg-x" aria-label="Leave the game">✕</button><div class="rpg-area"></div><div class="grow"></div><div class="rpg-hud"></div><button class="rpg-bagbtn rpg-mus" aria-label="Music on or off">🎵</button><button class="rpg-bagbtn rpg-bag" aria-label="Bag and journal">🎒</button></div>
@@ -367,11 +470,11 @@ function start(host, api){
   const cv = $('.rpg-cv'), cx = cv.getContext('2d');
   const me = api.me, other = me === 'david' ? 'laura' : 'david', ME = api.nameOf(me);
   const sheets = { [me]: heroSheet(api.avatar(me)), [other]: heroSheet(api.avatar(other)) };
-  const SHEETS = { dayla: dogSheet(), alejandro: dogSheet({ B:'#D9A066', D:'#B07A40', Wt:'#F2D7B0', long:1 }) };
-  let npcs = makeNPCs(api);
+  const SHEETS = { dayla: dogSheet(), alejandro: dogSheet({ B:'#D9A066', D:'#B07A40', Wt:'#F2D7B0', long:1 }), lunita: dogSheet({ B:'#C98E5A', D:'#8A5A36', Wt:'#E9C49A' }), papu: dogSheet({ B:'#8E8A93', D:'#6E6A72', Wt:'#C4C0C8' }), moka: dogSheet({ B:'#7B4B2F', D:'#5A3520', Wt:'#C9A47A' }) };
+  let npcs = HOME ? makeNPCs(api) : makeBogotaNPCs(api);
   const saved = api.load() || {};
   const st = Object.assign({ hp:10, mhp:10, dhp:5, dmhp:5, lv:1, xp:0, coins:0, items:{ snack:1 }, diary:{}, partner:null }, saved);
-  st.items = Object.assign({ snack:0 }, st.items); st.diary = st.diary || {};
+  st.items = Object.assign({ snack:0 }, st.items); st.diary = st.diary || {}; st.partners = st.partners || (st.partner ? [st.partner] : []);
   let W = Object.assign({}, api.loadWorld() || {});
   G = { stop: () => {}, lightOn: false };
   const p = { x: saved.x || 8 * T + 8, y: saved.y || 11 * T + 4, d: saved.d || 0, f: 0, ft: 0, moving: false };
@@ -384,28 +487,29 @@ function start(host, api){
   const fx = [], tasks = [];
   let talk = null, lastSave = 0, lastSent = 0, raf = 0, prev = performance.now(), scale = 3, area = '', ch = null, safeT = 0, BT = null, dirty = false, scene = false, shake = 0;
   const daylaHome = () => !saved.intro;
-  function partnerSet(){ if(daylaHome()){ pup.who = 'dayla'; pup.vis = true; } else if(st.partner === 'alejandro'){ pup.who = 'alejandro'; pup.vis = true; npcs = npcs.filter(n => n.id !== 'alejandro'); } else pup.vis = false; }
+  function partnerSet(){ if(HOME && daylaHome()){ pup.who = 'dayla'; pup.vis = true; } else if(st.partner){ pup.who = st.partner; pup.vis = true; npcs = npcs.filter(n => !st.partners.includes(n.id)); } else pup.vis = false; }
 
   function resize(){ const r = host.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1); scale = Math.max(2, Math.round(Math.min(r.width / (12 * T), r.height / (14 * T)) * dpr) / dpr); cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); cv.style.width = r.width + 'px'; cv.style.height = r.height + 'px'; G.dpr = dpr; }
   resize(); window.addEventListener('resize', resize);
 
   const gateShut = () => W.p_locked && !W.p_gate;
-  const solidAt = (px, py) => { const x = Math.floor(px / T), y = Math.floor(py / T); if(x < 0 || y < 0 || x >= MW || y >= MH) return true; const c = map[y][x]; if(c === 'g') return gateShut(); return !!SOLID[c]; };
+  const solidAt = (px, py) => { const x = Math.floor(px / T), y = Math.floor(py / T); if(x < 0 || y < 0 || x >= MW || y >= MH) return true; const c = map[y][x]; if(c === 'g') return gateShut(); if(c === 'B') return !W.b_dogs; if(c === 'M' || c === 'X') return true; return !!SOLID[c]; };
   const walkable = (tx2, ty2) => (map[ty2] || [])[tx2] !== undefined && !SOLID[map[ty2][tx2]];
   const nearWalk = (tx2, ty2) => { for(let r = 0; r < 6; r++) for(let dy = -r; dy <= r; dy++) for(let dx = -r; dx <= r; dx++) if(walkable(tx2 + dx, ty2 + dy)) return [tx2 + dx, ty2 + dy]; return [tx2, ty2]; };
   const blocked = (x, y) => solidAt(x - 5, y - 3) || solidAt(x + 5, y - 3) || solidAt(x - 5, y + 1) || solidAt(x + 5, y + 1) || npcs.some(n => Math.abs(n.x - x) < 10 && Math.abs(n.y - y) < 7);
   { const tx0 = Math.floor(p.x / T), ty0 = Math.floor(p.y / T); if(!walkable(tx0, ty0)){ const [a, b2] = nearWalk(tx0, ty0); p.x = a * T + 8; p.y = b2 * T + 8; } }
   function placeNPCs(){ npcs.forEach(n => { if(n.placed) return; const [a, b2] = nearWalk(n.x, n.y); n.x = a * T + 8; n.y = b2 * T + 10; n.hx = n.x; n.hy = n.y; n.t = Math.random() * 2; n.f = 0; n.placed = 1;
-    n.sheet = n.dog ? SHEETS.alejandro : n.wheel ? wheelSheet(n.av) : heroSheet(n.av); }); }
+    if(n.dogc){ n.dog = 1; n.sheet = SHEETS[n.dogc]; } else if(n.bird) n.sheet = null; else n.sheet = n.dog ? SHEETS.alejandro : n.wheel ? wheelSheet(n.av) : heroSheet(n.av); }); }
   placeNPCs(); partnerSet();
   function inPark(){ return p.x > PARK.x * T && p.x < (PARK.x + PARK.w) * T && p.y > PARK.y * T && p.y < (PARK.y + PARK.h) * T; }
-  function unstick(){ if(gateShut() && inPark()){ p.x = GATE.x; p.y = (PARK.y - 2) * T + 8; pup.x = p.x - 12; pup.y = p.y; pup.trail = []; } }
+  function unstick(){ if(HOME && gateShut() && inPark()){ p.x = GATE.x; p.y = (PARK.y - 2) * T + 8; pup.x = p.x - 12; pup.y = p.y; pup.trail = []; } }
 
   /* Hairballs roaming the neighbourhood, and the sergeant in the park */
   const mons = [];
   const addMon = (k, id, tx2, ty2) => { const [a, b2] = nearWalk(tx2, ty2); mons.push({ k, id, x: a * T + 8, y: b2 * T + 8, hx: a * T + 8, hy: b2 * T + 8, t: Math.random() * 3, mx: 0, my: 0 }); };
-  addMon('hairball', 'c1', 30, 25); addMon('hairball', 'c2', 16, 23); addMon('hairball', 'c3', 38, 10); addMon('sarge', 'sarge', 10, 31);
-  const monShown = m => m.k === 'sarge' ? (W.p_gate && !W.p_done) : (W.p_start && !W['p_' + m.id]);
+  if(HOME){ addMon('hairball', 'c1', 30, 25); addMon('hairball', 'c2', 16, 23); addMon('hairball', 'c3', 38, 10); addMon('sarge', 'sarge', 10, 31); }
+  else { addMon('hairball', 'b1', 30, 18); addMon('hairball', 'b2', 33, 14); addMon('hairball', 'b3', 34, 8); addMon('capi', 'capi', 34, 4); }
+  const monShown = m => m.gone ? false : m.k === 'sarge' ? (W.p_gate && !W.p_done) : m.k === 'capi' ? (W.b_gap && !W.b_done) : HOME ? (W.p_start && !W['p_' + m.id]) : !W['b_' + m.id];
 
   /* --- input --- */
   const joy = $('.rpg-joy'), knob = joy.querySelector('i'); let jid = null, jx = 0, jy = 0;
@@ -426,7 +530,7 @@ function start(host, api){
   musBtn.addEventListener('click', () => { unlock(); MUS.toggle(); musLook(); banner(MUS.on ? '🎵 Music on' : '🔇 Music off'); });
 
   /* --- saving --- */
-  const pack = () => ({ x: Math.round(p.x), y: Math.round(p.y), d: p.d, seen: 1, intro: saved.intro || 0, hp: st.hp, mhp: st.mhp, dhp: st.dhp, dmhp: st.dmhp, lv: st.lv, xp: st.xp, coins: st.coins, items: st.items, diary: st.diary, partner: st.partner || null, got_elsa: st.got_elsa || 0 });
+  const pack = () => ({ x: Math.round(p.x), y: Math.round(p.y), d: p.d, seen: 1, intro: saved.intro || 0, hp: st.hp, mhp: st.mhp, dhp: st.dhp, dmhp: st.dmhp, lv: st.lv, xp: st.xp, coins: st.coins, items: st.items, diary: st.diary, partner: st.partner || null, partners: st.partners, got_elsa: st.got_elsa || 0, got_elsa2: st.got_elsa2 || 0 });
   const saveNow = () => { lastSave = performance.now(); api.save(pack()); };
   function setWorld(patch){ if(!patch) return; W = Object.assign({}, W, patch); api.saveWorld(W); }
   function hud(){ $('.rpg-hud').innerHTML = `❤️ ${st.hp}/${st.mhp} · 🪙 ${st.coins}`; $('.rpg-b').style.opacity = pup.vis ? 1 : .45; }
@@ -450,17 +554,22 @@ function start(host, api){
     const fx2 = p.x + [0, -14, 14, 0][p.d], fy2 = p.y + [14, 0, 0, -14][p.d];
     const n = npcs.find(n => Math.hypot(n.x - fx2, n.y - fy2) < 16);
     if(n){ n.d = [3, 2, 1, 0][p.d]; n.t = 3;
-      if(n.taxi){ say(n.name, n.lines(ME, W, { st }), null, TAXI.map(([l, a, b2, nm]) => [l, () => taxiTo(a, b2, nm)]).concat([['✈️ Airport', () => say('Tintín', ['¿El aeropuerto? ¡Todavía no! Pronto. (The airport? Not yet! Soon.) ✈️'])], ['No, gracias', null]])); return; }
+      if(n.taxi){ say(n.name, n.lines(ME, W, { st }), null, (HOME ? TAXI : TAXI_B).map(([l, a, b2, nm]) => [l, () => taxiTo(a, b2, nm)]).concat([['✈️ Airport', () => say('Tintín', ['¿El aeropuerto? ¡Todavía no! Pronto. (The airport? Not yet! Soon.) ✈️'])], ['No, gracias', null]])); return; }
       say(n.name, n.lines(ME, W, { st }), () => {
-        if(n.gift && W.p_start && !W.p_done && !st.got_elsa){ st.got_elsa = 1; st.items.snack += 3; saveNow(); api.sfx('success'); }
+        if(n.gift && HOME && W.p_start && !W.p_done && !st.got_elsa){ st.got_elsa = 1; st.items.snack += 3; saveNow(); api.sfx('success'); }
+        if(n.gift && !HOME && !st.got_elsa2){ st.got_elsa2 = 1; st.items.snack += 3; saveNow(); api.sfx('success'); }
+        if(n.dogc){ st.diary[n.dogc] = 1; }
         const patch = n.end && n.end(W);
-        if(patch && patch._join){ st.partner = 'alejandro'; st.dhp = st.dmhp = 5; st.diary.alejandro = 1; pup.x = n.x; pup.y = n.y; pup.trail = []; partnerSet(); hud(); saveNow(); sfx('yap'); banner('🐕 Alejandro joined your team!'); return; }
-        if(patch){ setWorld(patch); banner('📜 ' + objective(W, st)); }
+        if(patch && patch._joinc){ delete patch._joinc; setWorld(patch); st.partners = Array.from(new Set(st.partners.concat('condor'))); st.partner = 'condor'; st.diary.condor = 1; st.dhp = st.dmhp; pup.x = n.x; pup.y = n.y; pup.trail = []; partnerSet(); hud(); saveNow(); banner('🦅 Cóndorito joined your team!'); return; }
+        if(patch && patch._join){ st.partners = Array.from(new Set(st.partners.concat('alejandro'))); st.partner = 'alejandro'; st.dhp = st.dmhp = 5; st.diary.alejandro = 1; pup.x = n.x; pup.y = n.y; pup.trail = []; partnerSet(); hud(); saveNow(); sfx('yap'); banner('🐕 Alejandro joined your team!'); return; }
+        if(patch){ setWorld(patch); banner('📜 ' + (HOME ? objective(W, st) : objectiveB(W))); }
       }); return; }
-    if(Math.hypot(GATE.x - fx2, GATE.y - fy2) < 20 && W.p_start){ gateTalk(); return; }
-    if(portal.open && Math.hypot(PORTAL.x - fx2, PORTAL.y - fy2) < 26){ say('Portal', ['(The portal swirls with color. Through it you can see a city high up in green mountains… Bogotá!)', '(Chapter 1: Bogotá is coming in the next update. Hold on, Dayla!) 🐾']); return; }
-    const s = SIGNS.find(s => Math.hypot(s.x * T + 8 - fx2, s.y * T + 8 - fy2) < 16); if(s){ say('Sign', [s.text]); return; }
-    const h = HOUSES.find(h => Math.hypot((h.x + h.door) * T + 8 - fx2, (h.y + h.h) * T - fy2) < 16);
+    if(HOME && Math.hypot(GATE.x - fx2, GATE.y - fy2) < 20 && W.p_start){ gateTalk(); return; }
+    if(!HOME && Math.hypot(PT.x - fx2, PT.y - fy2) < 26){ say('Portal', ['(The portal swirls. Through it you can see your neighbourhood back home.)'], null, [['🏠 Go home', () => travel('home')], ['Stay', null]]); return; }
+    if(portal.open && Math.hypot(PT.x - fx2, PT.y - fy2) < 26 && W.p_done){ say('Portal', ['(The portal swirls with color. Through it you can see a city high up in green mountains… Bogotá!)'], null, [['🌀 Step through to Bogotá', () => travel('bogota')], ['Not yet', null]]); return; }
+    if(portal.open && Math.hypot(PT.x - fx2, PT.y - fy2) < 26){ say('Portal', ['(The portal swirls with color. Through it you can see a city high up in green mountains… Bogotá!)', '(Chapter 1: Bogotá is coming in the next update. Hold on, Dayla!) 🐾']); return; }
+    const s = SG.find(s => Math.hypot(s.x * T + 8 - fx2, s.y * T + 8 - fy2) < 16); if(s){ say('Sign', [s.text]); return; }
+    const h = HS.find(h => Math.hypot((h.x + h.door) * T + 8 - fx2, (h.y + h.h) * T - fy2) < 16);
     if(h){ if(h.id === 'home') say('Rhead House', W.p_start && !W.p_done ? ['Home feels so quiet without Dayla…', 'You rest for a moment and catch your breath.', '(Hearts refilled! ❤️)'] : ['Home sweet home. 🏠', 'You rest for a bit.', '(Hearts refilled! ❤️)'], () => { st.hp = st.mhp; st.dhp = st.dmhp; hud(); saveNow(); }); else say(h.name, [h.sign]); return; }
     if(remote.on && Math.hypot(remote.x - fx2, remote.y - fy2) < 18){ say(api.nameOf(other), ['💕 *waves at you*']); return; }
     if(pup.vis && Math.hypot(pup.x - fx2, pup.y - fy2) < 18){ if(pup.who === 'dayla') say('Dayla', ['*happy wiggle* 🐾']); else { sfx('yap'); say('Alejandro', [['*yip!* (Alejandro is ready for action.)', '*sniff sniff* (He keeps looking toward the dog park.)', '*wags his whole long body*'][Math.floor(Math.random() * 3)]]); } }
@@ -474,8 +583,12 @@ function start(host, api){
   function partnerAct(){
     if(!pup.vis){ banner('🐾 Dayla isn’t here…'); return; }
     if(pup.who === 'dayla'){ banner('🐾 *happy wiggle*'); return; }
+    if(pup.who === 'condor'){
+      const gy = 10 * T + 8, gx = 37 * T + 8;
+      if(!HOME && Math.abs(p.x - gx) < 30 && (Math.abs(p.y - (12 * T + 8)) < 26 || Math.abs(p.y - (9 * T + 8)) < 26)){ const up = p.y > gy; scene = true; api.sfx('open'); banner('🦅 ¡Agárrese! (Hold on!)'); walkTo(p, [[gx, up ? 9 * T + 8 : 12 * T + 8]], 70).then(() => { scene = false; pup.x = p.x; pup.y = p.y; pup.trail = []; if(!W.b_gap){ setWorld({ b_gap: 1 }); MUS.play('boss'); banner('📜 Reach the top of Monserrate!'); } }); return; }
+      banner('🦅 *flaps proudly*'); return; }
     sfx('yap');
-    if(W.p_locked && !W.p_gate && Math.hypot(GATE.x - p.x, GATE.y - p.y) < 34){
+    if(HOME && W.p_locked && !W.p_gate && Math.hypot(GATE.x - p.x, GATE.y - p.y) < 34){
       const miss = gateMissing();
       if(miss.length) return say('Alejandro', ['*sniff… whimper* 🐕', `(Alejandro peeks under the fence. There are a LOT of Hairballs in there. First ${miss.join(' and ')}.)`]);
       scene = true; tasks.push({ ent: pup, pts: [[GATE.x, GATE.y + 12], [GATE.x + 4, GATE.y - 14]], sp: 60, res: async () => { sfx('clang'); setWorld({ p_gate: 1 }); await sleep(300); tasks.push({ ent: pup, pts: [[GATE.x, GATE.y + 12]], sp: 60, res: () => {} }); scene = false; say('Alejandro', ['*wriggle wriggle… CLICK!* 🐕', '(Alejandro squeezed under the fence and pushed the latch open! What a good boy.)', '(Something big is waiting inside. Get ready…)']); MUS.play('boss'); } });
@@ -484,6 +597,8 @@ function start(host, api){
     banner('🐕 *YAP YAP!*');
   }
   function taxiTo(tx2, ty2, name){ const [a, b2] = nearWalk(tx2, ty2); p.x = a * T + 8; p.y = b2 * T + 8; pup.x = p.x - 12; pup.y = p.y + 6; pup.trail = []; api.sfx('open'); banner('🚕 ' + name); saveNow(); }
+  const TAXI_B = [['⛪ The plaza', 15, 24, 'The plaza'], ['⛰️ Foot of Monserrate', 28, 23, 'Monserrate'], ['🌀 The portal', 6, 33, 'The portal']];
+  function travel(loc){ const sp = loc === 'bogota' ? BOG.spawn : [10, 30]; p.x = sp[0] * T + 8; p.y = sp[1] * T + 8; setWorld({ loc }); saveNow(); MUS.stop(); banner('🌀 Whoosh!'); setTimeout(() => start(host, api), 250); }
   const TAXI = [['🏠 Home', 8, 11, 'Rhead House'], ['🐾 Dog park', 13, 25, 'The dog park'], ['🏊 Pool', 27, 30, 'The pool'], ['🏀 The court', 31, 23, 'Rhead Court'], ['⛪ Chapel', 6, 25, 'The little chapel']];
 
   /* --- scripted scenes --- */
@@ -498,7 +613,7 @@ function start(host, api){
     sfx('quack'); await sayP('Big Duck', ['QUACK.']);
     await sayP(ME, ['…Did the duck just quack by itself?']);
     sfx('quack');
-    const route = [[8 * T + 8, 13 * T + 8], [PARK.gx * T + 8, 13 * T + 8], [PARK.gx * T + 8, (PARK.y + 1) * T + 8], [PORTAL.x, PORTAL.y]];
+    const route = [[8 * T + 8, 13 * T + 8], [PARK.gx * T + 8, 13 * T + 8], [PARK.gx * T + 8, (PARK.y + 1) * T + 8], [PT.x, PT.y]];
     const dk = walkTo(duck, route, 84); await sleep(500);
     const dg = walkTo(pup, route.map(([a, b2]) => [a, b2]), 80); banner('🐾 Dayla! Come back!');
     const pl = walkTo(p, [[8 * T + 8, 13 * T + 8], [PARK.gx * T + 8, 13 * T + 8], [PARK.gx * T + 8, (PARK.y + 1) * T + 8], [11 * T + 8, 30 * T + 8]], 62);
@@ -525,6 +640,23 @@ function start(host, api){
     setTimeout(() => say('Portal', ['(Through the swirling portal you can see a city high up in green mountains… Bogotá!)', '(Chapter 1: Bogotá is coming in the next update. Your progress is saved.)']), 1800);
   }
 
+  async function bogotaEnd(){
+    scene = true; MUS.stop();
+    const dy = { x: 36 * T + 8, y: 2 * T + 12 }; const show = { on: true }; bogDayla = dy;
+    await sayP(ME, ['Wait… up there by the chapel!']);
+    sfx('yap'); await sayP('Dayla', ['WOOF! WOOF! 🐾', '(It’s DAYLA! Her tail is going a hundred miles an hour.)']);
+    await sayP(ME, ['DAYLA! It’s me! Come here, girl!']);
+    sfx('portal'); portal2 = { x: dy.x + 14, y: dy.y, r: 0 }; for(let i = 0; i <= 16; i++){ portal2.r = i * .8; await sleep(30); }
+    sfx('quack'); await sayP('Big Duck', ['QUACK!']);
+    await sayP('Dayla', ['*whimper* (Dayla looks at you… then at the glowing duck. She HAS to follow it.)']);
+    bogDayla = null; sfx('yap'); await sleep(400); for(let i = 16; i >= 0; i--){ portal2.r = i * .8; await sleep(35); } portal2 = null;
+    await sayP(ME, ['NO! So close…']);
+    MUS.play('bogota');
+    await sayP('Cóndorito', ['¡Tranquilo, parcero! (Easy, buddy!) I have sharp eyes.', 'Through that portal I saw tall, tall buildings and yellow taxis. That was NEW YORK!', 'She’s getting closer every time. We’ll get her.']);
+    setWorld({ b_done: 1 }); saveNow(); scene = false; MUS.play('victory'); celebrate('📜 Chapter 1 complete!');
+    setTimeout(() => say('Where’s Dayla?', ['(Chapter 1: Bogotá complete! 🎉)', '(Chapter 2: New York is still being built. Your progress is saved. Come back soon!)']), 1800);
+  }
+  let bogDayla = null, portal2 = null;
   /* --- live play together --- */
   ch = api.channel && api.channel('rhead-rpg');
   if(ch){ ch.on('broadcast', { event: 'pos' }, ({ payload: q }) => { if(!q || q.who !== other) return; if(!remote.on){ remote.x = q.x; remote.y = q.y; banner(`${api.nameOf(other)} is here! 💕`); } remote.on = true; remote.tx = q.x; remote.ty = q.y; remote.d = q.d; remote.moving = q.m; remote.seen = performance.now(); })
@@ -532,19 +664,21 @@ function start(host, api){
   const send = (ev, pl) => { try{ ch && ch.send({ type: 'broadcast', event: ev, payload: pl }); }catch(e){} };
   function banner(text){ const b = $('.rpg-banner'); b.textContent = text; b.style.animationDuration = Math.min(7, Math.max(2.6, text.length / 14)) + 's'; b.classList.remove('show'); void b.offsetWidth; b.classList.add('show'); }
   function celebrate(text){ banner(text); api.sfx('success'); for(let i = 0; i < 40; i++) fx.push({ x: p.x, y: p.y - 10, vx: (Math.random() - .5) * 160, vy: -60 - Math.random() * 100, t: 1.4, c: ['#F2C14E','#E0566B','#58AEDD','#7FD07A','#FFFFFF'][i % 5] }); }
-  if(W.p_done){ portal.open = true; portal.r = 21; }
+  if(W.p_done || !HOME){ portal.open = true; portal.r = 21; }
 
   /* --- bag: journal, items, Dayla's Diary --- */
   function openPanel(){
-    const pn = $('.rpg-panel'), need = st.lv * 8, pn2 = st.partner === 'alejandro' ? 'Alejandro' : null;
+    const pn = $('.rpg-panel'), need = st.lv * 8, pn2 = st.partner === 'alejandro' ? 'Alejandro' : st.partner === 'condor' ? 'Cóndorito' : null;
     pn.innerHTML = `<div class="rpg-pn-h"><b>🎒 ${ME}’s bag</b><button data-x>✕</button></div>
-      <div class="rpg-pn-s"><div class="eyebrow">What to do next</div><p>${objective(W, st)}</p></div>
+      <div class="rpg-pn-s"><div class="eyebrow">What to do next</div><p>${(HOME ? objective(W, st) : objectiveB(W))}</p></div>
       <div class="rpg-pn-s"><div class="eyebrow">You</div><p>Level ${st.lv} · ⭐ ${st.xp}/${need} XP<br>❤️ ${st.hp}/${st.mhp}${pn2 ? ` · ${pn2} 🐾 ${st.dhp}/${st.dmhp}` : ''} · 🪙 ${st.coins}</p></div>
+      ${st.partners.length > 1 ? `<div class="rpg-pn-s"><div class="eyebrow">Partner</div><div class="rpg-ch">${st.partners.map(k => `<button data-pt="${k}" style="${st.partner === k ? '' : 'background:#EFE7DC;box-shadow:0 3px 0 #CFC3B3'}">${k === 'condor' ? '🦅 Cóndorito' : '🐕 Alejandro'}</button>`).join('')}</div></div>` : ''}
       <div class="rpg-pn-s"><div class="eyebrow">Items</div><div class="rpg-item"><span>🫓 Arepa ×${st.items.snack}</span><button data-eat ${st.items.snack && st.hp < st.mhp ? '' : 'disabled'}>Eat (+5 ❤️)</button></div></div>
       <div class="rpg-pn-s"><div class="eyebrow">📔 Dayla’s Diary · ${DIARY.filter(k => st.diary[k]).length}/${DIARY.length} pages</div><p class="fine" style="margin:2px 0 6px">Everything Dayla thinks about everyone. She is very honest.</p><div class="rpg-dex">${DIARY.map(k => { const s = st.diary[k], m = MONS[k]; return `<div class="${s ? '' : 'unk'}"><canvas data-mon="${k}" width="28" height="28"></canvas><b>${s ? m.name : '???'}</b>${s ? `<small>“${m.diary}”</small>` : '<span>Not met yet</span>'}</div>`; }).join('')}</div></div>`;
     pn.hidden = false;
-    pn.querySelectorAll('canvas[data-mon]').forEach(c => { const x = c.getContext('2d'), k = c.dataset.mon; x.imageSmoothingEnabled = false; if(!st.diary[k]){ x.fillStyle = '#C9BFB3'; x.fillRect(9, 8, 10, 12); return; } if(k === 'alejandro') x.drawImage(SHEETS.alejandro, 0, 2 * 14, 16, 14, 6, 8, 16, 14); else if(k === 'sarge') drawMon(x, k, 4, 4, 0, 1); else drawMon(x, k, 6, 7, 0, 1); });
+    pn.querySelectorAll('canvas[data-mon]').forEach(c => { const x = c.getContext('2d'), k = c.dataset.mon; x.imageSmoothingEnabled = false; if(!st.diary[k]){ x.fillStyle = '#C9BFB3'; x.fillRect(9, 8, 10, 12); return; } if(SHEETS[k]) x.drawImage(SHEETS[k], 0, 2 * 14, 16, 14, 6, 8, 16, 14); else if(k === 'sarge' || k === 'capi') drawMon(x, k, 4, 4, 0, 1); else drawMon(x, k, 6, 7, 0, 1); });
     pn.querySelector('[data-x]').onclick = () => { pn.hidden = true; };
+    pn.querySelectorAll('[data-pt]').forEach(b2 => b2.onclick = () => { st.partner = b2.dataset.pt; pup.x = p.x - 12; pup.y = p.y + 4; pup.trail = []; partnerSet(); saveNow(); openPanel(); banner(st.partner === 'condor' ? '🦅 Cóndorito is with you' : '🐕 Alejandro is with you'); });
     const e = pn.querySelector('[data-eat]'); if(e) e.onclick = () => { if(!st.items.snack) return; st.items.snack--; st.hp = Math.min(st.mhp, st.hp + 5); st.dhp = Math.min(st.dmhp, st.dhp + 3); api.sfx('pop'); hud(); saveNow(); openPanel(); };
   }
 
@@ -553,9 +687,9 @@ function start(host, api){
     const def = MONS[mon.k], foes = [{ k: mon.k, hp: def.hp, mhp: def.hp, atk: def.atk, ox: 0, dead: 0, flash: 0 }];
     if(mon.k === 'sarge') foes.push({ k: 'hairball', hp: 3, mhp: 3, atk: 1, ox: 0, dead: 0, flash: 0 });
     foes.forEach(f => { st.diary[f.k] = 1; });
-    const pal = st.partner === 'alejandro' ? { name: 'Alejandro', sheet: SHEETS.alejandro, move: 'Alejandro yap-attack' } : null;
+    const pal = st.partner === 'alejandro' ? { name: 'Alejandro', sheet: SHEETS.alejandro, move: 'yap-attack', emo: '🐕' } : st.partner === 'condor' ? { name: 'Cóndorito', bird: 1, move: 'dive-bomb', emo: '🦅' } : null;
     const el = $('.rpg-bt'), bc = el.querySelector('canvas'), bcx = bc.getContext('2d'), menu = el.querySelector('.rpg-btmenu'), msg = el.querySelector('.rpg-btmsg'), bar = el.querySelector('.rpg-btbar'), hpEl = el.querySelector('.rpg-bthp');
-    const fxPos = (f, i) => f.k === 'sarge' ? 104 : 124 + i * 34;
+    const fxPos = (f, i) => f.k !== 'hairball' ? 104 : 124 + i * 34;
     const hero = { ox: 0, oy: 0, flash: 0 }, pupB = { ox: 0, oy: 0, flash: 0 }, pops = [];
     let tapAt = 0, waiting = null, ring = null, needle = null, over = false;
     BT = { tap(){ tapAt = performance.now(); if(waiting){ const w = waiting; waiting = null; w(tapAt); } }, draw };
@@ -569,12 +703,12 @@ function start(host, api){
       const t = now / 1000; bcx.imageSmoothingEnabled = false;
       const g = bcx.createLinearGradient(0, 0, 0, 120); g.addColorStop(0, '#9CC9E8'); g.addColorStop(.5, '#D8EEF8'); g.addColorStop(.51, '#7FC46E'); g.addColorStop(1, '#5DAF5F');
       bcx.fillStyle = g; bcx.fillRect(0, 0, 200, 120);
-      bcx.fillStyle = '#C79A63'; for(let i = 0; i < 200; i += 12){ bcx.fillRect(i, 50, 3, 14); } bcx.fillRect(0, 54, 200, 2); bcx.fillRect(0, 60, 200, 2);
+      if(HOME){ bcx.fillStyle = '#C79A63'; for(let i = 0; i < 200; i += 12){ bcx.fillRect(i, 50, 3, 14); } bcx.fillRect(0, 54, 200, 2); bcx.fillRect(0, 60, 200, 2); } else { bcx.fillStyle = '#4E8A55'; bcx.beginPath(); bcx.moveTo(0, 62); bcx.lineTo(40, 22); bcx.lineTo(80, 50); bcx.lineTo(130, 12); bcx.lineTo(200, 58); bcx.lineTo(200, 62); bcx.fill(); bcx.fillStyle = '#FBF6EE'; bcx.fillRect(126, 10, 8, 5); bcx.fillStyle = '#A9A49E'; bcx.fillRect(0, 60, 200, 4); }
       bcx.fillStyle = 'rgba(255,255,255,.8)'; for(let i = 0; i < 3; i++){ const cxp = (i * 80 + t * 6) % 240 - 20; bcx.fillRect(cxp, 14 + i * 7, 22, 5); bcx.fillRect(cxp + 4, 11 + i * 7, 12, 4); }
       bcx.fillStyle = '#C9473D'; bcx.fillRect(0, 108, 200, 12); bcx.fillStyle = '#A93A4C'; for(let i = 0; i < 200; i += 10) bcx.fillRect(i, 108, 5, 12);
       const hs = sheets[me]; bcx.globalAlpha = hero.flash > 0 && Math.floor(now / 60) % 2 ? .3 : 1; bcx.drawImage(hs, 0, 2 * 22, 16, 22, 44 + hero.ox, 64 + hero.oy, 32, 44); bcx.globalAlpha = 1;
-      if(pal){ bcx.globalAlpha = st.dhp <= 0 ? .4 : pupB.flash > 0 && Math.floor(now / 60) % 2 ? .3 : 1; bcx.drawImage(pal.sheet, (Math.floor(t * 4) % 2) * 16, 2 * 14, 16, 14, 16 + pupB.ox, 82 + pupB.oy, 32, 28); bcx.globalAlpha = 1; }
-      foes.forEach((f, i) => { if(f.dead >= 1) return; bcx.globalAlpha = f.dead ? 1 - f.dead : f.flash > 0 && Math.floor(now / 60) % 2 ? .3 : 1; drawMon(bcx, f.k, fxPos(f, i) + f.ox, f.k === 'sarge' ? 64 : 80 - (i % 2) * 6, t + i, 2); bcx.globalAlpha = 1; });
+      if(pal){ bcx.globalAlpha = st.dhp <= 0 ? .4 : pupB.flash > 0 && Math.floor(now / 60) % 2 ? .3 : 1; if(pal.bird) drawMon(bcx, 'condor', 14 + pupB.ox, 72 + pupB.oy + Math.sin(t * 5) * 2, t, 2); else bcx.drawImage(pal.sheet, (Math.floor(t * 4) % 2) * 16, 2 * 14, 16, 14, 16 + pupB.ox, 82 + pupB.oy, 32, 28); bcx.globalAlpha = 1; }
+      foes.forEach((f, i) => { if(f.dead >= 1) return; bcx.globalAlpha = f.dead ? 1 - f.dead : f.flash > 0 && Math.floor(now / 60) % 2 ? .3 : 1; drawMon(bcx, f.k, fxPos(f, i) + f.ox, f.k !== 'hairball' ? 64 : 80 - (i % 2) * 6, t + i, 2); bcx.globalAlpha = 1; });
       hero.flash -= .016; pupB.flash -= .016; foes.forEach(f => f.flash -= .016);
       if(ring){ const q = Math.max(0, (ring.at - now) / ring.ms); bcx.strokeStyle = q < .25 ? '#7FD07A' : '#FFFFFF'; bcx.lineWidth = 2; bcx.beginPath(); bcx.arc(ring.x, ring.y, 6 + q * 26, 0, 7); bcx.stroke(); bcx.fillStyle = '#E0566B'; bcx.font = 'bold 12px sans-serif'; bcx.textAlign = 'center'; bcx.fillText('!', ring.x, ring.y + 4); }
       pops.forEach(o => { o.life -= .02; o.y -= .4; }); for(let i = pops.length - 1; i >= 0; i--) if(pops[i].life <= 0) pops.splice(i, 1);
@@ -582,15 +716,15 @@ function start(host, api){
       if(needle){ const q = Math.min(1, (now - needle.s) / needle.ms); bar.querySelector('i').style.left = (q * 100) + '%'; if(q >= 1 && waiting){ const w = waiting; waiting = null; w(0); } }
     }
     async function aim(){ bar.hidden = false; needle = { s: performance.now(), ms: 1000 }; say2('Tap when the marker hits the green!'); const at = await new Promise(r => { waiting = r; }); const q = at ? (at - needle.s) / needle.ms : 1; needle = null; bar.hidden = true; return Math.abs(q - .78) < .1; }
-    function menuOn(){ const alive = foes.filter(f => !f.dead); menu.innerHTML = `<button data-m="bonk">👊 Bonk</button>${pal ? `<button data-m="pounce" ${st.dhp > 0 ? '' : 'disabled'}>🐕 ${pal.name.split(' ')[0]} yap-attack</button>` : ''}<button data-m="snack" ${st.items.snack ? '' : 'disabled'}>🫓 Arepa ×${st.items.snack}</button><button data-m="run" ${def.boss ? 'disabled' : ''}>🏃 Run</button>`; menu.hidden = false; say2(`What will you do? (${alive.length} left)`);
+    function menuOn(){ const alive = foes.filter(f => !f.dead); menu.innerHTML = `<button data-m="bonk">👊 Bonk</button>${pal ? `<button data-m="pounce" ${st.dhp > 0 ? '' : 'disabled'}>${pal.emo} ${pal.name} ${pal.move}</button>` : ''}<button data-m="snack" ${st.items.snack ? '' : 'disabled'}>🫓 Arepa ×${st.items.snack}</button><button data-m="run" ${def.boss ? 'disabled' : ''}>🏃 Run</button>`; menu.hidden = false; say2(`What will you do? (${alive.length} left)`);
       menu.querySelectorAll('button').forEach(b => b.onclick = ev => { ev.stopPropagation(); menu.hidden = true; turn(b.dataset.m); }); }
-    async function hitFoe(dmg, nice, who){ const f = foes.find(f => !f.dead); if(!f) return; const fxp = fxPos(f, foes.indexOf(f)) + (f.k === 'sarge' ? 20 : 14);
-      const actor = who === 'pup' ? pupB : hero; if(who === 'pup') sfx('yap'); await tween(actor, 'ox', who === 'pup' ? 90 : 70, 220); f.hp = Math.max(0, f.hp - dmg); f.flash = .4; sfx(nice ? 'nice' : 'hit'); pop(fxp, 64, nice ? `NICE! -${dmg}` : `-${dmg}`, nice ? '#F2C14E' : '#FFFFFF'); showHP(); await tween(actor, 'ox', 0, 260);
+    async function hitFoe(dmg, nice, who){ const f = foes.find(f => !f.dead); if(!f) return; const fxp = fxPos(f, foes.indexOf(f)) + (f.k !== 'hairball' ? 20 : 14);
+      const actor = who === 'pup' ? pupB : hero; if(who === 'pup') sfx(pal && pal.bird ? 'portal' : 'yap'); await tween(actor, 'ox', who === 'pup' ? 90 : 70, 220); f.hp = Math.max(0, f.hp - dmg); f.flash = .4; sfx(nice ? 'nice' : 'hit'); pop(fxp, 64, nice ? `NICE! -${dmg}` : `-${dmg}`, nice ? '#F2C14E' : '#FFFFFF'); showHP(); await tween(actor, 'ox', 0, 260);
       if(f.hp <= 0){ sfx('hiss'); await tween(f, 'dead', 1, 400); } }
     async function turn(m){
       if(m === 'run'){ if(Math.random() < .75){ say2('You got away safely!'); await wait(700); return finish('run'); } say2('Couldn’t get away!'); await wait(700); return foeTurn(); }
       if(m === 'snack'){ st.items.snack--; st.hp = Math.min(st.mhp, st.hp + 5); st.dhp = Math.min(st.dmhp, st.dhp + 3); pop(60, 60, '+5 ❤️', '#7FD07A'); showHP(); hud(); say2('Munch munch. Mami Elsa’s arepas hit different!'); api.sfx('pop'); await wait(900); return foeTurn(); }
-      say2(m === 'bonk' ? `${ME} gets ready to bonk!` : 'Alejandro crouches… wiggles…'); const nice = await aim();
+      say2(m === 'bonk' ? `${ME} gets ready to bonk!` : pal && pal.bird ? 'Cóndorito circles high above…' : 'Alejandro crouches… wiggles…'); const nice = await aim();
       await hitFoe(nice ? 2 : 1, nice, m === 'pounce' ? 'pup' : 'hero');
       if(foes.every(f => f.dead)) return finish('win');
       await wait(250); foeTurn();
@@ -598,7 +732,7 @@ function start(host, api){
     async function foeTurn(){
       for(const f of foes.filter(f => !f.dead)){
         const toPup = pal && st.dhp > 0 && Math.random() < .3, tgt = toPup ? pupB : hero, nm = MONS[f.k].name;
-        say2(`${nm} ${f.k === 'sarge' ? 'charges with a battle hiss at' : 'pounces at'} ${toPup ? pal.name : ME}! Tap as it hits to guard!`);
+        say2(`${nm} ${f.k !== 'hairball' ? 'charges with a battle hiss at' : 'pounces at'} ${toPup ? pal.name : ME}! Tap as it hits to guard!`);
         await wait(500 + Math.random() * 500);
         const dur = 650 + Math.random() * 350, hitAt = performance.now() + dur; ring = { x: toPup ? 32 : 60, y: toPup ? 90 : 80, at: hitAt, ms: dur };
         tapAt = 0; await tween(f, 'ox', toPup ? -100 : -76, dur); ring = null;
@@ -618,12 +752,15 @@ function start(host, api){
       if(how === 'win'){ const c = foes.reduce((a, f) => a + (MONS[f.k].coins || 0), 0), xp = foes.reduce((a, f) => a + (MONS[f.k].xp || 0), 0);
         st.coins += c; st.xp += xp; MUS.play('victory'); sfx('win'); say2(`You won! +${c} 🪙 +${xp} ⭐`); await wait(1200);
         const need = st.lv * 8; if(st.xp >= need){ st.xp -= need; st.lv++; st.mhp += 2; st.dmhp += 1; st.hp = st.mhp; st.dhp = st.dmhp; say2(`LEVEL UP! You’re level ${st.lv}. ❤️ +2, hearts refilled!`); sfx('nice'); await wait(1500); }
-        if(mon.k !== 'sarge'){ setWorld({ ['p_' + mon.id]: 1 }); const n = cats(W); say2(n >= 3 ? 'That was the last Hairball outside! Time to check the dog park.' : `Hairballs defeated: ${n}/3.`); await wait(1100); }
-      } else if(how === 'lose'){ say2('You fainted! You wake up at home… 💤'); await wait(1600); st.hp = st.mhp; st.dhp = st.dmhp; p.x = 8 * T + 8; p.y = 11 * T + 6; pup.x = p.x - 12; pup.y = p.y + 6; pup.trail = []; }
-      st.dhp = Math.max(st.dhp, 1); el.hidden = true; BT = null; safeT = 2; hud(); saveNow(); MUS.play('home');
+        if(!HOME && mon.k === 'hairball'){ setWorld({ ['b_' + mon.id]: 1 }); }
+        if(HOME && mon.k !== 'sarge'){ setWorld({ ['p_' + mon.id]: 1 }); const n = cats(W); say2(n >= 3 ? 'That was the last Hairball outside! Time to check the dog park.' : `Hairballs defeated: ${n}/3.`); await wait(1100); }
+      } else if(how === 'lose'){ say2(HOME ? 'You fainted! You wake up at home… 💤' : 'You fainted! Mami Elsa nurses you back to health… 💤'); await wait(1600); st.hp = st.mhp; st.dhp = st.dmhp; p.x = (HOME ? 8 : 17) * T + 8; p.y = (HOME ? 11 : 7) * T + 6; pup.x = p.x - 12; pup.y = p.y + 6; pup.trail = []; }
+      st.dhp = Math.max(st.dhp, 1); el.hidden = true; BT = null; safeT = 2; hud(); saveNow(); MUS.play(HOME ? 'home' : 'bogota');
+      if(how === 'win' && mon.k !== 'hairball') mon.gone = 1;
       if(how === 'win' && mon.k === 'sarge') bossEnd();
+      if(how === 'win' && mon.k === 'capi') bogotaEnd();
     }
-    showHP(); say2(def.boss ? '🪖 SERGEANT HAIRBALL blocks the way! “Nobody gets near the portal! Boss’s orders!”' : 'A Hairball hisses at you! “Ssssstay away from the dog park!”'); menu.hidden = true;
+    showHP(); say2(mon.k === 'capi' ? '🎖️ CAPTAIN HAIRBALL blocks the summit! “The little brown dog is OURS!”' : def.boss ? '🪖 SERGEANT HAIRBALL blocks the way! “Nobody gets near the portal! Boss’s orders!”' : 'A Hairball hisses at you! “Ssssstay away from the dog park!”'); menu.hidden = true;
     setTimeout(() => { if(!over) menuOn(); }, 1200);
   }
 
@@ -648,19 +785,19 @@ function start(host, api){
       if(!scene && tgt && Math.hypot(tgt[0] - pup.x, tgt[1] - pup.y) > 2 && Math.hypot(p.x - pup.x, p.y - pup.y) > 16){ const dx = tgt[0] - pup.x, dy = tgt[1] - pup.y, l = Math.hypot(dx, dy), s = Math.min(l, 84 * dt); pup.x += dx / l * s; pup.y += dy / l * s; pup.d = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 1 : 2) : (dy < 0 ? 3 : 0); pup.ft += dt; if(pup.ft > .1){ pup.ft = 0; pup.f = pup.f === 1 ? 2 : 1; } } else pup.f = 0;
       if(!scene && Math.hypot(p.x - pup.x, p.y - pup.y) > 90){ pup.x = p.x - 10; pup.y = p.y + 4; } }
     // the gate slams shut once you leave the park after the portal closes
-    if(W.p_start && !W.p_locked && !scene && p.y < PARK.y * T - 4){ setWorld({ p_locked: 1 }); sfx('clang'); banner('🔒 CLANG! A Hairball slammed the dog park gate shut behind you!'); }
+    if(HOME && W.p_start && !W.p_locked && !scene && p.y < PARK.y * T - 4){ setWorld({ p_locked: 1 }); sfx('clang'); banner('🔒 CLANG! A Hairball slammed the dog park gate shut behind you!'); }
     npcs.forEach(n => { n.t -= dt; if(n.t <= 0){ n.t = 2 + Math.random() * 3; if(n.wander && !talk){ n.mx = Math.random() < .5 ? 0 : (Math.random() - .5) * 2; n.my = Math.random() < .5 ? 0 : (Math.random() - .5) * 2; if(Math.abs(n.mx) > Math.abs(n.my) && n.mx) n.d = n.mx < 0 ? 1 : 2; else if(n.my) n.d = n.my < 0 ? 3 : 0; } else { n.mx = n.my = 0; } }
       if(n.mx || n.my){ const nx = n.x + n.mx * 22 * dt, ny = n.y + n.my * 22 * dt; if(Math.hypot(nx - n.hx, ny - n.hy) < (n.wander === 2 ? 70 : 28) && !solidAt(nx, ny) && Math.hypot(nx - p.x, ny - p.y) > 14){ n.x = nx; n.y = ny; n.ft = (n.ft || 0) + dt; if(n.ft > .2){ n.ft = 0; n.f = n.f === 1 ? 2 : 1; } } else { n.mx = n.my = 0; n.f = 0; } } else n.f = 0; });
     safeT -= dt;
     mons.forEach(m => { if(!monShown(m)) return;
       m.t -= dt; if(m.t <= 0){ m.t = 1 + Math.random() * 2; m.mx = (Math.random() - .5) * 2; m.my = (Math.random() - .5) * 2; if(Math.random() < .3) m.mx = m.my = 0; }
-      if(m.k !== 'sarge'){ const nx = m.x + m.mx * 30 * dt, ny = m.y + m.my * 30 * dt; if(Math.hypot(nx - m.hx, ny - m.hy) < 44 && !solidAt(nx, ny)){ m.x = nx; m.y = ny; } }
-      if(!talk && !BT && !scene && safeT <= 0 && Math.hypot(m.x - p.x, m.y - p.y) < (m.k === 'sarge' ? 20 : 12)){ input.x = input.y = 0; battle(m); } });
+      if(m.k === 'hairball'){ const nx = m.x + m.mx * 30 * dt, ny = m.y + m.my * 30 * dt; if(Math.hypot(nx - m.hx, ny - m.hy) < 44 && !solidAt(nx, ny)){ m.x = nx; m.y = ny; } }
+      if(!talk && !BT && !scene && safeT <= 0 && Math.hypot(m.x - p.x, m.y - p.y) < (m.k !== 'hairball' ? 20 : 12)){ input.x = input.y = 0; battle(m); } });
     for(let i = fx.length - 1; i >= 0; i--){ const f = fx[i]; f.t -= dt; f.x += f.vx * dt; f.y += f.vy * dt; f.vy += 160 * dt; if(f.t <= 0) fx.splice(i, 1); }
     if(remote.on){ remote.x += (remote.tx - remote.x) * Math.min(1, dt * 10); remote.y += (remote.ty - remote.y) * Math.min(1, dt * 10); remote.ft = (remote.ft || 0) + dt; if(remote.moving){ if(remote.ft > .14){ remote.ft = 0; remote.f = remote.f === 1 ? 2 : 1; } } else remote.f = 0; if(now - remote.seen > 6000) remote.on = false; }
     if(now - lastSent > (p.moving ? 90 : 1500)){ lastSent = now; send('pos', { who: me, x: Math.round(p.x), y: Math.round(p.y), d: p.d, m: p.moving }); }
     if(dirty && now - lastSave > 6000){ dirty = false; saveNow(); }
-    const tx2 = p.x / T, ty2 = p.y / T, a = AREAS.slice().reverse().find(([x0, y0, x1, y1]) => tx2 >= x0 && tx2 < x1 && ty2 >= y0 && ty2 < y1);
+    const tx2 = p.x / T, ty2 = p.y / T, a = AR.slice().reverse().find(([x0, y0, x1, y1]) => tx2 >= x0 && tx2 < x1 && ty2 >= y0 && ty2 < y1);
     if(a && a[4] !== area){ area = a[4]; const el = $('.rpg-area'); el.textContent = area; el.classList.remove('pulse'); void el.offsetWidth; el.classList.add('pulse'); }
     if(shake > 0) shake -= dt;
   }
@@ -676,17 +813,19 @@ function start(host, api){
     cx.fillStyle = 'rgba(255,255,255,.75)';
     for(let ty = Math.floor(camy / T); ty < Math.min(MH, (camy + vh) / T + 1); ty++) for(let tx = Math.floor(camx / T); tx < Math.min(MW, (camx + vw) / T + 1); tx++){ if(map[ty][tx] !== '~') continue; const h = hash(tx, ty); if(((t * .6 + h * 7) % 3) < 1.1) cx.fillRect(tx * T - camx + Math.floor(h * 10) + Math.floor((t * 3 + h * 5) % 3), ty * T - camy + Math.floor(hash(ty, tx) * 12), 3, 1); }
     cx.fillStyle = 'rgba(191,230,245,.9)'; const fy = 14 * T - 18 - Math.abs(Math.sin(t * 4)) * 3; cx.fillRect(21 * T + 14 - camx, fy - camy, 4, 4);
-    if(gateShut()){ const gx = GATE.x - 8 - camx, gy = GATE.y - 8 - camy; cx.fillStyle = '#C79A63'; cx.fillRect(gx + 1, gy + 4, 14, 10); cx.fillStyle = '#9A6B3C'; cx.fillRect(gx + 7, gy + 4, 2, 10); cx.fillRect(gx + 2, gy + 8, 12, 1); cx.fillStyle = '#F2C14E'; cx.fillRect(gx + 10, gy + 7, 3, 3); }
+    if(HOME && gateShut()){ const gx = GATE.x - 8 - camx, gy = GATE.y - 8 - camy; cx.fillStyle = '#C79A63'; cx.fillRect(gx + 1, gy + 4, 14, 10); cx.fillStyle = '#9A6B3C'; cx.fillRect(gx + 7, gy + 4, 2, 10); cx.fillRect(gx + 2, gy + 8, 12, 1); cx.fillStyle = '#F2C14E'; cx.fillRect(gx + 10, gy + 7, 3, 3); }
     // the portal
-    if(portal.r > 0){ const px = PORTAL.x - camx, py = PORTAL.y - camy; cx.save(); for(let i = 0; i < 4; i++){ cx.strokeStyle = ['#B39CE0','#7A5BC4','#E0A3F0','#FFFFFF'][i]; cx.globalAlpha = .85 - i * .15; cx.lineWidth = 2; cx.beginPath(); cx.ellipse(px, py, Math.max(1, portal.r - i * 3 + Math.sin(t * 6 + i) * 1.2), Math.max(1, (portal.r - i * 3) * .55), 0, t * (i % 2 ? -2 : 2), t * (i % 2 ? -2 : 2) + 5.2); cx.stroke(); } cx.fillStyle = 'rgba(122,91,196,.45)'; cx.beginPath(); cx.ellipse(px, py, portal.r * .7, portal.r * .38, 0, 0, 7); cx.fill(); cx.restore(); }
-    else if(W.p_start && !W.p_done){ cx.fillStyle = `rgba(179,156,224,${.25 + Math.sin(t * 3) * .15})`; cx.beginPath(); cx.ellipse(PORTAL.x - camx, PORTAL.y - camy, 7, 3, 0, 0, 7); cx.fill(); }
+    if(portal.r > 0){ const px = PT.x - camx, py = PT.y - camy; cx.save(); for(let i = 0; i < 4; i++){ cx.strokeStyle = ['#B39CE0','#7A5BC4','#E0A3F0','#FFFFFF'][i]; cx.globalAlpha = .85 - i * .15; cx.lineWidth = 2; cx.beginPath(); cx.ellipse(px, py, Math.max(1, portal.r - i * 3 + Math.sin(t * 6 + i) * 1.2), Math.max(1, (portal.r - i * 3) * .55), 0, t * (i % 2 ? -2 : 2), t * (i % 2 ? -2 : 2) + 5.2); cx.stroke(); } cx.fillStyle = 'rgba(122,91,196,.45)'; cx.beginPath(); cx.ellipse(px, py, portal.r * .7, portal.r * .38, 0, 0, 7); cx.fill(); cx.restore(); }
+    else if(HOME && W.p_start && !W.p_done){ cx.fillStyle = `rgba(179,156,224,${.25 + Math.sin(t * 3) * .15})`; cx.beginPath(); cx.ellipse(PT.x - camx, PT.y - camy, 7, 3, 0, 0, 7); cx.fill(); }
     const ents = [{ y: p.y, fn: () => spr(sheets[me], 16, 22, p, p.x - 8 - camx, p.y - 20 - camy) }];
-    if(pup.vis) ents.push({ y: pup.y, fn: () => spr(SHEETS[pup.who], 16, 14, pup, pup.x - 8 - camx, pup.y - 12 - camy) });
+    if(pup.vis) ents.push({ y: pup.y, fn: () => pup.who === 'condor' ? drawMon(cx, 'condor', pup.x - 8 - camx, pup.y - 16 - camy, t, 1) : spr(SHEETS[pup.who], 16, 14, pup, pup.x - 8 - camx, pup.y - 12 - camy) });
     if(duck.vis) ents.push({ y: duck.y, fn: () => { if(duck.glow > 0){ cx.fillStyle = `rgba(255,226,122,${duck.glow * (.35 + Math.sin(t * 8) * .15)})`; cx.beginPath(); cx.arc(duck.x - camx, duck.y - 6 - camy, 11, 0, 7); cx.fill(); } drawMon(cx, 'duck', duck.x - 7 - camx, duck.y - 12 - camy, t * (duck.scripted ? 2 : 0), 1); } });
-    npcs.forEach(n => ents.push({ y: n.y, fn: () => n.dog ? spr(n.sheet, 16, 14, n, n.x - 8 - camx, n.y - 12 - camy) : spr(n.sheet, 16, 22, n, n.x - 8 - camx, n.y - 20 - camy) }));
+    npcs.forEach(n => ents.push({ y: n.y, fn: () => n.bird ? drawMon(cx, 'condor', n.x - 8 - camx, n.y - 16 - camy, t, 1) : n.dog ? spr(n.sheet, 16, 14, n, n.x - 8 - camx, n.y - 12 - camy) : spr(n.sheet, 16, 22, n, n.x - 8 - camx, n.y - 20 - camy) }));
     if(remote.on) ents.push({ y: remote.y, fn: () => spr(sheets[other], 16, 22, remote, remote.x - 8 - camx, remote.y - 20 - camy) });
-    mons.forEach(m => { if(!monShown(m)) return; ents.push({ y: m.y, fn: () => drawMon(cx, m.k, m.x - (m.k === 'sarge' ? 10 : 9) - camx, m.y - (m.k === 'sarge' ? 20 : 14) - camy, t + m.hx, 1) }); });
-    if(holo.vis) ents.push({ y: PORTAL.y + 1, fn: () => { cx.save(); cx.globalAlpha = holo.a * (.7 + Math.sin(t * 20) * .1); cx.translate(PORTAL.x - camx, PORTAL.y - 14 - camy); cx.rotate(holo.tilt); drawMon(cx, 'whiskers', -14, -30, t, 1); cx.fillStyle = 'rgba(122,200,255,.25)'; for(let i = -30; i < 4; i += 3) cx.fillRect(-16, i, 32, 1); cx.restore(); } });
+    mons.forEach(m => { if(!monShown(m)) return; ents.push({ y: m.y, fn: () => drawMon(cx, m.k, m.x - (m.k !== 'hairball' ? 10 : 9) - camx, m.y - (m.k !== 'hairball' ? 20 : 14) - camy, t + m.hx, 1) }); });
+    if(bogDayla) ents.push({ y: bogDayla.y, fn: () => spr(SHEETS.dayla, 16, 14, { f: Math.floor(t * 6) % 2 ? 1 : 0, d: 0 }, bogDayla.x - 8 - camx, bogDayla.y - 12 - camy) });
+    if(portal2 && portal2.r > 0){ const px = portal2.x - camx, py = portal2.y - camy; cx.save(); cx.strokeStyle = '#E0A3F0'; cx.lineWidth = 2; cx.beginPath(); cx.ellipse(px, py, portal2.r, portal2.r * .55, 0, 0, 7); cx.stroke(); cx.fillStyle = 'rgba(122,91,196,.5)'; cx.fill(); cx.restore(); }
+    if(holo.vis) ents.push({ y: PT.y + 1, fn: () => { cx.save(); cx.globalAlpha = holo.a * (.7 + Math.sin(t * 20) * .1); cx.translate(PT.x - camx, PT.y - 14 - camy); cx.rotate(holo.tilt); drawMon(cx, 'whiskers', -14, -30, t, 1); cx.fillStyle = 'rgba(122,200,255,.25)'; for(let i = -30; i < 4; i += 3) cx.fillRect(-16, i, 32, 1); cx.restore(); } });
     ents.sort((a, b) => a.y - b.y).forEach(e => e.fn());
     fx.forEach(f => { cx.fillStyle = f.c; cx.fillRect(Math.round(f.x - camx), Math.round(f.y - camy), 2, 2); });
     cx.drawImage(top, -camx, -camy);
@@ -702,7 +841,8 @@ function start(host, api){
   function loop(now){ const dt = Math.min(.05, (now - prev) / 1000); prev = now; if(BT) BT.draw(now); else { update(dt, now); draw(now); } raf = requestAnimationFrame(loop); }
   raf = requestAnimationFrame(loop);
   if(saved.intro) unstick();
-  setTimeout(() => { if(!saved.intro) introScene(); else { MUS.play('home'); if(W.p_start && !W.p_done) banner('📜 ' + objective(W, st)); else if(W.p_done) say('Where’s Dayla?', ['(You finished the Prologue! 🎉)', '(Chapter 1: Bogotá is still being built. Until then you can explore, talk to everyone and peek through the portal in the dog park.)', '(Come back soon. Dayla is waiting! 🐾)']); } }, 400);
+  if(!HOME) setTimeout(() => { MUS.play('bogota'); if(!W.b_in){ say('Bogotá', ['(Whoosh! You tumble out of the portal into a little park… in BOGOTÁ!)', '(Green mountains all around, colorful houses, and the smell of arepas.)', `${ME}: Dayla came through here. I can feel it.`, '(Laura’s friends Alejandra and Samuel are on the plaza. Maybe they can help!)'], () => { setWorld({ b_in: 1 }); }); } else if(!W.b_done) banner('📜 ' + objectiveB(W)); else say('Where’s Dayla?', ['(You finished Chapter 1! 🎉 Chapter 2: New York is still being built. Come back soon!)']); }, 400);
+  else setTimeout(() => { if(!saved.intro) introScene(); else { MUS.play('home'); if(W.p_start && !W.p_done) banner('📜 ' + (HOME ? objective(W, st) : objectiveB(W))); else if(W.p_done) say('Where’s Dayla?', ['(You finished the Prologue! 🎉)', '(Chapter 1: Bogotá is still being built. Until then you can explore, talk to everyone and peek through the portal in the dog park.)', '(Come back soon. Dayla is waiting! 🐾)']); } }, 400);
 
   G.stop = () => { cancelAnimationFrame(raf); MUS.stop(); window.removeEventListener('resize', resize); window.removeEventListener('keydown', onKey); window.removeEventListener('keyup', onKey); send('bye', { who: me }); api.save(pack()); try{ ch && api.unchannel(ch); }catch(e){} };
 }

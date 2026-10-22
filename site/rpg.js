@@ -1,5 +1,5 @@
 /* =============================================================
-   Rhead Island: a cozy pixel RPG for David & Laura (step 1)
+   Rhead Adventures: a cozy pixel RPG for David & Laura (step 1)
    Loaded only when the game is opened. window.RheadRPG.start(host, api)
    ============================================================= */
 (function(){
@@ -15,9 +15,10 @@ const hash = (x, y) => { let h = (x * 374761393 + y * 668265263) | 0; h = (h ^ (
 /* ---------- the island map ---------- */
 const HOUSES = [
   { id:'home', x:5, y:6, w:7, h:4, roof:'#4F7FB8', wall:'#F3E6CF', door:3, name:'Rhead House', sign:'🏠 Rhead House. Home sweet home! (Decorating comes soon.)' },
-  { id:'bakery', x:28, y:6, w:7, h:4, roof:'#C9473D', wall:'#F6E3D3', door:3, name:'Bakery', sign:'🥐 Rosa’s Bakery. Closed while Rosa looks for her cat.' },
-  { id:'hall', x:16, y:3, w:9, h:4, roof:'#7A5BC4', wall:'#EFE7F7', door:4, name:'Town Hall', sign:'🏛️ Town Hall. The mayor is out on the plaza.' },
-  { id:'shop', x:6, y:16, w:6, h:4, roof:'#4F8761', wall:'#EEF3E6', door:2, name:'Shop', sign:'🛍️ Pip’s Shop. Opening soon!' }
+  { id:'bakery', x:28, y:6, w:7, h:4, roof:'#C9473D', wall:'#F6E3D3', door:3, name:'Mami Elsa’s Kitchen', sign:'🫓 Mami Elsa’s Kitchen. It smells like arepas and café.' },
+  { id:'hall', x:16, y:3, w:9, h:4, roof:'#7A5BC4', wall:'#EFE7F7', door:4, name:'Town Hall', sign:'🏛️ Town Hall. Angelica’s office is upstairs.' },
+  { id:'shop', x:6, y:16, w:6, h:4, roof:'#4F8761', wall:'#EEF3E6', door:2, name:'Olga’s Shop', sign:'🛍️ Olga’s Shop. Opening soon!' },
+  { id:'chapel', x:4, y:21, w:5, h:3, roof:'#B39CE0', wall:'#FBF6EE', door:2, name:'Little Chapel', sign:'⛪ The little chapel. Everyone is welcome.' }
 ];
 const LIGHT = { x:38, y:24, w:3, h:6 };
 const COURT = { x:27, y:17, w:9, h:6 };
@@ -90,6 +91,7 @@ function drawRoof(x, h){
   const px = h.x * T - 4, py = h.y * T - 14, w = h.w * T + 8;
   for(let i = 0; i < 26; i++){ x.fillStyle = i % 6 < 1 ? shade(h.roof, -.25) : i < 3 ? shade(h.roof, .2) : h.roof; x.fillRect(px + Math.max(0, 12 - i), py + i, w - Math.max(0, 12 - i) * 2, 1); }
   x.fillStyle = shade(h.roof, -.35); x.fillRect(px, py + 25, w, 3);
+  if(h.id === 'chapel'){ x.fillStyle = '#F2C14E'; x.fillRect(px + w / 2 - 1, py - 10, 3, 14); x.fillRect(px + w / 2 - 5, py - 6, 11, 3); }
   if(h.id === 'home'){ x.fillStyle = '#F4A6B8'; x.fillRect(px + w / 2 - 4, py + 8, 3, 3); x.fillRect(px + w / 2 + 1, py + 8, 3, 3); x.fillRect(px + w / 2 - 3, py + 11, 6, 2); x.fillRect(px + w / 2 - 1, py + 13, 2, 1); }
 }
 function drawLighthouse(x, top){
@@ -120,6 +122,7 @@ function heroSheet(c){
     else { P(5, 15 + bob, 3, 4 - (step > 0 ? 1 : 0), pants); P(8, 15 + bob, 3, 4 - (step < 0 ? 1 : 0), pants); }
     P(4, 19 - (step > 0 ? 1 : 0), 4, 1, shoes); P(8, 19 - (step < 0 ? 1 : 0), 4, 1, shoes);
     // body
+    if(c.belly){ P(3, 11 + bob, 10, 5, shirt); }
     P(4, 10 + bob, 8, 6, shirt); P(4, 10 + bob, 8, 1, shade(shirt, .15)); P(4, 15 + bob, 8, 1, shade(shirt, -.2));
     // arms
     if(d === 0 || d === 3){ P(3, 11 + bob + step, 1, 4, shirt); P(12, 11 + bob - step, 1, 4, shirt); P(3, 15 + bob + step, 1, 1, skin); P(12, 15 + bob - step, 1, 1, skin); }
@@ -143,13 +146,13 @@ function heroSheet(c){
         if(beard){ P(5, 8 + hy, 6, 2, hair); P(7, 8 + hy, 2, 1, shade(skin, -.3)); } }
       else { const fx = d === 1 ? 4 : 11, sx = d === 1 ? 1 : -1; P(fx + sx, 6 + hy, 1, 2, ec); P(d === 1 ? 3 : 12, 7 + hy, 1, 1, skin); if(gl) P(Math.min(fx, fx + sx * 2), 5 + hy, 3, 3, c.glasses === 'sun' ? '#1A1414' : '#2A201C'); if(beard) P(d === 1 ? 4 : 8, 8 + hy, 4, 2, hair); }
     }
-    if(hat){ const hc = c.accent || '#E0566B'; P(3, 0 + hy, 10, 3, hc); P(4, -1 + hy + 1, 8, 1, shade(hc, .2)); if(['cap','snapback','visor'].includes(c.hat)){ if(d === 0) P(4, 3 + hy, 8, 1, shade(hc, -.25)); if(d === 1) P(1, 3 + hy, 4, 1, shade(hc, -.25)); if(d === 2) P(11, 3 + hy, 4, 1, shade(hc, -.25)); } if(['cowboy','sunhat','fedora','bucket'].includes(c.hat)) P(1, 3 + hy, 14, 1, shade(hc, -.25)); }
+    if(hat){ const hc = c.accent || '#E0566B'; P(3, 0 + hy, 10, 3, hc); P(4, -1 + hy + 1, 8, 1, shade(hc, .2)); if(['cap','snapback','visor'].includes(c.hat)){ const bc = shade(hc, -.25); if(c.back){ if(d === 3) P(4, 3 + hy, 8, 1, bc); if(d === 1) P(11, 2 + hy, 4, 1, bc); if(d === 2) P(1, 2 + hy, 4, 1, bc); } else { if(d === 0) P(4, 3 + hy, 8, 1, bc); if(d === 1) P(1, 3 + hy, 4, 1, bc); if(d === 2) P(11, 3 + hy, 4, 1, bc); } } if(['cowboy','sunhat','fedora','bucket'].includes(c.hat)) P(1, 3 + hy, 14, 1, shade(hc, -.25)); }
   }
   return sheet;
 }
-function dogSheet(){
-  const W = 16, H = 14, sheet = cnv(W * 3, H * 4), x = sheet.getContext('2d');
-  const B = '#6B4226', D = '#4A2C18', Wt = '#F7F2EA', N = '#1A1414';
+function dogSheet(o){
+  o = o || {}; const W = 16, H = 14, sheet = cnv(W * 3, H * 4), x = sheet.getContext('2d');
+  const B = o.B || '#6B4226', D = o.D || '#4A2C18', Wt = o.Wt || '#F7F2EA', N = '#1A1414', lng = !!o.long;
   for(let d = 0; d < 4; d++) for(let f = 0; f < 3; f++){
     const ox = f * W, oy = d * H, P = (a, b, w, h, col) => { x.fillStyle = col; x.fillRect(ox + a, oy + b, w, h); }, lg = f === 0 ? 0 : f === 1 ? 1 : -1;
     P(3, 12, 10, 2, 'rgba(0,0,0,.18)');
@@ -159,11 +162,24 @@ function dogSheet(){
       if(d === 0){ P(7, 1, 2, 6, Wt); P(6, 4, 4, 3, Wt); P(5, 3, 1, 1, N); P(10, 3, 1, 1, N); P(7, 5, 2, 1, N); } else P(7, 9, 2, 2, B);
     } else {
       const r = d === 2, hx = r ? 10 : 1, tx = r ? 2 : 13;
-      P(3, 6, 10, 4, B); P(r ? 7 : 4, 8, 5, 2, Wt);
+      if(lng){ P(1, 7, 14, 3, B); P(r ? 6 : 3, 9, 7, 1, Wt); } else { P(3, 6, 10, 4, B); P(r ? 7 : 4, 8, 5, 2, Wt); }
       P(4 + lg, 10, 2, 3, B); P(10 - lg, 10, 2, 3, B); P(4 + lg, 12, 2, 1, Wt); P(10 - lg, 12, 2, 1, Wt);
       P(hx, 2, 6, 6, B); P(r ? hx + 3 : hx, 5, 3, 3, Wt); P(r ? hx + 5 : hx, 5, 1, 1, N); P(r ? hx + 2 : hx + 3, 3, 1, 1, N); P(r ? hx + 1 : hx + 4, 0, 2, 3, D);
       P(tx, 5 + (f === 1 ? 0 : 1), 1, 2, B);
     }
+  }
+  return sheet;
+}
+
+function wheelSheet(c){
+  const base = heroSheet(c), W = 16, H = 22, sheet = cnv(W * 3, H * 4), x = sheet.getContext('2d');
+  for(let d = 0; d < 4; d++) for(let f = 0; f < 3; f++){
+    const ox = f * W, oy = d * H, P = (a, b, w, h, col) => { x.fillStyle = col; x.fillRect(ox + a, oy + b, w, h); };
+    P(2, 20, 12, 2, 'rgba(0,0,0,.18)');
+    if(d === 3) P(3, 9, 10, 7, '#3B4F6B');
+    x.drawImage(base, 0, d * H, W, 14, ox, oy + 3, W, 14);
+    if(d === 0 || d === 3){ P(1, 12, 2, 8, '#5B6B82'); P(13, 12, 2, 8, '#5B6B82'); P(1, 13 + f % 2 * 3, 2, 1, '#C4BFB8'); P(13, 16 - f % 2 * 3, 2, 1, '#C4BFB8'); P(4, 15, 8, 2, '#3B4F6B'); if(d === 0) P(5, 18, 6, 1, '#9AA3AD'); }
+    else { const k = d === 1 ? 1 : -1; P(3, 11, 10, 10, '#5B6B82'); P(4, 12, 8, 8, '#9AA3AD'); P(7, 15, 2, 2, '#2A2F3A'); P(5 + (f === 1 ? 1 : 0), 13, 1, 6, '#5B6B82'); P(10 - (f === 2 ? 1 : 0), 13, 1, 6, '#5B6B82'); P(d === 1 ? 1 : 12, 16, 3, 1, '#9AA3AD'); P(d === 2 ? 2 : 11, 6, 2, 8, '#3B4F6B'); }
   }
   return sheet;
 }
@@ -173,7 +189,7 @@ const MONS = {
   shellbit: { name:'Shellbit', hp:2, atk:1, coins:2, xp:2, friend:.45, emo:'🦀', blurb:'A tiny beach crab with a big attitude. Loves shiny shells.' },
   glimmer: { name:'Glimmer', hp:3, atk:1, coins:3, xp:3, friend:.35, emo:'✨', blurb:'A glowing jelly-blob that floats near the rocks. Hums when happy.' },
   king: { name:'Glimmer King', hp:12, atk:2, coins:20, xp:12, friend:1, boss:1, emo:'👑', blurb:'Ruler of the Glimmers. Took the lighthouse crystal because it was "pretty."' },
-  croissant: { name:'Croissant', emo:'🐈', blurb:'Rosa’s cat. Orange, very round, very rude.', pet:1 }
+  croissant: { name:'Michi', emo:'🐈', blurb:'Mami Elsa’s cat. Orange, very round, very sassy.', pet:1 }
 };
 const DEX = ['shellbit', 'glimmer', 'king', 'croissant'];
 function drawMon(x, k, X, Y, t, s){
@@ -197,14 +213,14 @@ function drawMon(x, k, X, Y, t, s){
 }
 
 /* ---------- voices: little Paper Mario style blips ---------- */
-const VOICES = { 'Mayor Pip':[150,'triangle'], 'Rosa the Baker':[420,'sine'], 'Old Gus':[110,'square'], 'Coach Dre':[230,'triangle'], 'Pepper':[620,'square'], 'Dayla':[760,'square'], 'Croissant':[900,'sine'], 'Sign':[300,'sine'], 'Lighthouse':[260,'sine'], 'Rhead House':[330,'sine'] };
+const VOICES = { 'Joseph':[120,'triangle'], 'Angelica':[400,'sine'], 'Olga':[360,'triangle'], 'Joshua':[640,'square'], 'Vecino Ernesto':[170,'square'], 'Mami Elsa':[470,'sine'], 'Tintín':[210,'square'], 'Carolina':[440,'triangle'], 'Diana':[420,'sine'], 'Juandi':[260,'triangle'], 'Coach JP':[200,'triangle'], 'Ana':[520,'sine'], 'Diego':[180,'triangle'], 'Tyler':[240,'square'], 'Steven':[160,'triangle'], 'Baba':[380,'sine'], 'Deda':[115,'square'], 'Alejandro':[980,'square'], 'Dayla':[760,'square'], 'Michi':[900,'sine'], 'Croissant':[900,'sine'], 'Sign':[300,'sine'], 'Lighthouse':[260,'sine'], 'Rhead House':[330,'sine'] };
 let AC = null;
 function blip(name, ch, me){
   if(!AC){ try{ AC = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ return; } }
   if(AC.state === 'suspended') AC.resume();
   const v = VOICES[name] || [me ? 300 : 360, 'sine'], o = AC.createOscillator(), g = AC.createGain(), now = AC.currentTime;
   const vow = 'aeiouy'.includes(String(ch).toLowerCase()) ? 1.12 : 1, f = v[0] * vow * (0.94 + Math.random() * .12);
-  o.type = v[1]; o.frequency.setValueAtTime(f, now); o.frequency.exponentialRampToValueAtTime(f * (name === 'Croissant' ? 1.4 : .82), now + .06);
+  o.type = v[1]; o.frequency.setValueAtTime(f, now); o.frequency.exponentialRampToValueAtTime(f * (name === 'Michi' ? 1.4 : .82), now + .06);
   g.gain.setValueAtTime(0.0001, now); g.gain.exponentialRampToValueAtTime(v[1] === 'square' ? .035 : .07, now + .008); g.gain.exponentialRampToValueAtTime(0.0001, now + .07);
   o.connect(g).connect(AC.destination); o.start(now); o.stop(now + .08);
 }
@@ -212,37 +228,64 @@ function blip(name, ch, me){
 /* ---------- people of Rhead Island ---------- */
 function npcAv(base, o){ return Object.assign({}, base, o); }
 function objective(W){
-  if(!W.talkedMayor) return 'Talk to Mayor Pip on the plaza by the fountain.';
-  if(!W.keyFound) return 'Find a way into the lighthouse. Pepper might know something. (Tap 🐾 to have Dayla sniff around.)';
+  if(!W.talkedMayor) return 'Talk to Joseph on the plaza by the fountain.';
+  if(!W.keyFound) return 'Find a way into the lighthouse. Joshua might know something. (Tap 🐾 to have Dayla sniff around.)';
   if(!W.lhOpen) return 'Open the lighthouse door on the beach with the Brass Key.';
-  if(!W.crystal) return 'Get the Glow Crystal back. Gus saw glowing critters by the rocks on the west end of the beach.';
+  if(!W.crystal) return 'Get the Glow Crystal back. Deda saw glowing critters by the rocks on the west end of the beach.';
   if(!W.lightOn) return 'Put the Glow Crystal back in the lighthouse lamp.';
-  return 'Chapter 1 complete! 🎉 Explore, befriend critters, and wait for Chapter 2.';
+  return 'Chapter 1 complete! 🎉 Explore, befriend critters, and get ready for your first trip.';
 }
 function makeNPCs(api){
-  const b = api.baseAv();
+  const b = api.baseAv(), L = api.me === 'laura', son = L ? 'mija' : 'mijo', kid = L ? 'Laura' : 'David';
+  const VERSES = ['“Be strong and of a good courage… for the LORD thy God is with thee whithersoever thou goest.” (Joshua 1:9)', '“This is the day which the LORD hath made; we will rejoice and be glad in it.” (Psalm 118:24)', '“Trust in the LORD with all thine heart; and lean not unto thine own understanding.” (Proverbs 3:5)', '“Love is patient, love is kind.” (1 Corinthians 13:4)'];
   return [
-    { id:'mayor', name:'Mayor Pip', x:24 * T, y:15 * T, d:0, av:npcAv(b, { skin:'#F6D5BC', hair:'#F2EFEA', style:'buzz', facial:'mustache', shirt:'#7A5BC4', pants:'#2A2F3A', hat:'fedora', accent:'#2A201C', glasses:'round' }),
-      lines: (me, W) => W.lightOn ? [`${me}! You did it! The lighthouse shines again! ✨`, 'Boats are already finding their way back. Rhead Island owes you, and Dayla too!', '(Chapter 1 complete! More adventures are on the way.)']
-        : W.talkedMayor ? ['Any news about the lighthouse?', objective(W)]
-        : [`Ah, ${me}! Welcome back to Rhead Island!`, 'You’re the ones who moved into Rhead House, with that bouncy pup Dayla. The whole town has been talking about you.', 'But I have troubling news… the lighthouse on the beach went dark last night. Nobody knows why.', 'Without its light, the boats can’t find the island. Could you two look into it? Head south down the road to the beach.'],
+    { id:'joseph', name:'Joseph', x:24, y:15, d:0, av:npcAv(b, { skin:'#5A3826', hair:'#171210', style:'buzz', shirt:'#2A3350', pants:'#5B6B82', hat:'none' }),
+      lines: (me, W) => W.lightOn ? ['Now THAT is a beautiful sight. Outstanding work, crew! 🫡', 'Dayla gets an honorary Navy medal.', '(Chapter 1 complete! Your next adventure is coming soon.)']
+        : W.talkedMayor ? ['Report, sailor! Any news?', objective(W)]
+        : [`Hey ${me}! Good to see you.`, 'Twenty years in the Navy taught me one thing: you never let a lighthouse go dark.', 'But last night the lighthouse on the beach went out. The boats can’t find their way in.', 'I need a crew I can trust. Head south down the road to the beach and find out what happened. That’s an order! …Please. 😄'],
       end: W => { if(!W.talkedMayor) return { talkedMayor: 1 }; } },
-    { id:'rosa', name:'Rosa the Baker', x:32 * T, y:12 * T, d:0, wander:1, av:npcAv(b, { skin:'#C98E68', hair:'#171210', style:'bun', shirt:'#F4F4F4', pants:'#C9473D', bottom:'skirt', accent:'#C9473D' }),
-      lines: (me, W) => W.catFound ? ['Croissant is back to napping on my flour bags. Thank you, dears! 🥐'] : ['Oh, hello dears! Have you seen my cat, Croissant? Orange, very round, very rude.', 'She ran off east when the lighthouse went dark. If you find her, I’ll bake you something special!'] },
-    { id:'gus', name:'Old Gus', x:13 * T, y:35 * T, d:0, av:npcAv(b, { skin:'#B07A55', hair:'#9A9693', style:'short', facial:'fullbeard', shirt:'#3E6E8E', pants:'#C9B79C', hat:'bucket', accent:'#E2AE55' }),
-      lines: (me, W) => W.lightOn ? ['Now THAT’S a light. Fish are bitin’ again!', 'Fishing with you two? Maybe someday… *wink*'] : W.lhOpen ? ['The crystal’s gone? Then it was those glowing critters, sure as sand.', 'They hide by the rocks on the west end of the beach. The big one wears a crown, if you can believe it.', 'Bring snacks. And watch its timing: tap A just as it hits to guard!'] : ['*yawn* Fishin’ ain’t the same without the lighthouse.', 'Last night I saw a glow out by the rocks… little critters, glowing like lanterns. Then poof, the light went out.', 'Mark my words, those critters know something.'] },
-    { id:'dre', name:'Coach Dre', x:31 * T, y:24 * T + 6, d:3, av:npcAv(b, { skin:'#7C4F34', hair:'#171210', style:'fade', shirt:'#E2AE55', pants:'#2A201C', top:'jersey', hat:'sweatband', accent:'#E0566B' }),
-      lines: me => [`Yo ${me}! You hoop?`, 'Court’s getting new nets. Come back soon and we’ll see if you can hit a green release. 🏀'] },
-    { id:'kid', name:'Pepper', x:14 * T, y:11 * T, d:0, wander:1, av:npcAv(b, { skin:'#EDC3A3', hair:'#B8413A', style:'pigtails', shirt:'#4F8761', pants:'#3B4F6B', cheeks:'freckles', hat:'none' }),
-      lines: (me, W) => W.keyFound ? ['Whoa, a KEY?! I told you Dayla’s nose is the best!', 'Now go open that lighthouse!'] : ['Psst! Wanna know a secret?', 'Dayla keeps sniffing the sand where the big road meets the beach. I bet something’s buried there!', '(Tap the 🐾 button and Dayla will sniff around. She’ll pull you toward buried things!)'] }
+    { id:'angelica', name:'Angelica', x:20, y:8, d:0, av:npcAv(b, { skin:'#F1D3B8', hair:'#171210', style:'long', top:'dress', shirt:'#2A3350', bottom:'skirt', pants:'#2A3350', lashes:'natural' }),
+      lines: () => ['¡Hola! Welcome to Town Hall. I keep this neighbourhood running.', 'It’s a lot like running a school… just with more crabs. 🦀', L ? 'Laura, you work so hard. ¡Tómate el día! (Take the day off!) 😉' : 'Tell Laura she’s doing an amazing job. ¡Es la mejor! (She’s the best!)'] },
+    { id:'olga', name:'Olga', x:9, y:21, d:0, wander:1, av:npcAv(b, { skin:'#FBE0CC', hair:'#171210', style:'long', shirt:'#6C5B9E', bottom:'skirt', pants:'#2A2F3A', lashes:'natural' }),
+      lines: () => [L ? 'Laurochka! Privet! (Hi!)' : 'Davidka! Privet! (Hi!)', 'My shop opens soon. For family, special discount… maybe. 😏', 'Did you eat today? You look skinny. Go see Mami Elsa or Baba, they will feed you.'] },
+    { id:'joshua', name:'Joshua', x:14, y:11, d:0, wander:1, av:npcAv(b, { skin:'#B07A55', hair:'#171210', style:'curls', glasses:'square', shirt:'#4F8761', pants:'#3B4F6B' }),
+      lines: (me, W) => W.keyFound ? ['YOOO, a key?! That’s like finding diamonds on your first try! 💎', 'Can I hold it? …Okay fine. Go open the lighthouse!'] : ['Yo! In Minecraft, buried treasure is ALWAYS near the beach.', 'Dayla keeps sniffing the sand where the big road meets the beach. I bet there’s treasure!', '(Tap the 🐾 button and Dayla will sniff around. She’ll pull you toward buried things!)', 'Also if you find a squishy shaped like a crab, it’s mine. 🦀'] },
+    { id:'ernesto', name:'Vecino Ernesto', x:13, y:8, d:0, av:npcAv(b, { skin:'#C98E68', hair:'#171210', style:'short', hat:'cap', accent:'#4F6B4F', shirt:'#6B7B4F', pants:'#7B4B2F', facial:'stubble', back:1, belly:1 }),
+      lines: () => [L ? '¡Ey, vecina! (Hey, neighbour!)' : '¡Ey, vecino! (Hey, neighbour!)', 'The critters are acting strange lately. Trust me, I track everything out there. 🦌', 'If anything breaks at your house, you call me. Anytime.'] },
+    { id:'elsa', name:'Mami Elsa', x:31, y:11, d:0, wander:1, av:npcAv(b, { skin:'#C98E68', hair:'#B4B0AC', style:'pony', shirt:'#E07A93', bottom:'skirt', pants:'#6C5B9E' }),
+      lines: (me, W) => W.catFound ? ['¡Gracias, mi amor! Michi está durmiendo en la cocina. (Thank you, my love! Michi is sleeping in the kitchen.)', '¡Coma, coma! (Eat, eat!) 🫓'] : ['¡Ay, mi amor! ¿Ya comió? (Oh, my love! Have you eaten?)', '¡Mi gatica Michi se perdió! Se fue corriendo hacia el este. (My kitty Michi got lost! She ran off to the east.)', 'Si la encuentra, le hago unas arepas deliciosas. (If you find her, I’ll make you delicious arepas.)'] },
+    { id:'tintin', name:'Tintín', x:35, y:16, d:0, av:npcAv(b, { skin:'#B07A55', hair:'#3A281E', style:'short', glasses:'square', shirt:'#F2C14E', pants:'#2A2F3A' }), taxi:1,
+      lines: () => [`¡Quiubo, ${son}! ¡Súbase al taxi! (What’s up! Hop in the taxi!)`, '¿Para dónde lo llevo? Para la familia es gratis. (Where to? It’s free for family.)'] },
+    { id:'carolina', name:'Carolina', x:12, y:19, d:0, wander:1, av:npcAv(b, { skin:'#E3B08C', hair:'#3A281E', style:'long', shirt:'#F2C14E', pants:'#3B4F6B', lashes:'natural' }),
+      lines: () => ['¡Hola, mi amor! (Hi, my love!)', '¡Vamos de compras! Hay descuentos en todas las tiendas. (Let’s go shopping! There are sales at every store.)', 'Primero la tienda de Olga, después la otra, y después la otra… (First Olga’s shop, then the next one, then the next one…) 🛍️', '(Carolina has already checked every store in the neighbourhood. Twice.)'] },
+    { id:'diana', name:'Diana', x:6, y:25, d:0, av:npcAv(b, { skin:'#D9A07A', hair:'#171210', style:'bob', shirt:'#7FB6D9', bottom:'longskirt', pants:'#F2E6D8', lashes:'natural' }),
+      lines: () => ['¡Hola! Welcome to the little chapel. 🙏', 'Here is the verse for today:', VERSES[new Date().getDate() % VERSES.length], 'Dios te bendiga. (God bless you.)'] },
+    { id:'juandi', name:'Juandi', x:18, y:28, d:0, wander:1, av:npcAv(b, { skin:'#D9A07A', hair:'#171210', style:'short', shirt:'#F2C14E', pants:'#3B4F6B', bottom:'shorts' }),
+      lines: (me, W, c) => { const n = DEX.filter(k => (c.st.dex[k] || 0) >= 2).length; return ['¡Hey! ⚽ These critters are basically Pokémon. I’m going to be the very best.', `You have ${n} critter friend${n === 1 ? '' : 's'} so far. ${n >= 2 ? '¡Nada mal! (Not bad!)' : 'Battle some, and they might want to be your friend!'}`, 'After graduation I’m going pro. Then I’ll build a Shellbit stadium. 😎']; } },
+    { id:'jp', name:'Coach JP', x:31, y:23, d:3, av:npcAv(b, { skin:'#F6D5BC', hair:'#171210', style:'short', shirt:'#3E6E8E', pants:'#2A201C', hat:'cap', accent:'#C9473D' }),
+      lines: me => [`What’s good, ${me}! ¿Qué más? (What’s up?)`, 'The court’s almost ready. New nets, new ball, new shot meter.', 'Come back soon and we’ll see if you can hit a green release. 🏀'] },
+    { id:'ana', name:'Ana', x:29, y:24, d:3, wander:1, av:npcAv(b, { skin:'#EDC3A3', hair:'#D2692E', style:'long', shirt:'#F4A6B8', pants:'#3B4F6B', lashes:'natural' }),
+      lines: () => ['¡Hola, hola! I’m Ana. JP talks about basketball all day. ALL day. 😂', 'When the court opens, I’ll be the loudest one cheering. ¡Vamos! 🧡'] },
+    { id:'diego', name:'Diego', x:29, y:20, d:0, wander:1, av:npcAv(b, { skin:'#D9A07A', hair:'#2A201C', style:'side', facial:'mustache', shirt:'#C9473D', pants:'#3B4F6B' }),
+      lines: () => [`¡Hola, ${son}! I am Diego.`, 'Basketball, soccer, I play everything. Before, I worked at Costco. The free samples were the best part. 😄', '¿Jugamos? (Shall we play?) When the court opens, I show you some moves.'] },
+    { id:'tyler', name:'Tyler', x:33, y:20, d:0, wander:1, av:npcAv(b, { skin:'#FBE0CC', hair:'#8A5A36', style:'buzz', glasses:'square', shirt:'#7A5BC4', pants:'#2A201C' }),
+      lines: () => [L ? 'Hey Laura! Tell David to hop on 2K tonight.' : 'Bro, you hopping on 2K tonight?', 'Also, when the court’s done, you’re getting cooked. Just saying. 🏀'] },
+    { id:'steven', name:'Steven', x:28, y:3, d:0, av:npcAv(b, { skin:'#F6D5BC', hair:'#8A5A36', style:'buzz', facial:'fullbeard', shirt:'#4F8761', pants:'#C9B79C', shoes:'boots' }),
+      lines: () => [L ? 'Hey Laura!' : 'Hey bud!', 'Just finished a workout. Now I’m scouting a hiking trail through the woods up here.', 'Someday we should do a real adventure. Mountains, big cities… maybe even Canada, eh? 🍁', '(Your next adventure is coming soon!)'] },
+    { id:'baba', name:'Baba', x:11, y:29, d:0, av:npcAv(b, { skin:'#FBE0CC', hair:'#D6D0C8', style:'curly', shirt:'#B39CE0', bottom:'skirt', pants:'#6C5B9E' }),
+      lines: (me, W) => [`Ah, ${me}! Come, come. Are you hungry? I make pirozhki.`, 'Deda and I come to the beach every day. Fresh air, nice walk. My garden is growing big!', W.lhOpen && !W.crystal ? 'Glowing critters by the west rocks? Be careful. And bring food. Always bring food.' : 'Be good to each other, okay? That is the most important thing. ❤️'] },
+    { id:'deda', name:'Deda', x:13, y:31, d:0, wheel:1, av:npcAv(b, { skin:'#FBE0CC', hair:'#9A9693', style:'buzz', shirt:'#3E6E8E', pants:'#2A2F3A' }),
+      lines: (me, W) => W.lightOn ? ['The light is back. Good. Very good.', 'Now the fish come back too. Deda is happy. 🎣'] : W.lhOpen ? ['The crystal is gone? Then it was those glowing critters.', 'They hide by the rocks on the west side of the beach. The big one wears a crown, can you imagine?', 'Bring snacks. And watch the timing: tap A just as it hits, to guard!'] : ['Privet! (Hi!) Deda is fishing. Very serious business.', 'Last night I saw little critters out by the rocks, glowing like lanterns. Then poof, the lighthouse went dark.', 'Those critters know something. I am sure.'] },
+    { id:'alejandro', name:'Alejandro', x:16, y:16, d:0, wander:2, dog:1,
+      lines: () => ['*yip yip!* 🐕', '(Alejandro and Dayla sniff each other. Best friends forever.)'] }
   ];
 }
 const SIGNS = [
-  { x:19, y:17, text:'🌴 Welcome to Rhead Island! ↑ Town Hall · ← Rhead House · → Bakery · ↓ Sunny Beach' },
+  { x:19, y:17, text:'🌴 Welcome to the neighbourhood! ↑ Town Hall · ← Rhead House · → Mami Elsa’s Kitchen · ↓ Pompano Beach' },
   { x:26, y:19, text:'🏀 Rhead Court. Tip-off coming soon!' },
   { x:36, y:30, text:'🗼 The lighthouse. Its lamp is dark…' }
 ];
-const AREAS = [ [0, 0, MW, 25, 'Rhead Town'], [0, 27, MW, MH, 'Sunny Beach'], [COURT.x, COURT.y, COURT.x + COURT.w, COURT.y + COURT.h, 'Rhead Court'] ];
+const AREAS = [ [0, 0, MW, 25, 'The Neighbourhood'], [0, 27, MW, MH, 'Pompano Beach'], [COURT.x, COURT.y, COURT.x + COURT.w, COURT.y + COURT.h, 'Rhead Court'] ];
 const DIGS = [ { id:'key', x:24, y:29 }, { id:'c1', x:4, y:22 }, { id:'c2', x:38, y:9 }, { id:'c3', x:17, y:30 }, { id:'c4', x:33, y:15 }, { id:'s1', x:11, y:23 }, { id:'c5', x:30, y:30 } ];
 const LH_DOOR = { x: (LIGHT.x + 1) * T + 8, y: (LIGHT.y + LIGHT.h) * T + 6 };
 
@@ -258,9 +301,10 @@ function start(host, api){
   for(let y = 0; y < MH; y++) for(let x = 0; x < MW; x++) if(map[y][x] === 'T') drawCanopy(tx, x, y);
   SIGNS.forEach(s => { const px = s.x * T, py = s.y * T; bx.fillStyle = '#7B4B2F'; bx.fillRect(px + 7, py + 8, 2, 8); bx.fillStyle = '#C79A63'; bx.fillRect(px + 2, py + 2, 12, 8); bx.fillStyle = '#9A6440'; bx.fillRect(px + 2, py + 9, 12, 1); bx.fillRect(px + 4, py + 5, 8, 1); map[s.y][s.x] = 'r'; });
   for(let y = 13; y < 16; y++) for(let x = 21; x < 23; x++) map[y][x] = 'h';
+  (() => { const px = 36 * T + 2, py = 15 * T + 2; bx.fillStyle = 'rgba(0,0,0,.18)'; bx.fillRect(px, py + 18, 30, 4); bx.fillStyle = '#F2C14E'; bx.fillRect(px, py + 6, 30, 13); bx.fillRect(px + 6, py, 18, 8); bx.fillStyle = '#BFE6F5'; bx.fillRect(px + 8, py + 2, 6, 5); bx.fillRect(px + 16, py + 2, 6, 5); bx.fillStyle = '#2A201C'; bx.fillRect(px + 4, py + 17, 6, 5); bx.fillRect(px + 20, py + 17, 6, 5); bx.fillRect(px + 11, py - 3, 8, 3); bx.fillStyle = '#FFFFFF'; bx.fillRect(px + 12, py - 2, 6, 1); bx.fillStyle = '#C9A24E'; for(let i = 0; i < 30; i += 4) bx.fillRect(px + i, py + 12, 2, 2); map[15][36] = map[15][37] = map[16][36] = map[16][37] = 'h'; })();
 
   host.innerHTML = `<canvas class="rpg-cv"></canvas>
-    <div class="rpg-top"><button class="rpg-x" aria-label="Leave the island">✕</button><div class="rpg-area"></div><div class="grow"></div><div class="rpg-hud"></div><button class="rpg-bagbtn" aria-label="Bag and journal">🎒</button></div>
+    <div class="rpg-top"><button class="rpg-x" aria-label="Leave the game">✕</button><div class="rpg-area"></div><div class="grow"></div><div class="rpg-hud"></div><button class="rpg-bagbtn" aria-label="Bag and journal">🎒</button></div>
     <div class="rpg-joy"><i></i></div><button class="rpg-a" aria-label="Talk or look">A</button><button class="rpg-b" aria-label="Dayla sniff">🐾</button>
     <div class="rpg-talk" hidden><b></b><p></p><span>▼</span></div><div class="rpg-banner"></div>
     <div class="rpg-panel" hidden></div>
@@ -269,7 +313,7 @@ function start(host, api){
   const cv = $('.rpg-cv'), cx = cv.getContext('2d');
   const me = api.me, other = me === 'david' ? 'laura' : 'david', ME = api.nameOf(me);
   const sheets = { [me]: heroSheet(api.avatar(me)), [other]: heroSheet(api.avatar(other)) }, dog = dogSheet();
-  const npcs = makeNPCs(api); npcs.forEach(n => { n.sheet = heroSheet(n.av); n.hx = n.x; n.hy = n.y; n.t = 0; });
+  const npcs = makeNPCs(api);
   const saved = api.load() || {};
   const st = Object.assign({ hp:10, mhp:10, dhp:6, dmhp:6, lv:1, xp:0, coins:0, items:{ snack:1 }, dex:{}, dug:{} }, saved);
   st.items = Object.assign({ snack:0 }, st.items); st.dex = st.dex || {}; st.dug = st.dug || {};
@@ -291,6 +335,8 @@ function start(host, api){
   const nearWalk = (tx2, ty2) => { for(let r = 0; r < 6; r++) for(let dy = -r; dy <= r; dy++) for(let dx = -r; dx <= r; dx++) if(walkable(tx2 + dx, ty2 + dy)) return [tx2 + dx, ty2 + dy]; return [tx2, ty2]; };
   const blocked = (x, y) => solidAt(x - 5, y - 3) || solidAt(x + 5, y - 3) || solidAt(x - 5, y + 1) || solidAt(x + 5, y + 1) || npcs.some(n => Math.abs(n.x - x) < 10 && Math.abs(n.y - y) < 7);
   DIGS.forEach(d => { const [a, b] = nearWalk(d.x, d.y); d.px = a * T + 8; d.py = b * T + 8; });
+  npcs.forEach(n => { const [a, b] = nearWalk(n.x, n.y); n.x = a * T + 8; n.y = b * T + 10; n.hx = n.x; n.hy = n.y; n.t = Math.random() * 2; n.f = 0;
+    n.sheet = n.dog ? dogSheet({ B:'#D9A066', D:'#B07A40', Wt:'#F2D7B0', long:1 }) : n.wheel ? wheelSheet(n.av) : heroSheet(n.av); });
   if(W.catFound){ cat.x = 33 * T + 8; cat.y = 10 * T + 12; }
 
   /* critters roam the beach */
@@ -323,16 +369,17 @@ function start(host, api){
 
   /* --- talking, Paper Mario style --- */
   const box = $('.rpg-talk'), boxName = box.querySelector('b'), boxText = box.querySelector('p');
-  function say(name, lines, onEnd){ talk = { name, lines, i: 0, shown: 0, onEnd }; box.hidden = false; boxName.textContent = name; boxText.textContent = ''; api.sfx('open'); }
+  function say(name, lines, onEnd, choices){ talk = { name, lines, i: 0, shown: 0, onEnd, choices }; box.querySelector('.rpg-ch') && box.querySelector('.rpg-ch').remove(); box.hidden = false; boxName.textContent = name; boxText.textContent = ''; api.sfx('open'); }
   function act(){
-    if(talk){ const L = talk.lines[talk.i]; if(talk.shown < L.length){ talk.shown = L.length; boxText.textContent = L; return; } talk.i++; talk.shown = 0; if(talk.i >= talk.lines.length){ const fn = talk.onEnd; talk = null; box.hidden = true; if(fn) fn(); return; } api.sfx('tap'); return; }
+    if(talk){ const L = talk.lines[talk.i]; if(talk.shown < L.length){ talk.shown = L.length; boxText.textContent = L; showChoices(); return; } if(talk.choices && talk.i === talk.lines.length - 1) return; talk.i++; talk.shown = 0; if(talk.i >= talk.lines.length){ const fn = talk.onEnd; talk = null; box.hidden = true; if(fn) fn(); return; } api.sfx('tap'); return; }
     if(!$('.rpg-panel').hidden){ $('.rpg-panel').hidden = true; return; }
     const fx2 = p.x + [0, -14, 14, 0][p.d], fy2 = p.y + [14, 0, 0, -14][p.d];
     const n = npcs.find(n => Math.hypot(n.x - fx2, n.y - fy2) < 16);
     if(n){ n.d = [3, 2, 1, 0][p.d]; n.t = 3;
-      if(n.id === 'rosa' && cat.follow){ say(n.name, ['CROISSANT! My baby! 😭', 'You found her! Oh, you two are wonderful.', 'Here, take these fresh croissants. They’ll fix you right up in a scrape!', '(Got 3 Croissant Snacks and 10 coins!)'], () => { cat.follow = false; cat.x = 33 * T + 8; cat.y = 10 * T + 12; st.items.snack += 3; st.coins += 10; st.dex.croissant = 2; setWorld({ catFound: 1 }); hud(); saveNow(); api.sfx('success'); banner('🐈 Croissant is home!'); }); return; }
-      say(n.name, n.lines(ME, W), () => { const patch = n.end && n.end(W); if(patch){ setWorld(patch); banner('📜 ' + objective(W).split('.')[0]); } }); return; }
-    if(!W.catFound && !cat.follow && Math.hypot(cat.x - fx2, cat.y - fy2) < 18){ say('Croissant', ['Mrrrow. 😾', '…', '(Croissant sniffs Dayla, decides you’re acceptable, and starts following you. Take her back to Rosa at the bakery!)'], () => { cat.follow = true; st.dex.croissant = Math.max(1, st.dex.croissant || 0); }); return; }
+      if(n.id === 'elsa' && cat.follow){ say(n.name, ['¡MICHI! ¡Mi gatica! 😭 (MICHI! My kitty!)', '¡Ay, gracias, gracias! Ustedes son un amor. (Oh, thank you, thank you! You two are so sweet.)', 'Tome estas arepas, recién hechas. (Take these arepas, freshly made.)', '(Got 3 Arepas and 10 coins!)'], () => { cat.follow = false; cat.x = 33 * T + 8; cat.y = 10 * T + 12; st.items.snack += 3; st.coins += 10; st.dex.croissant = 2; setWorld({ catFound: 1 }); hud(); saveNow(); api.sfx('success'); banner('🐈 Michi is home!'); }); return; }
+      if(n.taxi){ say(n.name, n.lines(ME, W, { st }), null, TAXI.map(([l, a, b2, nm]) => [l, () => taxiTo(a, b2, nm)]).concat([['✈️ Airport', () => say('Tintín', ['¿El aeropuerto? ¡Todavía no, mijo! Pronto. (The airport? Not yet! Soon.) ✈️'])], ['No, gracias', null]])); return; }
+      say(n.name, n.lines(ME, W, { st }), () => { const patch = n.end && n.end(W); if(patch){ setWorld(patch); banner('📜 ' + objective(W).split('.')[0]); } }); return; }
+    if(!W.catFound && !cat.follow && Math.hypot(cat.x - fx2, cat.y - fy2) < 18){ say('Michi', ['Mrrrow. 😾', '…', '(Michi sniffs Dayla, decides you’re acceptable, and starts following you. Take her back to Mami Elsa at her kitchen!)'], () => { cat.follow = true; st.dex.croissant = Math.max(1, st.dex.croissant || 0); }); return; }
     const s = SIGNS.find(s => Math.hypot(s.x * T + 8 - fx2, s.y * T + 8 - fy2) < 16); if(s){ say('Sign', [s.id === 'lh' ? s.text : s.text]); return; }
     if(Math.hypot(LH_DOOR.x - fx2, LH_DOOR.y - fy2) < 22){ lighthouseDoor(); return; }
     const h = HOUSES.find(h => Math.hypot((h.x + h.door) * T + 8 - fx2, (h.y + h.h) * T - fy2) < 16);
@@ -340,8 +387,16 @@ function start(host, api){
     if(remote.on && Math.hypot(remote.x - fx2, remote.y - fy2) < 18){ say(api.nameOf(other), ['💕 *waves at you*']); return; }
     if(Math.hypot(pup.x - fx2, pup.y - fy2) < 18) say('Dayla', [['*happy wiggle* 🐾','*rolls over for belly rubs*','*boops your hand with her nose*'][Math.floor(Math.random() * 3)]]);
   }
+  function showChoices(){
+    if(!talk || !talk.choices || talk.i !== talk.lines.length - 1 || talk.shown < talk.lines[talk.i].length || box.querySelector('.rpg-ch')) return;
+    const wrap = document.createElement('div'); wrap.className = 'rpg-ch';
+    talk.choices.forEach(([label, fn]) => { const b2 = document.createElement('button'); b2.textContent = label; b2.onclick = e => { e.stopPropagation(); wrap.remove(); talk = null; box.hidden = true; fn && fn(); }; wrap.appendChild(b2); });
+    box.appendChild(wrap);
+  }
+  function taxiTo(tx2, ty2, name){ const [a, b2] = nearWalk(tx2, ty2); p.x = a * T + 8; p.y = b2 * T + 8; pup.x = p.x - 12; pup.y = p.y + 6; pup.trail = []; if(cat.follow){ cat.x = p.x + 10; cat.y = p.y + 6; } api.sfx('open'); banner('🚕 ' + name); saveNow(); }
+  const TAXI = [['🏠 Home', 8, 11, 'Rhead House'], ['🎣 The pier', 13, 29, 'The pier'], ['🗼 Lighthouse', 39, 31, 'The lighthouse'], ['🏀 The court', 31, 23, 'Rhead Court'], ['⛪ Chapel', 6, 25, 'The little chapel']];
   function lighthouseDoor(){
-    if(!W.keyFound) return say('Lighthouse', ['The door is locked tight. 🔒', W.talkedMayor ? 'Maybe someone in town knows where a key is…' : 'Mayor Pip might know what’s going on.']);
+    if(!W.keyFound) return say('Lighthouse', ['The door is locked tight. 🔒', W.talkedMayor ? 'Maybe someone in town knows where a key is…' : 'Joseph on the plaza might know what’s going on.']);
     if(!W.lhOpen) return say('Lighthouse', ['You turn the Brass Key… *click!* 🗝️', 'You climb the spiral stairs to the lamp room.', 'The great lamp is EMPTY. The Glow Crystal that powers it is gone!', 'Tiny glowing footprints lead out the door… toward the west end of the beach.'], () => { setWorld({ lhOpen: 1 }); banner('📜 Find the Glow Crystal!'); });
     if(!W.crystal) return say('Lighthouse', ['The lamp room is dark and quiet.', 'The Glow Crystal must be with those glowing critters by the west rocks.']);
     if(!W.lightOn) return say('Lighthouse', ['You set the Glow Crystal back in the lamp…', '✨ FWOOOM! ✨', 'The lighthouse blazes to life! Light sweeps across the sea!'], () => { setWorld({ lightOn: 1 }); celebrate('🗼 Chapter 1 complete!'); });
@@ -355,7 +410,7 @@ function start(host, api){
       const spot = DIGS.filter(d => !(d.id === 'key' ? W.keyFound : st.dug[d.id])).map(d => [d, Math.hypot(d.px - p.x, d.py - p.y)]).sort((a, b) => a[1] - b[1])[0];
       if(spot && spot[1] < 24){ const d = spot[0]; for(let i = 0; i < 14; i++) fx.push({ x: d.px, y: d.py, vx: (Math.random() - .5) * 60, vy: -40 - Math.random() * 40, t: .8, c: '#8A5A36' }); api.sfx('pop');
         if(d.id === 'key'){ say('Dayla', ['*dig dig dig* 🐾', 'Dayla found an old Brass Key with a little lighthouse carved on it! 🗝️'], () => { setWorld({ keyFound: 1 }); banner('📜 Open the lighthouse!'); }); }
-        else if(d.id[0] === 's'){ st.dug[d.id] = 1; st.items.snack++; say('Dayla', ['*dig dig* 🐾', 'Dayla dug up a Croissant Snack! (Still fresh. Somehow.)']); saveNow(); }
+        else if(d.id[0] === 's'){ st.dug[d.id] = 1; st.items.snack++; say('Dayla', ['*dig dig* 🐾', 'Dayla dug up a Arepa! (Still fresh. Somehow.)']); saveNow(); }
         else { st.dug[d.id] = 1; const n = 5 + Math.floor(Math.random() * 6); st.coins += n; hud(); say('Dayla', ['*dig dig* 🐾', `Dayla dug up ${n} coins! 🪙`]); saveNow(); }
         return; }
       if(spot && spot[1] < 230){ const dx = spot[0].px - p.x, dy = spot[0].py - p.y, ang = Math.atan2(dy, dx), dirs = ['east','south-east','south','south-west','west','north-west','north','north-east'], i = Math.round(((ang + Math.PI * 2) % (Math.PI * 2)) / (Math.PI / 4)) % 8;
@@ -366,8 +421,8 @@ function start(host, api){
 
   /* --- live play with each other --- */
   ch = api.channel && api.channel('rhead-rpg');
-  if(ch){ ch.on('broadcast', { event: 'pos' }, ({ payload: q }) => { if(!q || q.who !== other) return; if(!remote.on){ remote.x = q.x; remote.y = q.y; banner(`${api.nameOf(other)} is on the island! 💕`); } remote.on = true; remote.tx = q.x; remote.ty = q.y; remote.d = q.d; remote.moving = q.m; remote.seen = performance.now(); })
-    .on('broadcast', { event: 'bye' }, ({ payload: q }) => { if(q && q.who === other){ remote.on = false; banner(`${api.nameOf(other)} left the island`); } })
+  if(ch){ ch.on('broadcast', { event: 'pos' }, ({ payload: q }) => { if(!q || q.who !== other) return; if(!remote.on){ remote.x = q.x; remote.y = q.y; banner(`${api.nameOf(other)} is here! 💕`); } remote.on = true; remote.tx = q.x; remote.ty = q.y; remote.d = q.d; remote.moving = q.m; remote.seen = performance.now(); })
+    .on('broadcast', { event: 'bye' }, ({ payload: q }) => { if(q && q.who === other){ remote.on = false; banner(`${api.nameOf(other)} left the game`); } })
     .on('broadcast', { event: 'world' }, ({ payload: q }) => { if(q && typeof q === 'object'){ const was = W.lightOn; W = Object.assign({}, W, q); G.lightOn = !!W.lightOn; if(W.catFound && !cat.follow){ cat.x = 33 * T + 8; cat.y = 10 * T + 12; } if(!was && W.lightOn) banner(`🗼 ${api.nameOf(other)} lit the lighthouse!`); } }).subscribe(); }
   const send = (ev, pl) => { try{ ch && ch.send({ type: 'broadcast', event: ev, payload: pl }); }catch(e){} };
   function banner(text){ const b = $('.rpg-banner'); b.textContent = text; b.classList.remove('show'); void b.offsetWidth; b.classList.add('show'); }
@@ -377,9 +432,9 @@ function start(host, api){
   function openPanel(){
     const pn = $('.rpg-panel'), need = st.lv * 8;
     pn.innerHTML = `<div class="rpg-pn-h"><b>🎒 ${ME}’s bag</b><button data-x>✕</button></div>
-      <div class="rpg-pn-s"><div class="eyebrow">Journal</div><p>${objective(W)}${!W.catFound ? '<br><span class="fine">Side quest: find Rosa’s cat, Croissant. She ran off east.</span>' : ''}</p></div>
+      <div class="rpg-pn-s"><div class="eyebrow">Journal</div><p>${objective(W)}${!W.catFound ? '<br><span class="fine">Side quest: find Mami Elsa’s cat, Michi. She ran off east.</span>' : ''}</p></div>
       <div class="rpg-pn-s"><div class="eyebrow">You</div><p>Level ${st.lv} · ⭐ ${st.xp}/${need} XP<br>❤️ ${st.hp}/${st.mhp} · Dayla 🐾 ${st.dhp}/${st.dmhp} · 🪙 ${st.coins}</p></div>
-      <div class="rpg-pn-s"><div class="eyebrow">Items</div><div class="rpg-item"><span>🥐 Croissant Snack ×${st.items.snack}</span><button data-eat ${st.items.snack && st.hp < st.mhp ? '' : 'disabled'}>Eat (+5 ❤️)</button></div>${W.keyFound ? '<div class="rpg-item"><span>🗝️ Brass Key</span></div>' : ''}${W.crystal && !W.lightOn ? '<div class="rpg-item"><span>💎 Glow Crystal</span></div>' : ''}</div>
+      <div class="rpg-pn-s"><div class="eyebrow">Items</div><div class="rpg-item"><span>🫓 Arepa ×${st.items.snack}</span><button data-eat ${st.items.snack && st.hp < st.mhp ? '' : 'disabled'}>Eat (+5 ❤️)</button></div>${W.keyFound ? '<div class="rpg-item"><span>🗝️ Brass Key</span></div>' : ''}${W.crystal && !W.lightOn ? '<div class="rpg-item"><span>💎 Glow Crystal</span></div>' : ''}</div>
       <div class="rpg-pn-s"><div class="eyebrow">Critterdex · ${DEX.filter(k => (st.dex[k] || 0) >= 2).length}/${DEX.length} friends</div><div class="rpg-dex">${DEX.map(k => { const s = st.dex[k] || 0, m = MONS[k]; return `<div class="${s ? '' : 'unk'}"><canvas data-mon="${k}" width="28" height="28"></canvas><b>${s ? m.name : '???'}</b><span>${s >= 2 ? '💕 Friend' : s ? 'Seen' : ''}</span>${s ? `<small>${m.blurb}</small>` : ''}</div>`; }).join('')}</div></div>`;
     pn.hidden = false;
     pn.querySelectorAll('canvas[data-mon]').forEach(c => { const x = c.getContext('2d'); x.imageSmoothingEnabled = false; if(st.dex[c.dataset.mon]) drawMon(x, c.dataset.mon, c.dataset.mon === 'king' ? 2 : 6, c.dataset.mon === 'king' ? 5 : 7, 0, 1); else { x.fillStyle = '#C9BFB3'; x.fillRect(9, 8, 10, 12); } });
@@ -422,7 +477,7 @@ function start(host, api){
     }
     const tapWindow = ms => new Promise(r => { waiting = r; setTimeout(() => { if(waiting === r){ waiting = null; r(0); } }, ms); });
     async function aim(){ bar.hidden = false; needle = { s: performance.now(), ms: 1000 }; say2('Tap when the marker hits the green!'); const at = await new Promise(r => { waiting = r; }); const q = at ? (at - needle.s) / needle.ms : 1; needle = null; bar.hidden = true; return Math.abs(q - .78) < .1; }
-    function menuOn(){ const alive = foes.filter(f => !f.dead); menu.innerHTML = `<button data-m="bonk">👊 Bonk</button><button data-m="pounce" ${st.dhp > 0 ? '' : 'disabled'}>🐾 Dayla pounce</button><button data-m="snack" ${st.items.snack ? '' : 'disabled'}>🥐 Snack ×${st.items.snack}</button><button data-m="run" ${MONS[mon.k].boss ? 'disabled' : ''}>🏃 Run</button>`; menu.hidden = false; say2(`What will you do? (${alive.length} left)`);
+    function menuOn(){ const alive = foes.filter(f => !f.dead); menu.innerHTML = `<button data-m="bonk">👊 Bonk</button><button data-m="pounce" ${st.dhp > 0 ? '' : 'disabled'}>🐾 Dayla pounce</button><button data-m="snack" ${st.items.snack ? '' : 'disabled'}>🫓 Arepa ×${st.items.snack}</button><button data-m="run" ${MONS[mon.k].boss ? 'disabled' : ''}>🏃 Run</button>`; menu.hidden = false; say2(`What will you do? (${alive.length} left)`);
       menu.querySelectorAll('button').forEach(b => b.onclick = ev => { ev.stopPropagation(); menu.hidden = true; turn(b.dataset.m); }); }
     async function hitFoe(dmg, nice, who){ const f = foes.find(f => !f.dead); if(!f) return; const fxp = fxPos(f, foes.indexOf(f)) + (f.k === 'king' ? 22 : 14);
       const actor = who === 'pup' ? pupB : hero; await tween(actor, 'ox', who === 'pup' ? 90 : 70, 220); f.hp = Math.max(0, f.hp - dmg); f.flash = .4; api.sfx(nice ? 'success' : 'pop'); pop(fxp, 64, nice ? `NICE! -${dmg}` : `-${dmg}`, nice ? '#F2C14E' : '#FFFFFF'); showHP(); await tween(actor, 'ox', 0, 260);
@@ -474,7 +529,7 @@ function start(host, api){
   function update(dt, now){
     let ix = input.x, iy = input.y; const k = input.keys;
     if(k.arrowleft || k.a) ix = -1; if(k.arrowright || k.d) ix = 1; if(k.arrowup || k.w) iy = -1; if(k.arrowdown || k.s) iy = 1;
-    if(talk){ ix = iy = 0; const L = talk.lines[talk.i]; if(talk.shown < L.length){ const before = Math.floor(talk.shown); talk.shown = Math.min(L.length, talk.shown + dt * 45); const nowN = Math.floor(talk.shown); boxText.textContent = L.slice(0, nowN); if(api.soundOn() && !/^[(*]/.test(L)){ for(let c = before; c < nowN; c++){ if(c % 3 === 0 && /[a-zA-Z0-9]/.test(L[c])){ blip(talk.name, L[c]); break; } } } } }
+    if(talk){ ix = iy = 0; const L = talk.lines[talk.i]; if(talk.shown < L.length){ const before = Math.floor(talk.shown); talk.shown = Math.min(L.length, talk.shown + dt * 45); const nowN = Math.floor(talk.shown); boxText.textContent = L.slice(0, nowN); if(nowN >= L.length) showChoices(); if(api.soundOn() && !/^[(*]/.test(L)){ for(let c = before; c < nowN; c++){ if(c % 3 === 0 && /[a-zA-Z0-9]/.test(L[c])){ blip(talk.name, L[c]); break; } } } } }
     if(!$('.rpg-panel').hidden || pup.sniff > 0) ix = iy = 0;
     const L = Math.hypot(ix, iy); p.moving = L > .1;
     if(p.moving){ const sp = 78 * Math.min(1, L) * dt, vx = ix / Math.max(1, L) * sp, vy = iy / Math.max(1, L) * sp;
@@ -490,7 +545,7 @@ function start(host, api){
     if(cat.follow){ const tg = pup.trail.length > 28 ? pup.trail[pup.trail.length - 28] : null; if(tg && Math.hypot(p.x - cat.x, p.y - cat.y) > 26){ const dx = tg[0] - cat.x, dy = tg[1] - cat.y, l = Math.hypot(dx, dy) || 1, s = Math.min(l, 80 * dt); cat.x += dx / l * s; cat.y += dy / l * s; } if(Math.hypot(p.x - cat.x, p.y - cat.y) > 120){ cat.x = p.x + 10; cat.y = p.y + 6; } }
     // townspeople wander a little
     npcs.forEach(n => { n.t -= dt; if(n.t <= 0){ n.t = 2 + Math.random() * 3; if(n.wander && !talk){ n.mx = Math.random() < .5 ? 0 : (Math.random() - .5) * 2; n.my = Math.random() < .5 ? 0 : (Math.random() - .5) * 2; if(Math.abs(n.mx) > Math.abs(n.my) && n.mx) n.d = n.mx < 0 ? 1 : 2; else if(n.my) n.d = n.my < 0 ? 3 : 0; } else { n.mx = n.my = 0; } }
-      if(n.mx || n.my){ const nx = n.x + n.mx * 22 * dt, ny = n.y + n.my * 22 * dt; if(Math.hypot(nx - n.hx, ny - n.hy) < 28 && !solidAt(nx, ny) && Math.hypot(nx - p.x, ny - p.y) > 14){ n.x = nx; n.y = ny; n.ft = (n.ft || 0) + dt; if(n.ft > .2){ n.ft = 0; n.f = n.f === 1 ? 2 : 1; } } else { n.mx = n.my = 0; n.f = 0; } } else n.f = 0; });
+      if(n.mx || n.my){ const nx = n.x + n.mx * 22 * dt, ny = n.y + n.my * 22 * dt; if(Math.hypot(nx - n.hx, ny - n.hy) < (n.wander === 2 ? 70 : 28) && !solidAt(nx, ny) && Math.hypot(nx - p.x, ny - p.y) > 14){ n.x = nx; n.y = ny; n.ft = (n.ft || 0) + dt; if(n.ft > .2){ n.ft = 0; n.f = n.f === 1 ? 2 : 1; } } else { n.mx = n.my = 0; n.f = 0; } } else n.f = 0; });
     // critters
     safeT -= dt;
     mons.forEach(m => {
@@ -521,7 +576,7 @@ function start(host, api){
     for(let ty = Math.floor(camy / T); ty < Math.min(MH, (camy + vh) / T + 1); ty++) for(let tx = Math.floor(camx / T); tx < Math.min(MW, (camx + vw) / T + 1); tx++){ if(map[ty][tx] !== '~') continue; const h = hash(tx, ty); if(((t * .6 + h * 7) % 3) < 1.2){ cx.fillRect(tx * T - camx + Math.floor(h * 10) + Math.floor((t * 3 + h * 5) % 3), ty * T - camy + Math.floor(hash(ty, tx) * 12), 3, 1); } }
     cx.fillStyle = 'rgba(191,230,245,.9)'; const fy = 14 * T - 18 - Math.abs(Math.sin(t * 4)) * 3; cx.fillRect(21 * T + 14 - camx, fy - camy, 4, 4);
     const ents = [{ y: p.y, fn: () => spr(sheets[me], 16, 22, p, p.x - 8 - camx, p.y - 20 - camy) }, { y: pup.y, fn: () => { spr(dog, 16, 14, pup, pup.x - 8 - camx, pup.y - 12 - camy); if(pup.sniff > 0){ cx.fillStyle = '#FFFFFF'; cx.font = '7px sans-serif'; cx.textAlign = 'center'; cx.fillText('sniff', pup.x - camx, pup.y - 16 - camy - Math.abs(Math.sin(now / 150)) * 2); } } }];
-    npcs.forEach(n => ents.push({ y: n.y, fn: () => spr(n.sheet, 16, 22, n, n.x - 8 - camx, n.y - 20 - camy) }));
+    npcs.forEach(n => ents.push({ y: n.y, fn: () => n.dog ? spr(n.sheet, 16, 14, n, n.x - 8 - camx, n.y - 12 - camy) : spr(n.sheet, 16, 22, n, n.x - 8 - camx, n.y - 20 - camy) }));
     if(remote.on) ents.push({ y: remote.y, fn: () => spr(sheets[other], 16, 22, remote, remote.x - 8 - camx, remote.y - 20 - camy) });
     ents.push({ y: cat.y, fn: () => drawMon(cx, 'croissant', cat.x - 8 - camx, cat.y - 12 - camy, t, 1) });
     mons.forEach(m => { if(!m.alive || (m.k === 'king' && !(W.lhOpen && !W.crystal))) return; ents.push({ y: m.y, fn: () => drawMon(cx, m.k, m.x - (m.k === 'king' ? 11 : 8) - camx, m.y - (m.k === 'king' ? 22 : 12) - camy, t + m.hx, 1) }); });
@@ -541,7 +596,7 @@ function start(host, api){
   }
   function loop(now){ const dt = Math.min(.05, (now - prev) / 1000); prev = now; if(BT) BT.draw(now); else { update(dt, now); draw(now); } raf = requestAnimationFrame(loop); }
   raf = requestAnimationFrame(loop);
-  setTimeout(() => { if(!saved.seen){ say('Dayla', ['*WOOF!* 🐾', '(Welcome to Rhead Island! Drag on the left side of the screen to walk. Tap A to talk, and 🐾 to have Dayla sniff around.)', '(Mayor Pip is waiting on the plaza by the fountain. Go say hi!)']); saved.seen = 1; saveNow(); } }, 400);
+  setTimeout(() => { if(!saved.seen){ say('Dayla', ['*WOOF!* 🐾', '(Welcome to the neighbourhood! Use the joystick at the bottom left to walk. Tap A to talk, and 🐾 to have Dayla sniff around.)', '(Joseph is waiting on the plaza by the fountain. Go say hi!)']); saved.seen = 1; saveNow(); } }, 400);
 
   G.stop = () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); window.removeEventListener('keydown', onKey); window.removeEventListener('keyup', onKey); send('bye', { who: me }); api.save(pack()); try{ ch && api.unchannel(ch); }catch(e){} };
 }

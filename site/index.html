@@ -1835,7 +1835,7 @@ function notifyCard(){
 }
 function accountCard(){
   const imp = meta('imported');
-  return `<section class="card stack" style="gap:10px"><h2>Account</h2><div class="between"><span class="muted" style="overflow-wrap:anywhere">${esc((S.user && S.user.email) || 'Signed in')}</span><button class="btn small" data-act="sign-out">Sign out</button></div><p class="fine" style="margin:0">App version: Oct 22, 2026 · update 12</p></section>
+  return `<section class="card stack" style="gap:10px"><h2>Account</h2><div class="between"><span class="muted" style="overflow-wrap:anywhere">${esc((S.user && S.user.email) || 'Signed in')}</span><button class="btn small" data-act="sign-out">Sign out</button></div><p class="fine" style="margin:0">App version: Oct 22, 2026 · update 13</p></section>
   <section class="card stack" style="gap:10px"><h2>Move data from the old app</h2>
     ${imp ? `<p class="fine" style="margin:0">Done on ${esc(fmtDate(new Date(imp.at), { month:'short', day:'numeric', year:'numeric' }))}: ${imp.records} records and ${imp.photos} photos.</p>` : `<p class="fine" style="margin:0">Brings over everything you saved in the Claude version: lists, chat, money, photos and the rest. Do this once, on one phone.</p>`}
     ${S.importMsg ? `<div class="banner">${esc(S.importMsg)}</div>` : ''}
@@ -6014,13 +6014,13 @@ function openRPG(){
   const api = { me, nameOf, avatar: w => normAv(av(w)), baseAv: () => Object.assign({}, AV_BASE), sfx: k => { try{ SFX.play(k); }catch(e){} },
     load: () => { const d = gdoc('rpg_' + me); if(!d) return null; const o = Object.assign({}, d); delete o.id; return o; },
     save: st => { setDoc('games/rpg_' + me, Object.assign({}, st, { at: Date.now() })); },
-    loadWorld: () => { const d = gdoc('rpg_world'); if(!d) return null; const o = Object.assign({}, d); delete o.id; return o; },
-    saveWorld: w => { const o = Object.assign({}, w); delete o.id; setDoc('games/rpg_world', Object.assign(o, { at: Date.now() })); },
+    loadWorld: () => { const d = gdoc('rpg_world_' + me); if(!d) return null; const o = Object.assign({}, d); delete o.id; return o; },
+    saveWorld: w => { const o = Object.assign({}, w); delete o.id; setDoc('games/rpg_world_' + me, Object.assign(o, { at: Date.now() })); },
     channel: n => SB ? SB.channel(n, { config: { broadcast: { self: false } } }) : null, unchannel: c => { try{ SB.removeChannel(c); }catch(e){} },
     raining: rpgRaining, soundOn: () => SET.sound !== false, close: closeRPG };
   const go2 = () => { try{ window.RheadRPG.start(host, api); }catch(e){ console.error(e); host.innerHTML = '<div class="rpg-load">The game couldn’t load. Close and try again.<br><br><button class="btn" onclick="this.closest(\'.rpg-host\').remove();document.documentElement.classList.remove(\'rpg-open\')">Close</button></div>'; } };
   if(window.RheadRPG) return go2();
-  const sc = document.createElement('script'); sc.src = '/rpg.js?v=8'; sc.onload = go2; sc.onerror = () => { host.innerHTML = '<div class="rpg-load">No connection right now.</div>'; setTimeout(closeRPG, 1800); }; document.head.appendChild(sc);
+  const sc = document.createElement('script'); sc.src = '/rpg.js?v=9'; sc.onload = go2; sc.onerror = () => { host.innerHTML = '<div class="rpg-load">No connection right now.</div>'; setTimeout(closeRPG, 1800); }; document.head.appendChild(sc);
 }
 /* ---------- Guess Who? ---------- */
 const GW_NAMES = ['Bruno','Coco','Pepe','Maple','Rosa','Theo','Lulu','Rafa','Nina','Otis','Pía','Gus','Mila','Dante','Juno','Tito','Lola','Ezra','Bea','Iggy','Sol','Kiko','Vera','Moe','Paz','Rex','Ivy','Nico','Wren','Fito','Gigi','Hank','Luz','Abe','Tula','Remy'];

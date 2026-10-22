@@ -428,7 +428,7 @@ function start(host, api){
   /* --- saving --- */
   const pack = () => ({ x: Math.round(p.x), y: Math.round(p.y), d: p.d, seen: 1, intro: saved.intro || 0, hp: st.hp, mhp: st.mhp, dhp: st.dhp, dmhp: st.dmhp, lv: st.lv, xp: st.xp, coins: st.coins, items: st.items, diary: st.diary, partner: st.partner || null, got_elsa: st.got_elsa || 0 });
   const saveNow = () => { lastSave = performance.now(); api.save(pack()); };
-  function setWorld(patch){ if(!patch) return; W = Object.assign({}, W, patch); api.saveWorld(W); send('world', W); }
+  function setWorld(patch){ if(!patch) return; W = Object.assign({}, W, patch); api.saveWorld(W); }
   function hud(){ $('.rpg-hud').innerHTML = `❤️ ${st.hp}/${st.mhp} · 🪙 ${st.coins}`; $('.rpg-b').style.opacity = pup.vis ? 1 : .45; }
   hud();
 
@@ -528,8 +528,7 @@ function start(host, api){
   /* --- live play together --- */
   ch = api.channel && api.channel('rhead-rpg');
   if(ch){ ch.on('broadcast', { event: 'pos' }, ({ payload: q }) => { if(!q || q.who !== other) return; if(!remote.on){ remote.x = q.x; remote.y = q.y; banner(`${api.nameOf(other)} is here! 💕`); } remote.on = true; remote.tx = q.x; remote.ty = q.y; remote.d = q.d; remote.moving = q.m; remote.seen = performance.now(); })
-    .on('broadcast', { event: 'bye' }, ({ payload: q }) => { if(q && q.who === other){ remote.on = false; banner(`${api.nameOf(other)} left the game`); } })
-    .on('broadcast', { event: 'world' }, ({ payload: q }) => { if(q && typeof q === 'object'){ const was = W.p_done; W = Object.assign({}, W, q); if(!was && W.p_done){ portal.open = true; portal.r = 21; banner(`🌀 ${api.nameOf(other)} opened the portal!`); } } }).subscribe(); }
+    .on('broadcast', { event: 'bye' }, ({ payload: q }) => { if(q && q.who === other){ remote.on = false; banner(`${api.nameOf(other)} left the game`); } }).subscribe(); }
   const send = (ev, pl) => { try{ ch && ch.send({ type: 'broadcast', event: ev, payload: pl }); }catch(e){} };
   function banner(text){ const b = $('.rpg-banner'); b.textContent = text; b.classList.remove('show'); void b.offsetWidth; b.classList.add('show'); }
   function celebrate(text){ banner(text); api.sfx('success'); for(let i = 0; i < 40; i++) fx.push({ x: p.x, y: p.y - 10, vx: (Math.random() - .5) * 160, vy: -60 - Math.random() * 100, t: 1.4, c: ['#F2C14E','#E0566B','#58AEDD','#7FD07A','#FFFFFF'][i % 5] }); }

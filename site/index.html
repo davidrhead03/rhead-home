@@ -978,6 +978,41 @@ nav.tabs button.on svg{color:var(--cocoa)}
 .composer form{align-items:flex-end}
 .composer #msg-text{resize:none;line-height:1.35;min-height:42px;max-height:140px;overflow-y:auto;font-family:inherit;display:block;height:42px;box-sizing:border-box}
 
+/* guess who */
+.gw-board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;perspective:800px}
+.gw-card{border:0;padding:0;background:none;cursor:pointer;font:inherit;color:inherit;aspect-ratio:.82}
+.gw-in{position:relative;display:block;width:100%;height:100%;transition:transform .45s cubic-bezier(.3,1.4,.5,1);transform-style:preserve-3d}
+.gw-front,.gw-back{position:absolute;inset:0;border-radius:14px;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.gw-front{background:var(--surface);box-shadow:var(--shadow);border:2px solid transparent}
+.gw-front svg{width:78%;height:auto;max-width:64px}
+.gw-front b{font-size:12.5px;line-height:1.1}
+.gw-back{transform:rotateY(180deg);background:repeating-linear-gradient(45deg,var(--sky),var(--sky) 6px,color-mix(in srgb,var(--sky) 80%,#fff) 6px,color-mix(in srgb,var(--sky) 80%,#fff) 12px);color:#fff;font-family:var(--display);font-size:28px;box-shadow:inset 0 0 0 2px rgba(255,255,255,.35)}
+.gw-card.down .gw-in{transform:rotateY(180deg)}
+.gw-card.flipnow .gw-in{animation:gwFlip .6s ease both}
+@keyframes gwFlip{from{transform:rotateY(0)}to{transform:rotateY(180deg)}}
+.gw-card.guessable .gw-front{border-color:color-mix(in srgb,var(--blush) 45%,transparent)}
+.gw-card.pick .gw-front{border-color:var(--blush);transform:scale(1.04);box-shadow:0 0 0 4px color-mix(in srgb,var(--blush) 30%,transparent),var(--shadow)}
+.gw-card.reveal .gw-front{border-color:var(--sage);box-shadow:0 0 0 4px color-mix(in srgb,var(--sage) 35%,transparent)}
+.gw-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.gw-mine{display:flex;align-items:center;gap:8px}.gw-mine svg{width:40px;height:40px;border-radius:12px}
+.gw-mine b{display:block;font-size:15px}.gw-mine .fine{display:block;line-height:1.1}
+.gw-qs{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.gw-qs .chip{font-size:13.5px}
+.gw-confirm{display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px;border-radius:14px;background:var(--surface2)}
+.gw-confirm svg{width:48px;height:48px;flex:none}
+.gw-reveal{display:flex;justify-content:center;gap:22px;margin-top:12px}
+.gw-reveal>div{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12.5px;color:var(--muted)}
+.gw-reveal b{color:var(--ink);font-size:15px}
+/* rivalry */
+.riv-bar{display:flex;align-items:center;gap:10px;margin-top:10px}
+.riv-side{display:flex;align-items:center;gap:6px}.riv-side b{font-family:var(--display);font-size:24px;min-width:22px;text-align:center}
+.riv-track{flex:1;height:12px;border-radius:99px;background:color-mix(in srgb,var(--blush) 55%,var(--surface2));overflow:hidden}
+.riv-track i{display:block;height:100%;background:var(--sky);border-radius:99px;transition:width .5s}
+.riv-stake{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 12px;border-radius:14px;background:var(--surface2);width:100%;border:0;font:inherit;color:inherit}
+.riv-stake>span:first-child{font-size:22px}
+button.riv-stake{cursor:pointer;border:1.5px dashed color-mix(in srgb,var(--ink) 20%,transparent);background:transparent}
+.riv-owe{display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px 12px;border-radius:14px;background:color-mix(in srgb,var(--gold) 18%,var(--surface))}
+.riv-owe>span{font-size:22px}
 body.typing nav.tabs,body.typing .fab{display:none!important}
 body.typing .composer{bottom:calc(var(--kb,0px) + 6px)}
 body.typing main{padding-bottom:0!important}body.typing .chat{padding-bottom:76px;margin-bottom:0}
@@ -1655,6 +1690,7 @@ function updateBadge(force){
   try{ if('setAppBadge' in navigator){ n ? navigator.setAppBadge(n).catch(() => {}) : navigator.clearAppBadge().catch(() => {}); } }catch(e){}
   try{ caches.open('rhead-badge').then(c => c.put('/badge', new Response(String(n)))).catch(() => {}); }catch(e){}
 }
+function notifyTurn(game, over){ if(!SB || !S.me) return; SB.functions.invoke('notify', { body: { kind: 'turn', game, me: S.me, over: !!over } }).catch(() => {}); }
 function notifyEvent(col, id){ if(!SB) return; SB.functions.invoke('notify', { body: { kind: 'event', col, id } }).catch(() => {}); }
 
 /* ---------- weather straight from the National Weather Service ---------- */
@@ -1717,8 +1753,8 @@ async function pushTest(){
   try{ const { data, error } = await SB.functions.invoke('notify', { body: { kind: 'test', me: S.me } }); if(error) throw error; if(data && data.sent) toast('Test sent. It should pop up in a few seconds.'); else { toast('Couldn’t reach this phone. Tap “Turn on notifications” to refresh it.'); S.pushState = 'off'; render(); } }
   catch(e){ toast('The test didn’t go through. Try again in a minute.'); }
 }
-const NP_TYPES = [['chat','💬 Chat messages'],['note','💌 Love notes'],['list','🛒 Shopping list additions'],['event','📅 Calendar plans'],['bill','🧾 Bills due'],['task','✅ Tasks due'],['occasion','🎂 Birthdays & special days'],['trip','🧳 Trips'],['dayla','🐾 Dayla’s daily message']];
-const NP_DEF = { on: { chat:true, note:true, list:true, event:true, bill:true, task:true, occasion:true, trip:true, dayla:false }, quiet: { on:true, from:22, to:7, chatThrough:true } };
+const NP_TYPES = [['chat','💬 Chat messages'],['note','💌 Love notes'],['list','🛒 Shopping list additions'],['event','📅 Calendar plans'],['bill','🧾 Bills due'],['task','✅ Tasks due'],['occasion','🎂 Birthdays & special days'],['trip','🧳 Trips'],['game','🎮 Game turns'],['dayla','🐾 Dayla’s daily message']];
+const NP_DEF = { on: { chat:true, note:true, list:true, event:true, bill:true, task:true, occasion:true, trip:true, game:true, dayla:false }, quiet: { on:true, from:22, to:7, chatThrough:true } };
 function notifyPrefs(w){ const p = meta('notify-' + w) || {}; return { on: Object.assign({}, NP_DEF.on, p.on || {}), quiet: Object.assign({}, NP_DEF.quiet, p.quiet || {}) }; }
 function saveNotifyPrefs(p){ if(S.me) setDoc('meta/notify-' + S.me, { on: p.on, quiet: p.quiet }); }
 const hrLbl = h => (h % 12 || 12) + (h < 12 ? 'am' : 'pm');
@@ -1743,7 +1779,7 @@ function notifyCard(){
 }
 function accountCard(){
   const imp = meta('imported');
-  return `<section class="card stack" style="gap:10px"><h2>Account</h2><div class="between"><span class="muted" style="overflow-wrap:anywhere">${esc((S.user && S.user.email) || 'Signed in')}</span><button class="btn small" data-act="sign-out">Sign out</button></div><p class="fine" style="margin:0">App version: Oct 22, 2026 · update 6</p></section>
+  return `<section class="card stack" style="gap:10px"><h2>Account</h2><div class="between"><span class="muted" style="overflow-wrap:anywhere">${esc((S.user && S.user.email) || 'Signed in')}</span><button class="btn small" data-act="sign-out">Sign out</button></div><p class="fine" style="margin:0">App version: Oct 22, 2026 · update 7</p></section>
   <section class="card stack" style="gap:10px"><h2>Move data from the old app</h2>
     ${imp ? `<p class="fine" style="margin:0">Done on ${esc(fmtDate(new Date(imp.at), { month:'short', day:'numeric', year:'numeric' }))}: ${imp.records} records and ${imp.photos} photos.</p>` : `<p class="fine" style="margin:0">Brings over everything you saved in the Claude version: lists, chat, money, photos and the rest. Do this once, on one phone.</p>`}
     ${S.importMsg ? `<div class="banner">${esc(S.importMsg)}</div>` : ''}
@@ -1780,7 +1816,7 @@ function handleHash(){
   const h = (location.hash || '').replace('#', ''); if(!h || !S.me) return;
   try{ history.replaceState(null, '', location.pathname); }catch(e){}
   if(h === 'money'){ S.finTab = 'bills'; ls.set('fintab', 'bills'); go('money'); return; }
-  const m = { chat:['chat'], cal:['cal'], lists:['lists'], notes:['home','notes'], tasks:['home','tasks'], gifts:['home','gifts'], trips:['home','trips'], settings:['home','settings'], home:['home'] }[h];
+  const m = { chat:['chat'], cal:['cal'], lists:['lists'], notes:['home','notes'], tasks:['home','tasks'], gifts:['home','gifts'], trips:['home','trips'], settings:['home','settings'], games:['home','games'], home:['home'] }[h];
   if(m) go(m[0], m[1]);
 }
 function signInHTML(){
@@ -4761,15 +4797,13 @@ const TRIVIA = [
  ['What did God make Eve from?',['Dust','A rib','Water','Clay'],1,'Genesis 2:22'],
  ['Who was the mother of Samuel?',['Hannah','Sarah','Elizabeth','Rebekah'],0,'1 Samuel 1:20']
 ];
-const GAMES = [['dash','Dayla Dash','Run, jump and grab chicken (and shoes!). Beat each other’s high score.','paw','--blush'],['kq','How well do you know me?','Answer 5 questions about yourself, then the other one guesses.','heart','--sage'],['c4','Connect Four','Drop your color, get 4 in a row. Play from your own phones.','target','--sky'],['sudoku','Daily sudoku','A new puzzle every day in 3 levels. Race each other’s time.','target','--cocoa'],['doodle','Doodle pad','Draw for each other and save it to your shared gallery.','pencil','--gold'],['wordle','Word of the day','Guess the 5-letter word in 6 tries. Same word for both of you.','lang','--sky'],['ttt','Tic-tac-toe','Play each other from your own phones, or pass one phone.','target','--blush'],['memory','Dayla memory','Find the matching Dayla photos in as few flips as you can.','paw','--gold'],['trivia','Bible trivia','10 questions. Beat each other’s best score.','book','--cocoa'],['gts','Guess that sound','Real animal and everyday sounds, plus Name that tune.','speaker','--sky'],
-  ['chk','Checkers','Classic checkers with kings. Play from your own phones.','target','--blush'],['rev','Reversi','Flip each other’s discs. Most discs wins.','target','--cocoa'],
-  ['bship','Battleship','Hide your boats, then take turns firing.','target','--sky'],['pict','Draw & Guess','One draws a secret word, the other guesses.','pencil','--gold'],
+const GAMES = [['dash','Dayla Dash','Run, jump and grab chicken (and shoes!). Beat each other’s high score.','paw','--blush'],['kq','How well do you know me?','Answer 5 questions about yourself, then the other one guesses.','heart','--sage'],['c4','Connect Four','Drop your color, get 4 in a row. Play from your own phones.','target','--sky'],['sudoku','Daily sudoku','A new puzzle every day in 3 levels. Race each other’s time.','target','--cocoa'],['doodle','Doodle pad','Draw for each other and save it to your shared gallery.','pencil','--gold'],['wordle','Word of the day','Guess the 5-letter word in 6 tries. Same word for both of you.','lang','--sky'],['memory','Dayla memory','Find the matching Dayla photos in as few flips as you can.','paw','--gold'],['trivia','Bible trivia','10 questions. Beat each other’s best score.','book','--cocoa'],['gts','Guess that sound','Real animal and everyday sounds, plus Name that tune.','speaker','--sky'],['pict','Draw & Guess','One draws a secret word, the other guesses.','pencil','--gold'],
   ['wduel','Word Duel','7 letters, 60 seconds. Who finds more words today?','lang','--sage'],['tot','This or That','5 quick picks a day. How in sync are you?','heart','--blush'],
-  ['geo','Where in the world?','Real photos. Guess where each place is.','globe','--sky'],['catch','Treat Catch','Tilt your phone to catch treats for Dayla.','paw','--gold'],
-  ['fetch','Fetch!','Throw the ball, Dayla brings it back.','paw','--sage']];
-const GAME_EMO = { dash:'🐾', catch:'🍗', fetch:'🎾', memory:'🃏', gts:'🎧', c4:'🔴', chk:'🏁', rev:'⚫', bship:'🚢', ttt:'❌', pict:'✏️', wordle:'🔤', sudoku:'🧩', wduel:'🔠', tot:'🤔', geo:'🌍', kq:'💞', trivia:'✝️', doodle:'🎨' };
-const GAME_SHORT = { c4:'Connect 4', ttt:'Tic-tac-toe', pict:'Draw & Guess', wordle:'Daily word', sudoku:'Sudoku', wduel:'Word Duel', tot:'This or That', geo:'World guess', bship:'Battleship', rev:'Reversi', chk:'Checkers', fetch:'Fetch!', dash:'Dayla Dash', catch:'Treat Catch', memory:'Memory', gts:'Guess the sound', kq:'Know me?', trivia:'Bible trivia', doodle:'Doodle' };
-const GAME_SECTIONS = [['🤝','Play together','Take turns from your own phones',['c4','chk','bship','ttt']],['📅','Daily challenges','Same puzzle for both of you, new every day',['wordle','sudoku','wduel','tot','geo']],['🕹️','Arcade','Beat each other’s high score',['dash','catch','fetch','memory','gts']],['💞','Just us','Get to know each other and make things',['pict','kq','trivia','doodle']]];
+  ['geo','Where in the world?','Real photos. Guess where each place is.','globe','--sky'],
+  ['gw','Guess Who?','Ask yes-or-no questions to find their secret person first.','heart','--sky'],['talk','Talk cards','Fun and deep questions to ask each other.','heart','--blush']];
+const GAME_EMO = { gw:'🕵️', talk:'💬', dash:'🐾', catch:'🍗', fetch:'🎾', memory:'🃏', gts:'🎧', c4:'🔴', chk:'🏁', rev:'⚫', bship:'🚢', ttt:'❌', pict:'✏️', wordle:'🔤', sudoku:'🧩', wduel:'🔠', tot:'🤔', geo:'🌍', kq:'💞', trivia:'✝️', doodle:'🎨' };
+const GAME_SHORT = { gw:'Guess Who?', talk:'Talk cards', c4:'Connect 4', ttt:'Tic-tac-toe', pict:'Draw & Guess', wordle:'Daily word', sudoku:'Sudoku', wduel:'Word Duel', tot:'This or That', geo:'World guess', bship:'Battleship', rev:'Reversi', chk:'Checkers', fetch:'Fetch!', dash:'Dayla Dash', catch:'Treat Catch', memory:'Memory', gts:'Guess the sound', kq:'Know me?', trivia:'Bible trivia', doodle:'Doodle' };
+const GAME_SECTIONS = [['🤝','Play together','Take turns from your own phones',['gw','c4','pict','kq']],['📅','Daily challenges','Same puzzle for both of you, new every day',['wordle','sudoku','wduel','tot','geo']],['🕹️','Arcade','Beat each other’s high score',['dash','memory','gts','trivia']],['💞','Just us','Make things and talk',['doodle','talk']]];
 const gdoc = id => S.data.games.find(x => x.id === id) || null;
 const shuffle = a => { const b = a.slice(); for(let i = b.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
 /* word of the day */
@@ -4811,6 +4845,7 @@ async function wdKey(k){
     const won = cur === ans;
     await setDoc('games/wd_' + dk + '_' + me, { who:me, date:dk, guesses:gs, won, at:Date.now() });
     if(won) setTimeout(celebrate, 450); else SFX.play(gs.length >= 6 ? 'del' : 'pop');
+    if(won || gs.length >= 6){ const od = wdDoc(other(me), dk); if(od && (od.won || (od.guesses || []).length >= 6)){ const a = won ? gs.length : 9, b = od.won ? (od.guesses || []).length : 9; if(a !== b) rivalWin('wordle', a < b ? me : other(me)); } }
     return;
   }
   if(/^[a-z]$/.test(k) && cur.length < 5){ S.wdCur = cur + k; render(); }
@@ -4902,6 +4937,7 @@ function gameBadge(k){ const me = S.me || 'david', dk = ymd(new Date()), yt = '<
   try{
     if(k === 'wordle'){ const w = wdDoc(me, dk); return w && (w.won || (w.guesses || []).length >= 6) ? dn : ''; }
     if(k === 'ttt'){ const t = tttState(); return t.turn === me && !t.winner && t.board.some(Boolean) ? yt : ''; }
+    if(k === 'gw'){ const t = gwState(); return t && t.turn === me && !t.winner ? yt : ''; }
     if(k === 'c4'){ const t = c4State(); return t.turn === me && !t.winner && t.board.some(Boolean) ? yt : ''; }
     if(k === 'chk'){ const t = gdoc('chk'); return t && t.turn === me && !t.winner ? yt : ''; }
     if(k === 'rev'){ const t = gdoc('rev'); return t && t.turn === me && !t.winner && t.board.filter(Boolean).length > 4 ? yt : ''; }
@@ -4917,7 +4953,7 @@ function vGames(){
   const g = S.gameSel;
   if(g){
     const meta = GAMES.find(x => x[0] === g) || GAMES[0];
-    const body = g === 'wordle' ? vWordle() : g === 'ttt' ? vTTT() : g === 'memory' ? vMemory() : g === 'trivia' ? vTrivia() : g === 'gts' ? vGTS() : g === 'sudoku' ? vSudoku() : g === 'doodle' ? vDoodle() : g === 'dash' ? vDash() : g === 'c4' ? vC4() : g === 'chk' ? vChk() : g === 'rev' ? vRev() : g === 'bship' ? vBship() : g === 'pict' ? vPict() : g === 'wduel' ? vDuel() : g === 'tot' ? vTot() : g === 'geo' ? vGeo() : g === 'catch' ? vCatch() : g === 'fetch' ? vFetch() : g === 'kq' ? vKQ() : vTalk();
+    const body = g === 'gw' ? vGW() : g === 'wordle' ? vWordle() : g === 'ttt' ? vTTT() : g === 'memory' ? vMemory() : g === 'trivia' ? vTrivia() : g === 'gts' ? vGTS() : g === 'sudoku' ? vSudoku() : g === 'doodle' ? vDoodle() : g === 'dash' ? vDash() : g === 'c4' ? vC4() : g === 'chk' ? vChk() : g === 'rev' ? vRev() : g === 'bship' ? vBship() : g === 'pict' ? vPict() : g === 'wduel' ? vDuel() : g === 'tot' ? vTot() : g === 'geo' ? vGeo() : g === 'catch' ? vCatch() : g === 'fetch' ? vFetch() : g === 'kq' ? vKQ() : vTalk();
     S.talkAnim = false;
     return `<div class="back"><button class="icon-btn" data-act="game-sel" data-v="" aria-label="Back to games">${ic('back', 22)}</button><div><h2>${esc(meta[1])}</h2></div></div>` + body;
   }
@@ -4927,12 +4963,12 @@ function vGames(){
   const tabs = GAME_SECTIONS.map(([e, t, sub, ks], i) => [['together','daily','arcade','us'][i], e, t.replace('Play together', 'Together').replace('Daily challenges', 'Daily'), sub, ks]).concat([['scores','🏆','Scores','Who’s winning',[]]]);
   const cur = tabs.find(x => x[0] === tab) || tabs[0];
   const card = k => { const G = GAMES.find(x => x[0] === k); if(!G) return ''; const b = gameBadge(k); return `<button class="g-mini" data-act="game-sel" data-v="${k}" style="--c:var(${G[4]})"><span class="g-emo">${GAME_EMO[k] || '🎮'}</span><b>${esc(GAME_SHORT[k] || G[1])}</b>${b ? `<i class="g-dot ${/sage/.test(b) ? 'ok' : ''}">${/sage/.test(b) ? '✓' : '!'}</i>` : ''}</button>`; };
-  return pageHead('Games', 'Play together or beat each other’s scores') + `
+  return pageHead('Games', 'Play together or beat each other’s scores') + rivalCard() + `
     ${waiting.length ? `<div class="g-wait">${waiting.map(([G, b]) => `<button data-act="game-sel" data-v="${G[0]}"><span>${GAME_EMO[G[0]] || '🎮'}</span><b>${esc(G[1])}</b>${b}</button>`).join('')}</div>` : ''}
     ${GAME_SECTIONS.map(([e, t, sub, ks]) => `<div class="g-sec2"><div class="g-sec2-h">${e} <b>${t}</b></div><div class="g-grid4">${ks.map(card).join('')}</div></div>`).join('')}
     <button class="g-scores-btn" data-act="g-scores">🏆 <b>Scoreboard</b><span>${S.gScores ? 'Hide ▲' : 'Show ▼'}</span></button>
     ${S.gScores ? `<section class="card"><h2>Scoreboard</h2><div class="list" style="margin-top:6px"><div class="li" style="border-top:0"><div class="txt"></div><span style="min-width:56px;display:grid;place-items:center">${mini('david')}</span><span style="min-width:56px;display:grid;place-items:center">${mini('laura')}</span></div>
-      ${row('Tic-tac-toe wins', st.david || 0, st.laura || 0)}${row('Word streak 🔥', wdStreak('david'), wdStreak('laura'))}${row('Memory best (flips)', mb.david ? mb.david.moves : '—', mb.laura ? mb.laura.moves : '—')}${row('Dayla Dash best 🐾', (gdoc('dash') || {}).david ? gdoc('dash').david.best : '—', (gdoc('dash') || {}).laura ? gdoc('dash').laura.best : '—')}${row('Connect Four wins', (c4State().scores || {}).david || 0, (c4State().scores || {}).laura || 0)}${row('Sudokus solved 🧩', S.data.games.filter(x => /^sdk_/.test(x.id) && x.who === 'david').length, S.data.games.filter(x => /^sdk_/.test(x.id) && x.who === 'laura').length)}${row('Trivia best', tb.david ? tb.david.best + '/10' : '—', tb.laura ? tb.laura.best + '/10' : '—')}${row('Checkers wins 🏁', (chkState().scores || {}).david || 0, (chkState().scores || {}).laura || 0)}${row('Reversi wins ⚫', (revState().scores || {}).david || 0, (revState().scores || {}).laura || 0)}${row('Battleship wins 🚢', (bsState().scores || {}).david || 0, (bsState().scores || {}).laura || 0)}${row('Draw & Guess points ✏️', (pictState().scores || {}).david || 0, (pictState().scores || {}).laura || 0)}${row('Treat Catch best 🍗', (gdoc('catch') || {}).david ? gdoc('catch').david.best : '—', (gdoc('catch') || {}).laura ? gdoc('catch').laura.best : '—')}${row('Fetch best 🎾', (gdoc('fetch') || {}).david ? gdoc('fetch').david.best : '—', (gdoc('fetch') || {}).laura ? gdoc('fetch').laura.best : '—')}</div></section>` : ''}`;
+      ${row('Word streak 🔥', wdStreak('david'), wdStreak('laura'))}${row('Memory best (flips)', mb.david ? mb.david.moves : '—', mb.laura ? mb.laura.moves : '—')}${row('Dayla Dash best 🐾', (gdoc('dash') || {}).david ? gdoc('dash').david.best : '—', (gdoc('dash') || {}).laura ? gdoc('dash').laura.best : '—')}${row('Connect Four wins 🔴', (c4State().scores || {}).david || 0, (c4State().scores || {}).laura || 0)}${row('Guess Who wins 🕵️', (gwState().scores || {}).david || 0, (gwState().scores || {}).laura || 0)}${row('Sudokus solved 🧩', S.data.games.filter(x => /^sdk_/.test(x.id) && x.who === 'david').length, S.data.games.filter(x => /^sdk_/.test(x.id) && x.who === 'laura').length)}${row('Trivia best', tb.david ? tb.david.best + '/10' : '—', tb.laura ? tb.laura.best + '/10' : '—')}${row('Draw & Guess points ✏️', (pictState().scores || {}).david || 0, (pictState().scores || {}).laura || 0)}</div></section>` : ''}`;
 }
 document.addEventListener('keydown', e => {
   if(S.tab === 'home' && S.page === 'games' && S.gameSel === 'wduel' && S.duel && !S.duel.done && !(e.target && /input|textarea|select/i.test(e.target.tagName))){ const k = e.key === 'Enter' ? 'enter' : e.key === 'Backspace' ? 'back' : /^[a-zA-Z]$/.test(e.key) ? e.key.toLowerCase() : null; if(k){ e.preventDefault(); duelKey(k); } return; }
@@ -5696,7 +5732,7 @@ async function pictStart(){ const st = pictState(), me = meW(), drawer = S.pictO
 async function pictSend(){ const st = pictState(), c = S.pc; if(!c || !S.pdirty){ toast('Draw something first ✏️'); return; } toast('Sending…');
   let img = ''; try{ const blob = await new Promise(r => c.toBlob(r, 'image/png')); if(S.assets && blob){ const r = await S.assets.upload(blob, { type:'image/png' }); img = r.id; } }catch(e){}
   if(!img){ try{ const sm = document.createElement('canvas'); sm.width = 360; sm.height = 360; sm.getContext('2d').drawImage(c, 0, 0, 360, 360); img = sm.toDataURL('image/jpeg', .7); }catch(e){} }
-  if(await setDoc('games/pict', Object.assign({}, st, { status:'guessing', img, guesses:[], at:Date.now() }))){ SFX.play('send'); pictReset(); } }
+  if(await setDoc('games/pict', Object.assign({}, st, { status:'guessing', img, guesses:[], at:Date.now() }))){ SFX.play('send'); pictReset(); if(!S.pictOne) notifyTurn('pict'); } }
 const pnorm = s => String(s || '').toLowerCase().replace(/[^a-z]/g, '').replace(/s$/, '');
 async function pictGuess(g){ const st = pictState(), me = meW(); if(st.status !== 'guessing') return; const guesses = (st.guesses || []).concat(g);
   if(pnorm(g) === pnorm(st.word)){ const pts = Math.max(1, 4 - guesses.length), scores = Object.assign({ david:0, laura:0 }, st.scores), guesser = S.pictOne ? other(st.drawer) : me;
@@ -5735,7 +5771,8 @@ let duelTimer = null;
 function duelStart(){ const dk = ymd(new Date()); S.duel = { dk, end: Date.now() + 60000, cur:'', used:[], words:[], score:0, order:[0,1,2,3,4,5,6], done:false }; SFX.play('open');
   clearInterval(duelTimer); duelTimer = setInterval(() => { const g = S.duel; if(!g || g.done){ clearInterval(duelTimer); return; } const left = Math.ceil((g.end - Date.now()) / 1000); const el = document.getElementById('duel-time'); if(el){ el.textContent = '⏱ ' + Math.max(0, left) + 's'; el.className = 'pill ' + (left <= 10 ? 'blush' : ''); } if(left <= 5 && left > 0) SFX.play('tick'); if(left <= 0) duelEnd(); }, 1000); render(); }
 async function duelEnd(){ const g = S.duel; if(!g || g.done) return; g.done = true; clearInterval(duelTimer); SFX.play('success');
-  await setDoc('games/wdu_' + g.dk + '_' + meW(), { who:meW(), date:g.dk, words:g.words, score:g.score, at:Date.now() }); if(g.score >= 20) celebrate(); render(); }
+  await setDoc('games/wdu_' + g.dk + '_' + meW(), { who:meW(), date:g.dk, words:g.words, score:g.score, at:Date.now() }); if(g.score >= 20) celebrate(); render();
+  const od = gdoc('wdu_' + g.dk + '_' + other(meW())); if(od && (od.score || 0) !== g.score) rivalWin('wduel', g.score > (od.score || 0) ? meW() : other(meW())); }
 function duelKey(k){ const g = S.duel; if(!g || g.done) return; const { letters } = duelLetters(g.dk);
   if(k === 'enter'){ const w = g.cur; if(w.length < 3){ toast('3 letters or more'); } else if(g.words.includes(w)){ toast('Already found'); SFX.play('uncheck'); } else if(DUEL.set.has(w)){ g.words.push(w); g.score += duelPts(w); SFX.play(w.length === 7 ? 'success' : 'check'); haptic(12); if(w.length === 7) toast('🌟 You used all 7 letters!'); } else { SFX.play('uncheck'); haptic(20); toast('Not in the word list'); } g.cur = ''; g.used = []; }
   else if(k === 'back'){ g.cur = g.cur.slice(0, -1); g.used.pop(); }
@@ -5907,9 +5944,114 @@ async function c4Drop(c){
   const line = c4Win(b, st.turn), winner = line ? st.turn : b.every(Boolean) ? 'draw' : null, scores = Object.assign({ david:0, laura:0, draw:0 }, st.scores);
   if(winner) scores[winner]++;
   SFX.play('pop'); await setDoc('games/c4', { board:b, turn:other(st.turn), starter:st.starter || 'david', winner, line, scores, at:Date.now(), last:i });
-  if(winner && winner !== 'draw') setTimeout(celebrate, 300);
+  if(winner && winner !== 'draw'){ setTimeout(celebrate, 300); if(!S.c4One) rivalWin('c4', winner); }
+  if(!S.c4One) notifyTurn('c4', !!winner);
 }
 async function c4New(){ const st = c4State(), starter = other(st.starter || 'laura'); S.c4Last = -1; await setDoc('games/c4', { board:Array(42).fill(null), turn:starter, starter, winner:null, line:null, scores:st.scores || { david:0, laura:0, draw:0 }, at:Date.now() }); }
+/* ---------- Guess Who? ---------- */
+const GW_NAMES = ['Bruno','Coco','Pepe','Maple','Rosa','Theo','Lulu','Rafa','Nina','Otis','Pía','Gus','Mila','Dante','Juno','Tito','Lola','Ezra','Bea','Iggy','Sol','Kiko','Vera','Moe','Paz','Rex','Ivy','Nico','Wren','Fito','Gigi','Hank','Luz','Abe','Tula','Remy'];
+const GW_HAIR = [['black','#171210'],['brown','#5B3B27'],['blonde','#E2C38A'],['red','#B8413A'],['gray','#B4B0AC'],['pink','#E58BAA']];
+const GW_SHIRT = [['red','#C9473D'],['blue','#3E6E8E'],['green','#4F8761'],['yellow','#E2AE55'],['pink','#F4A6B8'],['black','#2A201C']];
+const GW_SHORT = ['short','crop','side','quiff','fade','buzz','curls','spiky','afro','messy'], GW_LONG = ['long','wavy','longcurly','pony','pigtails','bun'];
+const GW_Q = [
+  ['hair:black','Black hair?'],['hair:brown','Brown hair?'],['hair:blonde','Blonde hair?'],['hair:red','Red hair?'],['hair:gray','Gray hair?'],['hair:pink','Pink hair?'],
+  ['long','Long hair?'],['hat','Wearing a hat?'],['glasses','Glasses (any kind)?'],['sun','Sunglasses?'],['facial','Beard or mustache?'],['hoops','Hoop earrings?'],
+  ['freckles','Freckles?'],['grin','Big open smile?'],
+  ['shirt:red','Red top?'],['shirt:blue','Blue top?'],['shirt:green','Green top?'],['shirt:yellow','Yellow top?'],['shirt:pink','Pink top?'],['shirt:black','Black top?']
+];
+const GW_PEOPLE = (() => {
+  let seed = 20261022; const rnd = () => { seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const pick = a => a[Math.floor(rnd() * a.length)], out = [], sigs = new Set();
+  while(out.length < 36){
+    const n = out.length, hair = GW_HAIR[n % 6], long = rnd() < .45, hat = rnd() < .28 ? pick(['cap','beanie','bucket','cowboy','crown','chef','party','beret']) : 'none';
+    const gr = rnd(), gl = gr < .13 ? 'sun' : gr < .38 ? pick(['round','square','cat','heart']) : 'none';
+    const facial = !long && rnd() < .4 ? pick(['mustache','beard','goatee','fullbeard']) : 'none', hoops = rnd() < .22, freckles = rnd() < .3, grin = rnd() < .35, shirt = GW_SHIRT[Math.floor(n / 6) % 6];
+    const t = { hair:hair[0], long, hat: hat !== 'none', glasses: gl !== 'none', sun: gl === 'sun', facial: facial !== 'none', hoops, freckles, grin, shirt:shirt[0] };
+    const sig = JSON.stringify(t); if(sigs.has(sig)) continue; sigs.add(sig);
+    const av = Object.assign({}, AV_BASE, { skin: pick(SKINS), hair: hair[1], style: long ? pick(GW_LONG) : pick(GW_SHORT), hat, glasses: gl, facial, ears: hoops ? 'hoops' : 'none',
+      cheeks: freckles ? 'freckles' : pick(['blush','none']), mouth: grin ? pick(['grin','open']) : pick(['smile','smirk','flat','gentle']), shirt: shirt[1], top: pick(['tee','vneck','hoodie','sweater','collar']),
+      eyes: pick(['dot','round','almond','happy']), brows: pick(['soft','bold','straight','arched']), bg: pick(BGS.slice(0, 8)), lashes: long && rnd() < .6 ? 'natural' : 'none' });
+    out.push({ i: out.length, name: GW_NAMES[out.length], t, av });
+  }
+  return out;
+})();
+function gwHas(p, q){ const [k, v] = q.split(':'); return v ? p.t[k] === v : !!p.t[k]; }
+const gwSvgCache = {};
+function gwFace(i, size){ const k = i + ':' + size; if(!gwSvgCache[k]) gwSvgCache[k] = avatarSVG(GW_PEOPLE[i].av, size); return gwSvgCache[k]; }
+function gwState(){ const d = gdoc('gw'); return d && d.ids ? d : null; }
+function gwDeal(prev){
+  const ids = shuffle(GW_PEOPLE.map(p => p.i)).slice(0, 24), sd = shuffle(ids)[0]; let sl = shuffle(ids)[0]; while(sl === sd) sl = shuffle(ids)[0];
+  const starter = prev ? other(prev.starter || 'laura') : (S.me || 'david');
+  return { ids, secret:{ david:sd, laura:sl }, turn:starter, starter, down:{ david:[], laura:[] }, asked:[], winner:null, how:'', guess:null, scores: (prev && prev.scores) || { david:0, laura:0 }, round: ((prev && prev.round) || 0) + 1, at:Date.now() };
+}
+async function gwNew(){ const st = gwState(); S.gwGuess = false; S.gwPick = null; await setDoc('games/gw', gwDeal(st)); }
+async function gwAsk(q){
+  const st = gwState(), me = S.me || 'david'; if(!st || st.winner || st.turn !== me) return;
+  const o = other(me), sec = GW_PEOPLE[st.secret[o]], yes = gwHas(sec, q);
+  const mine = (st.down && st.down[me]) || [], flip = st.ids.filter(i => gwHas(GW_PEOPLE[i], q) !== yes && !mine.includes(i));
+  const down = Object.assign({ david:[], laura:[] }, st.down); down[me] = mine.concat(flip);
+  S.gwFlip = flip; SFX.play(yes ? 'check' : 'pop');
+  await setDoc('games/gw', Object.assign({}, st, { down, asked: (st.asked || []).concat({ who:me, q, a:yes, n:flip.length }), turn:o, at:Date.now() }));
+  toast(`${(GW_Q.find(x => x[0] === q) || ['', q])[1].replace('?', '')}: ${yes ? 'Yes!' : 'No.'}${flip.length ? ` ${flip.length} flipped down.` : ''}`);
+  notifyTurn('gw');
+}
+async function gwGuess(i){
+  const st = gwState(), me = S.me || 'david'; if(!st || st.winner || st.turn !== me) return;
+  const o = other(me), right = st.secret[o] === i, winner = right ? me : o, scores = Object.assign({ david:0, laura:0 }, st.scores); scores[winner]++;
+  S.gwGuess = false; S.gwPick = null;
+  await setDoc('games/gw', Object.assign({}, st, { winner, how: right ? 'guess' : 'wrong', guess:{ who:me, id:i }, scores, at:Date.now() }));
+  rivalWin('gw', winner);
+  if(right) setTimeout(celebrate, 200); else SFX.play('uncheck');
+  notifyTurn('gw', true);
+}
+async function gwToggle(i){ const st = gwState(), me = S.me || 'david'; if(!st || st.winner) return; const mine = (st.down && st.down[me]) || [], down = Object.assign({ david:[], laura:[] }, st.down); down[me] = mine.includes(i) ? mine.filter(x => x !== i) : mine.concat(i); SFX.play('tap'); await setDoc('games/gw', Object.assign({}, st, { down })); }
+function vGW(){
+  const st = gwState(), me = S.me || 'david', o = other(me);
+  if(!st) return `<section class="card" style="text-align:center"><div style="font-size:54px">🕵️</div><h2>Guess Who?</h2><p class="muted" style="margin:6px 0 12px">You each get a secret person. Take turns asking yes-or-no questions. The app answers for you and flips down everyone who doesn’t fit. Guess right to win, but a wrong guess loses the round!</p><button class="btn primary" data-act="gw-new">Start a game</button></section>`;
+  const sc = st.scores || {}, mine = (st.down && st.down[me]) || [], myTurn = !st.winner && st.turn === me, up = st.ids.filter(i => !mine.includes(i)).length;
+  const askedByMe = (st.asked || []).filter(x => x.who === me).map(x => x.q);
+  const flipNow = S.gwFlip || []; S.gwFlip = null;
+  const board = st.ids.map(i => { const p = GW_PEOPLE[i], dn = mine.includes(i) && !st.winner, pickd = S.gwPick === i, oSecret = st.winner && st.secret[o] === i;
+    return `<button class="gw-card ${dn ? 'down' : ''} ${flipNow.includes(i) ? 'flipnow' : ''} ${pickd ? 'pick' : ''} ${oSecret ? 'reveal' : ''} ${S.gwGuess && !dn ? 'guessable' : ''}" data-act="gw-card" data-v="${i}" aria-label="${esc(p.name)}${dn ? ', flipped down' : ''}"><span class="gw-in"><span class="gw-front">${gwFace(i, 58)}<b>${esc(p.name)}</b></span><span class="gw-back">?</span></span></button>`; }).join('');
+  const log = (st.asked || []).slice().reverse().slice(0, 8).map(x => `<div class="li"><span>${mini(x.who)}</span><div class="txt">${esc((GW_Q.find(q => q[0] === x.q) || ['', x.q])[1])}<div class="sub">${x.who === me ? 'You asked' : esc(nameOf(x.who)) + ' asked'}${x.who === me && x.n ? ' · ' + x.n + ' flipped' : ''}</div></div><span class="pill ${x.a ? 'sage' : ''}">${x.a ? 'Yes' : 'No'}</span></div>`).join('');
+  const sp = GW_PEOPLE[st.secret[me]];
+  let status;
+  if(st.winner){ const g = st.guess || {}, gp = GW_PEOPLE[g.id] || {}, osp = GW_PEOPLE[st.secret[o]];
+    status = `<section class="card gw-end" style="text-align:center"><b style="font-family:var(--display);font-size:24px">${st.winner === me ? 'You win! 🎉' : esc(nameOf(st.winner)) + ' wins!'}</b>
+      <p style="margin:6px 0 0">${st.how === 'guess' ? `${g.who === me ? 'You' : esc(nameOf(g.who))} guessed ${esc(gp.name || '')} and got it right.` : `${g.who === me ? 'You' : esc(nameOf(g.who))} guessed ${esc(gp.name || '')}, but that was wrong.`}</p>
+      <div class="gw-reveal"><div>${gwFace(st.secret.david, 64)}<span>David’s person<br><b>${esc(GW_PEOPLE[st.secret.david].name)}</b></span></div><div>${gwFace(st.secret.laura, 64)}<span>Laura’s person<br><b>${esc(GW_PEOPLE[st.secret.laura].name)}</b></span></div></div>
+      <button class="btn primary" data-act="gw-new" style="margin-top:12px">Play again</button></section>`; }
+  else if(myTurn) status = `<section class="card"><div class="between"><b>${S.gwGuess ? 'Tap who you think it is' : 'Your turn: ask a question'}</b><button class="btn small ${S.gwGuess ? '' : 'soft'}" data-act="gw-guessmode">${S.gwGuess ? 'Back to questions' : 'Make a guess'}</button></div>
+      ${S.gwGuess ? (S.gwPick != null ? `<div class="gw-confirm">${gwFace(S.gwPick, 48)}<div class="grow">Is it <b>${esc(GW_PEOPLE[S.gwPick].name)}</b>? If you’re wrong, ${esc(nameOf(o))} wins the round.</div><button class="btn primary small" data-act="gw-confirm">Guess!</button></div>` : '<p class="fine" style="margin:6px 0 0">Careful: a wrong guess loses the round.</p>')
+      : `<div class="gw-qs">${GW_Q.filter(q => !askedByMe.includes(q[0])).map(q => `<button class="chip" data-act="gw-ask" data-v="${q[0]}">${esc(q[1])}</button>`).join('')}</div>`}</section>`;
+  else status = `<section class="card"><div class="row">${mini(o)}<div class="grow"><b>${esc(nameOf(o))}’s turn</b><div class="fine">You’ll get a notification when it’s your turn. Tap a face to flip it yourself.</div></div></div></section>`;
+  return `<section class="card"><div class="ttt-score"><div>${avatarSVG(av('david'), 40)}<b class="num">${sc.david || 0}</b><span>David</span></div><div class="vs"><span>Round ${st.round || 1}</span></div><div>${avatarSVG(av('laura'), 40)}<b class="num">${sc.laura || 0}</b><span>Laura</span></div></div></section>
+    ${status}
+    <div class="gw-head"><div class="gw-mine">${gwFace(sp.i, 40)}<div><span class="fine">${esc(nameOf(o))} is trying to guess</span><b>${esc(sp.name)}</b></div></div><span class="pill">${up} left</span></div>
+    <div class="gw-board">${board}</div>
+    ${log ? `<section class="card"><h2 style="font-size:17px">Questions so far</h2><div class="list" style="margin-top:4px">${log}</div></section>` : ''}
+    ${!st.winner ? `<div style="text-align:center"><button class="btn small" data-act="gw-new">Start over</button></div>` : ''}`;
+}
+/* ---------- rivalry: every head-to-head win counts toward the week ---------- */
+const STAKES = ['Makes coffee tomorrow ☕','Picks the movie 🎬','Gives a back rub 💆','Does the dishes 🍽️','Walks Dayla 🐾','Buys dessert 🍦','Makes breakfast 🥞','Plans the next date 💕'];
+const weekKey = d => { const x = new Date(d || Date.now()); x.setHours(12, 0, 0, 0); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return ymd(x); };
+function rivalLog(){ const r = gdoc('rivalry'); return (r && Array.isArray(r.log)) ? r.log : []; }
+async function rivalWin(game, w){ if(w !== 'david' && w !== 'laura') return; const log = rivalLog().concat({ g:game, w, at:Date.now() }).slice(-600); await setDoc('games/rivalry', { log }); }
+function rivalTally(wk){ const t = { david:0, laura:0 }; rivalLog().forEach(x => { if(!wk || weekKey(x.at) === wk) t[x.w] = (t[x.w] || 0) + 1; }); return t; }
+function stakeFor(wk){ return gdoc('stake_' + wk); }
+function rivalCard(){
+  const me = S.me || 'david', wk = weekKey(), t = rivalTally(wk), all = rivalTally(), st = stakeFor(wk);
+  const prevWk = weekKey(Date.now() - 7 * 864e5), pt = rivalTally(prevWk), ps = stakeFor(prevWk), loser = pt.david === pt.laura ? null : pt.david < pt.laura ? 'david' : 'laura';
+  const lead = t.david === t.laura ? (t.david ? 'Tied up!' : 'No games yet this week') : `${nameOf(t.david > t.laura ? 'david' : 'laura')} is ahead`;
+  const owed = ps && ps.text && loser && !ps.paid ? `<div class="riv-owe"><span>🧾</span><div class="grow"><b>${esc(nameOf(loser))} owes ${esc(nameOf(other(loser)))}</b><div class="fine">${esc(ps.text)} · from last week’s rivalry</div></div>${loser === me || other(loser) === me ? `<button class="btn small primary" data-act="stake-paid" data-v="${prevWk}">Paid ✓</button>` : ''}</div>` : '';
+  return `<section class="card riv"><div class="between"><div><div class="eyebrow">This week’s rivalry</div><b style="font-family:var(--display);font-size:20px">${lead}</b></div><span class="fine">All time ${all.david}–${all.laura}</span></div>
+    <div class="riv-bar"><div class="riv-side">${mini('david')}<b class="num">${t.david}</b></div><div class="riv-track"><i style="width:${t.david + t.laura ? Math.round(t.david / (t.david + t.laura) * 100) : 50}%"></i></div><div class="riv-side"><b class="num">${t.laura}</b>${mini('laura')}</div></div>
+    ${st && st.text ? `<div class="riv-stake"><span>🎯</span><div class="grow"><div class="fine">Loser this week</div><b>${esc(st.text)}</b></div><button class="btn small soft" data-act="stake-edit">Change</button></div>`
+      : `<button class="riv-stake add" data-act="stake-edit"><span>🎯</span><div class="grow" style="text-align:left"><b>Set this week’s stakes</b><div class="fine">What does the loser have to do?</div></div><span>›</span></button>`}
+    ${S.stakeOpen ? `<div class="chips" style="margin-top:8px">${STAKES.map(x => `<button class="chip" data-act="stake-set" data-v="${esc(x)}">${esc(x)}</button>`).join('')}</div><form data-form="stake" class="row" style="margin-top:8px;flex-wrap:nowrap"><input class="grow" type="text" id="stake-text" name="text" maxlength="60" placeholder="Or write your own…"><button class="btn primary small">Set</button></form>` : ''}
+    ${owed}
+    <p class="fine" style="margin:8px 0 0">Wins in Guess Who, Connect Four, the daily word and Word Duel all count. The week resets Monday.</p></section>`;
+}
 /* ---------- How well do you know me? ---------- */
 const KQ = [
  ['If I could eat one food for the rest of my life, it would be…',['Pizza','Tacos','Sushi','Arepas / empanadas']],
@@ -5969,7 +6111,7 @@ async function kqStart(){ const me = S.me || 'david', qs = shuffle(KQ).slice(0, 
 async function kqAnswer(k, own){ const r = kqRound(); if(!r) return; const i = (r.answers || []).length, opts = r.opts.map(o => o.slice()); let idx = k;
   if(own){ if(opts[i].length >= 5) opts[i][4] = own; else opts[i].push(own); idx = opts[i].length - 1; }
   const answers = (r.answers || []).concat(idx), done = answers.length >= 5;
-  await setDoc('games/' + r.id, cleanObj(Object.assign({}, r, { opts, answers, status: done ? 'ready' : 'answering' })));
+  await setDoc('games/' + r.id, cleanObj(Object.assign({}, r, { opts, answers, status: done ? 'ready' : 'answering' }))); if(done) notifyTurn('kq');
   SFX.play('pop'); if(done) toast(`Done! Now ${nameOf(other(S.me || 'david'))} guesses 😏`);
 }
 const kqThird = (t, o) => { const n = nameOf(o), pos = o === 'laura' ? 'her' : 'his', obj = o === 'laura' ? 'her' : 'him'; let x = t.replace(/\bI’m\b/g, n + ' is').replace(/\bI’d\b/g, n + ' would').replace(/\bI\b/g, n).replace(/\bmy\b/g, pos).replace(/\bMy\b/g, pos).replace(/\bme\b/g, obj).replace(/\bour\b/g, 'your').replace(/\bus\b/g, 'you two'); return x[0].toUpperCase() + x.slice(1); };
@@ -6361,7 +6503,6 @@ const STAMPS = [
   ['first-prayer','🕊️','Prayer partners','Add your first prayer',s => s.prayers >= 1],
   ['wd-both','🤓','Word nerds','Both solve the word of the day on the same day',s => s.wdBoth],
   ['wd-streak5','🔥','On fire','5-day word of the day streak',s => s.wdStreak >= 5],
-  ['ttt-win','❌','Tic-tac-toe champ','Win a game of tic-tac-toe',s => s.tttAny],
   ['c4-win','🔴','Four in a row','Win a game of Connect Four',s => s.c4Any],
   ['trivia7','✝️','Bible buff','Score 7+ in Bible trivia',s => s.triviaBest >= 7],
   ['mem-game','🃏','Sharp memory','Finish a Dayla memory game',s => s.memGame],
@@ -6394,9 +6535,6 @@ const STAMPS = [
   ['half-year','💞','Half a year','Married for 6 months',s => s.days >= 182],
   ['christmas','🎄','First Christmas','Your first Christmas as a married couple',s => s.today >= '2026-12-25'],
   ['days500','💎','500 days','Married for 500 days',s => s.days >= 500],
-  ['chk-win','🏁','King me','Win a game of checkers',s => s.chkWin],
-  ['rev-win','⚫','Flip master','Win a game of Reversi',s => s.revWin],
-  ['bs-win','🚢','Admiral','Sink the whole fleet in Battleship',s => s.bsWin],
   ['pict10','✏️','Art critics','Score 10 points in Draw & Guess',s => s.pictPts >= 10],
   ['tot5','🧠','Same brain','Match 5 of 5 in This or That',s => s.tot5],
   ['geo5','🌍','Globe trotters','Get 5 of 5 in Where in the world',s => s.geo5],
@@ -6428,7 +6566,6 @@ const ACHS = [
   ['wd','🔤','Wordsmiths','words of the day won',s => s.wdWins,[5,30,100]],
   ['dash','🐾','Dash champs','best Dayla Dash',s => s.dashBest,[200,600,1200]],
   ['c4','🔴','Four in a row','Connect Four wins',s => s.c4Wins,[3,15,50]],
-  ['ttt','❌','Tic-tac-toe pros','tic-tac-toe wins',s => s.tttWins,[3,15,50]],
   ['chat','💬','Chatterboxes','messages',s => s.msgs,[100,500,1500]],
   ['events','📅','Planners','calendar plans',s => s.events,[5,25,100]],
   ['listdone','🛒','List crushers','items checked off',s => s.listDone,[10,50,200]],
@@ -6443,8 +6580,6 @@ const ACHS = [
   ['dayla-home','🏡','Dayla’s family','days Dayla’s been home',s => s.daylaHome,[100,365,1000]],
   ['tot','🤔','In sync','days of This or That together',s => s.totDays,[5,30,100]],
   ['duel','🔠','Word duelists','best Word Duel score',s => s.duelBest,[15,30,50]],
-  ['catch','🍗','Treat catchers','best Treat Catch',s => s.catchBest,[100,250,500]],
-  ['fetch','🎾','Fetch pros','best Fetch total',s => s.fetchBest,[200,350,450]],
   ['kq','🧠','Mind readers','quiz rounds',s => s.kqRounds,[3,10,30]],
   ['days','💍','Happily married','days married',s => s.days,[100,365,1000]]
 ];
@@ -7174,6 +7309,14 @@ document.addEventListener('click', async ev => {
     case 'geo-pick': { const g = S.geo; if(!g || g.pick != null) break; g.pick = t.dataset.v; const ok = g.pick === g.rounds[g.i].p.where; if(ok){ g.score++; SFX.play('check'); haptic(12); } else { SFX.play('uncheck'); haptic(25); } render(); break; }
     case 'geo-next': geoNext(); break;
     case 'c4-new': c4New(); break;
+    case 'gw-new': gwNew(); break;
+    case 'gw-ask': gwAsk(t.dataset.v); break;
+    case 'gw-guessmode': S.gwGuess = !S.gwGuess; S.gwPick = null; render(); break;
+    case 'gw-card': { const i = Number(t.dataset.v), st = gwState(); if(!st || st.winner) break; if(S.gwGuess){ if(((st.down || {})[S.me || 'david'] || []).includes(i)) break; S.gwPick = i; SFX.play('tap'); render(); } else gwToggle(i); break; }
+    case 'gw-confirm': if(S.gwPick != null) gwGuess(S.gwPick); break;
+    case 'stake-edit': S.stakeOpen = !S.stakeOpen; render(); break;
+    case 'stake-set': { const v = t.dataset.v; S.stakeOpen = false; await setDoc('games/stake_' + weekKey(), { text:v, by:S.me, at:Date.now() }); toast('Stakes are set. Game on! 🎯'); break; }
+    case 'stake-paid': { const wk = t.dataset.v, x = stakeFor(wk); if(x){ const y = Object.assign({}, x); delete y.id; y.paid = Date.now(); await setDoc('games/stake_' + wk, y); toast('Paid up! 🤝'); } break; }
     case 'kq-start': kqStart(); break;
     case 'kq-ans': kqAnswer(Number(t.dataset.k)); break;
     case 'kq-guess': kqGuess(Number(t.dataset.k)); break;
@@ -7378,6 +7521,7 @@ document.addEventListener('submit', async ev => {
       if(await setDoc('meta/lists', { names: names.concat(n) })){ S.listSel = n; ls.set('list', n); S.showForm.newlist = false; render(); }
       break; }
     case 'wish': if(await addDoc('wish', { title: v('title'), url: safeUrl(v('url')), price: parseFloat(v('price')) || 0, room: v('room') || 'Other', project: v('proj') || '', note: v('note'), prio: !!fd.get('prio'), got: false, photo: await photoFrom(f, '#w-photo') })){ S.showForm.wish = false; render(); toast('Saved to wishlist'); } break;
+    case 'stake': if(v('text')){ S.stakeOpen = false; await setDoc('games/stake_' + weekKey(), { text:v('text'), by:S.me, at:Date.now() }); toast('Stakes are set. Game on! 🎯'); } break;
     case 'msg': if(v('text')) addDoc('msgs', { text: v('text') }); setTimeout(() => { const el = $('#msg-text'); if(el){ el.value = ''; growBox(el); el.focus(); } }, 30); break;
     case 'event': if(fid){ if(await updDoc('events', fid, { title: v('title'), date: v('date') || S.cal.sel, time: v('time'), end: v('time') ? v('end') : '', who: v('who') || 'both', note: v('note'), repeat: v('repeat') || 'none', cat: v('cat') || 'Plans' })){ S.evEdit = null; render(); toast('Saved'); } break; }
       if(await addDoc('events', { title: v('title'), date: v('date') || S.cal.sel, time: v('time'), end: v('time') ? v('end') : '', who: v('who') || 'both', note: v('note'), repeat: v('repeat') || 'none', cat: v('cat') || 'Plans' })){ S.cal.sel = v('date') || S.cal.sel; const d = parseYmd(S.cal.sel); S.cal.y = d.getFullYear(); S.cal.m = d.getMonth(); S.showForm.event = false; render(); toast('Added to the calendar'); } break;

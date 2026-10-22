@@ -66,7 +66,7 @@ async function getVapid() {
 }
 
 /* ---------- people's settings ---------- */
-const DEF = { on: { chat: true, note: true, list: true, event: true, bill: true, task: true, occasion: true, trip: true, dayla: false }, quiet: { on: true, from: 22, to: 7, chatThrough: true } };
+const DEF = { on: { chat: true, note: true, list: true, event: true, bill: true, task: true, occasion: true, trip: true, game: true, dayla: false }, quiet: { on: true, from: 22, to: 7, chatThrough: true } };
 async function prefsOf(who) {
   const { data } = await db.from('docs').select('data').eq('col', 'meta').eq('id', 'notify-' + who).maybeSingle();
   const p = (data && data.data) || {};
@@ -252,6 +252,31 @@ async function onEvent(colName, id) {
   return { sent: await sendTo(to, note) };
 }
 
+/* ---------- game turns: calm, one per game, never stacked ---------- */
+const GAME_NAMES = { gw: 'Guess Who', c4: 'Connect Four', pict: 'Draw & Guess', kq: 'How well do you know me?' };
+async function onTurn(game, from, over) {
+  if (!GAME_NAMES[game] || !NAME[from]) return { sent: 0, why: 'unknown game' };
+  const to = other(from), key = 'turn:' + game + ':' + to;
+  // they are in the app right now: they will see it, no buzz
+  const { data: on } = await db.from('docs').select('data').eq('col', 'meta').eq('id', 'online_' + to).maybeSingle();
+  if (on && on.data && Date.now() - Number(on.data.at || 0) < 150e3) return { sent: 0, why: 'they are in the app' };
+  // only one buzz per game every 15 minutes (the notification itself gets replaced, not stacked)
+  if (!over) {
+    const { data: last } = await db.from('push_sent').select('at').eq('key', key).maybeSingle();
+    if (last && Date.now() - new Date(last.at).getTime() < 15 * 60e3) return { sent: 0, why: 'recently sent' };
+  }
+  await db.from('push_sent').upsert({ key, at: new Date().toISOString() });
+  const p = await prefsOf(to);
+  if (!p.on.game) return { sent: 0, why: 'turned off' };
+  if (inQuiet(p, new Date(nowWall()).getUTCHours())) return { sent: 0, why: 'quiet hours' };
+  const n = NAME[from], g = GAME_NAMES[game];
+  const body = over ? `${n} finished the game. Come see who won!`
+    : game === 'pict' ? `${n} drew something. Can you guess it?`
+    : game === 'kq' ? `${n} answered the questions. Your turn to guess!`
+    : `${n} made a move. Your turn!`;
+  return { sent: await sendTo(to, { title: `🎮 ${g}`, body, url: '/#games', tag: 'game-' + game }) };
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   try {
@@ -268,6 +293,7 @@ Deno.serve(async (req) => {
     if (body.kind === 'key') return json({ publicKey: (await getVapid()).publicKey });
     if (body.kind === 'test') return json({ sent: await sendTo(body.me === 'laura' ? 'laura' : 'david', { title: '🎉 Notifications are on!', body: 'This is how Rhead Home will reach you.', url: '/#settings', tag: 'test' }) });
     if (body.kind === 'event') return json(await onEvent(String(body.col || ''), String(body.id || '')));
+    if (body.kind === 'turn') return json(await onTurn(String(body.game || ''), String(body.me || ''), !!body.over));
     return json({ error: 'unknown request' }, 400);
   } catch (e) {
     console.error(e);

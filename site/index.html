@@ -1041,7 +1041,7 @@ html.rpg-open,html.rpg-open body{overflow:hidden;overscroll-behavior:none}
 @keyframes rpgBan{0%{opacity:0;transform:translate(-50%,-8px)}12%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0}}
 .rpg-top .grow{flex:1}
 .rpg-hud{background:rgba(42,32,28,.6);color:#fff;font-weight:700;font-size:13.5px;padding:6px 12px;border-radius:99px;white-space:nowrap}
-.rpg-bagbtn{pointer-events:auto;width:40px;height:40px;border-radius:50%;border:0;background:rgba(42,32,28,.6);font-size:19px;cursor:pointer}
+.rpg-bagbtn{pointer-events:auto;flex:none;width:40px;height:40px;border-radius:50%;border:0;background:rgba(42,32,28,.6);font-size:19px;cursor:pointer}
 .rpg-b{position:absolute;right:calc(env(safe-area-inset-right,0px) + 104px);bottom:calc(env(safe-area-inset-bottom,0px) + 22px);width:56px;height:56px;border-radius:50%;border:0;background:#8A5A36;color:#fff;font-size:24px;box-shadow:0 4px 0 #5E3B22,0 8px 16px rgba(0,0,0,.22);cursor:pointer;touch-action:none}
 .rpg-b:active{transform:translateY(3px);box-shadow:0 1px 0 #5E3B22}
 .rpg-panel{position:absolute;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 60px);bottom:calc(env(safe-area-inset-bottom,0px) + 14px);max-width:520px;margin:0 auto;overflow:auto;background:#FFFDF7;color:#2A201C;border-radius:22px;padding:14px 16px;box-shadow:0 0 0 3px #2A201C,0 12px 30px rgba(0,0,0,.3);animation:rpgPop .25s cubic-bezier(.3,1.5,.5,1)}
@@ -1835,7 +1835,7 @@ function notifyCard(){
 }
 function accountCard(){
   const imp = meta('imported');
-  return `<section class="card stack" style="gap:10px"><h2>Account</h2><div class="between"><span class="muted" style="overflow-wrap:anywhere">${esc((S.user && S.user.email) || 'Signed in')}</span><button class="btn small" data-act="sign-out">Sign out</button></div><p class="fine" style="margin:0">App version: Oct 22, 2026 · update 11</p></section>
+  return `<section class="card stack" style="gap:10px"><h2>Account</h2><div class="between"><span class="muted" style="overflow-wrap:anywhere">${esc((S.user && S.user.email) || 'Signed in')}</span><button class="btn small" data-act="sign-out">Sign out</button></div><p class="fine" style="margin:0">App version: Oct 22, 2026 · update 12</p></section>
   <section class="card stack" style="gap:10px"><h2>Move data from the old app</h2>
     ${imp ? `<p class="fine" style="margin:0">Done on ${esc(fmtDate(new Date(imp.at), { month:'short', day:'numeric', year:'numeric' }))}: ${imp.records} records and ${imp.photos} photos.</p>` : `<p class="fine" style="margin:0">Brings over everything you saved in the Claude version: lists, chat, money, photos and the rest. Do this once, on one phone.</p>`}
     ${S.importMsg ? `<div class="banner">${esc(S.importMsg)}</div>` : ''}
@@ -5019,7 +5019,7 @@ function vGames(){
   const tabs = GAME_SECTIONS.map(([e, t, sub, ks], i) => [['together','daily','arcade','us'][i], e, t.replace('Play together', 'Together').replace('Daily challenges', 'Daily'), sub, ks]).concat([['scores','🏆','Scores','Who’s winning',[]]]);
   const cur = tabs.find(x => x[0] === tab) || tabs[0];
   const card = k => { const G = GAMES.find(x => x[0] === k); if(!G) return ''; const b = gameBadge(k); return `<button class="g-mini" data-act="game-sel" data-v="${k}" style="--c:var(${G[4]})"><span class="g-emo">${GAME_EMO[k] || '🎮'}</span><b>${esc(GAME_SHORT[k] || G[1])}</b>${b ? `<i class="g-dot ${/sage/.test(b) ? 'ok' : ''}">${/sage/.test(b) ? '✓' : '!'}</i>` : ''}</button>`; };
-  return pageHead('Games', 'Play together or beat each other’s scores') + `<button class="rpg-feature" data-act="rpg-open"><span class="rpg-f-art">🏝️</span><span class="grow"><span class="eyebrow">Story adventure</span><b>Rhead Adventures</b><span class="fine">Explore with Dayla, meet the family, play alone or together.</span></span><span class="btn primary small">Play</span></button>` + rivalCard() + `
+  return pageHead('Games', 'Play together or beat each other’s scores') + `<button class="rpg-feature" data-act="rpg-open"><span class="rpg-f-art">🏝️</span><span class="grow"><span class="eyebrow">Story adventure</span><b>Rhead Adventures</b><span class="fine">Dayla is missing! Find her, alone or together.</span></span><span class="btn primary small">Play</span></button>` + rivalCard() + `
     ${waiting.length ? `<div class="g-wait">${waiting.map(([G, b]) => `<button data-act="game-sel" data-v="${G[0]}"><span>${GAME_EMO[G[0]] || '🎮'}</span><b>${esc(G[1])}</b>${b}</button>`).join('')}</div>` : ''}
     ${GAME_SECTIONS.map(([e, t, sub, ks]) => `<div class="g-sec2"><div class="g-sec2-h">${e} <b>${t}</b></div><div class="g-grid4">${ks.map(card).join('')}</div></div>`).join('')}
     <button class="g-scores-btn" data-act="g-scores">🏆 <b>Scoreboard</b><span>${S.gScores ? 'Hide ▲' : 'Show ▼'}</span></button>
@@ -6009,7 +6009,7 @@ function rpgRaining(){ try{ const w = meta('weather'), d = w && Array.isArray(w.
 function closeRPG(){ try{ window.RheadRPG && window.RheadRPG.stop(); }catch(e){} const h = document.getElementById('rpg-host'); if(h) h.remove(); document.documentElement.classList.remove('rpg-open'); }
 function openRPG(){
   if(document.getElementById('rpg-host')) return;
-  const me = S.me || 'david', host = document.createElement('div'); host.id = 'rpg-host'; host.className = 'rpg-host'; host.innerHTML = '<div class="rpg-load">🏝️<br>Heading home to the neighbourhood…</div>';
+  const me = S.me || 'david', host = document.createElement('div'); host.id = 'rpg-host'; host.className = 'rpg-host'; host.innerHTML = '<div class="rpg-load">🏝️<br>Loading Rhead Adventures…</div>';
   document.body.appendChild(host); document.documentElement.classList.add('rpg-open');
   const api = { me, nameOf, avatar: w => normAv(av(w)), baseAv: () => Object.assign({}, AV_BASE), sfx: k => { try{ SFX.play(k); }catch(e){} },
     load: () => { const d = gdoc('rpg_' + me); if(!d) return null; const o = Object.assign({}, d); delete o.id; return o; },
@@ -6020,7 +6020,7 @@ function openRPG(){
     raining: rpgRaining, soundOn: () => SET.sound !== false, close: closeRPG };
   const go2 = () => { try{ window.RheadRPG.start(host, api); }catch(e){ console.error(e); host.innerHTML = '<div class="rpg-load">The game couldn’t load. Close and try again.<br><br><button class="btn" onclick="this.closest(\'.rpg-host\').remove();document.documentElement.classList.remove(\'rpg-open\')">Close</button></div>'; } };
   if(window.RheadRPG) return go2();
-  const sc = document.createElement('script'); sc.src = '/rpg.js?v=7'; sc.onload = go2; sc.onerror = () => { host.innerHTML = '<div class="rpg-load">No connection right now.</div>'; setTimeout(closeRPG, 1800); }; document.head.appendChild(sc);
+  const sc = document.createElement('script'); sc.src = '/rpg.js?v=8'; sc.onload = go2; sc.onerror = () => { host.innerHTML = '<div class="rpg-load">No connection right now.</div>'; setTimeout(closeRPG, 1800); }; document.head.appendChild(sc);
 }
 /* ---------- Guess Who? ---------- */
 const GW_NAMES = ['Bruno','Coco','Pepe','Maple','Rosa','Theo','Lulu','Rafa','Nina','Otis','Pía','Gus','Mila','Dante','Juno','Tito','Lola','Ezra','Bea','Iggy','Sol','Kiko','Vera','Moe','Paz','Rex','Ivy','Nico','Wren','Fito','Gigi','Hank','Luz','Abe','Tula','Remy'];

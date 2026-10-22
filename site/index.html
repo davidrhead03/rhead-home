@@ -1013,6 +1013,31 @@ nav.tabs button.on svg{color:var(--cocoa)}
 button.riv-stake{cursor:pointer;border:1.5px dashed color-mix(in srgb,var(--ink) 20%,transparent);background:transparent}
 .riv-owe{display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px 12px;border-radius:14px;background:color-mix(in srgb,var(--gold) 18%,var(--surface))}
 .riv-owe>span{font-size:22px}
+/* rhead island */
+.rpg-feature{display:flex;align-items:center;gap:12px;width:100%;border:0;cursor:pointer;font:inherit;color:inherit;text-align:left;padding:14px;border-radius:22px;margin-bottom:14px;background:linear-gradient(135deg,color-mix(in srgb,var(--sky) 30%,var(--surface)),color-mix(in srgb,var(--sage) 30%,var(--surface)));box-shadow:var(--shadow)}
+.rpg-feature b{display:block;font-family:var(--display);font-size:21px;line-height:1.15}.rpg-feature .fine{display:block}
+.rpg-f-art{font-size:40px;width:58px;height:58px;display:grid;place-items:center;border-radius:18px;background:rgba(255,255,255,.55);flex:none}
+html.rpg-open,html.rpg-open body{overflow:hidden;overscroll-behavior:none}
+.rpg-host{position:fixed;inset:0;z-index:200;background:#3E8FC7;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;overflow:hidden;font-family:var(--body)}
+.rpg-cv{position:absolute;inset:0;image-rendering:pixelated;image-rendering:crisp-edges}
+.rpg-load{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:#fff;font-size:20px;font-weight:700;line-height:1.6}
+.rpg-top{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 0;pointer-events:none}
+.rpg-x{pointer-events:auto;width:40px;height:40px;border-radius:50%;border:0;background:rgba(42,32,28,.6);color:#fff;font-size:18px;cursor:pointer}
+.rpg-area{background:rgba(42,32,28,.55);color:#fff;font-weight:700;font-size:13.5px;padding:6px 12px;border-radius:99px}.rpg-area.pulse{animation:rpgPop .4s cubic-bezier(.3,1.5,.5,1)}
+.rpg-a{position:absolute;right:calc(env(safe-area-inset-right,0px) + 22px);bottom:calc(env(safe-area-inset-bottom,0px) + 34px);width:74px;height:74px;border-radius:50%;border:0;background:#E0566B;color:#fff;font-size:28px;font-weight:800;box-shadow:0 5px 0 #A93A4C,0 8px 18px rgba(0,0,0,.25);cursor:pointer;touch-action:none}
+.rpg-a:active{transform:translateY(4px);box-shadow:0 1px 0 #A93A4C}
+.rpg-joy{position:absolute;width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;background:rgba(255,255,255,.18);border:2px solid rgba(255,255,255,.4);display:none;pointer-events:none}
+.rpg-joy.on{display:block}.rpg-joy i{position:absolute;left:50%;top:50%;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;background:rgba(255,255,255,.75);box-shadow:0 3px 8px rgba(0,0,0,.2)}
+.rpg-talk{position:absolute;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);max-width:560px;margin:0 auto;background:#FFFDF7;border-radius:22px;padding:22px 18px 16px;box-shadow:0 0 0 3px #2A201C,0 10px 28px rgba(0,0,0,.3);cursor:pointer;animation:rpgPop .25s cubic-bezier(.3,1.5,.5,1)}
+.rpg-talk[hidden]{display:none}
+.rpg-talk b{position:absolute;top:-14px;left:16px;background:#E0566B;color:#fff;padding:4px 12px;border-radius:99px;font-size:14px;box-shadow:0 0 0 3px #2A201C}
+.rpg-talk p{margin:0;font-size:17px;line-height:1.45;color:#2A201C;min-height:50px}
+.rpg-talk span{position:absolute;right:16px;bottom:8px;color:#E0566B;font-size:12px;animation:rpgBob 1s infinite}
+@keyframes rpgPop{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
+@keyframes rpgBob{50%{transform:translateY(3px)}}
+.rpg-banner{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 64px);transform:translateX(-50%);background:rgba(42,32,28,.75);color:#fff;font-weight:700;padding:8px 16px;border-radius:14px;opacity:0;pointer-events:none;white-space:nowrap;font-size:15px}
+.rpg-banner.show{animation:rpgBan 2.6s ease}
+@keyframes rpgBan{0%{opacity:0;transform:translate(-50%,-8px)}12%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0}}
 body.typing nav.tabs,body.typing .fab{display:none!important}
 body.typing .composer{bottom:calc(var(--kb,0px) + 6px)}
 body.typing main{padding-bottom:0!important}body.typing .chat{padding-bottom:76px;margin-bottom:0}
@@ -1779,7 +1804,7 @@ function notifyCard(){
 }
 function accountCard(){
   const imp = meta('imported');
-  return `<section class="card stack" style="gap:10px"><h2>Account</h2><div class="between"><span class="muted" style="overflow-wrap:anywhere">${esc((S.user && S.user.email) || 'Signed in')}</span><button class="btn small" data-act="sign-out">Sign out</button></div><p class="fine" style="margin:0">App version: Oct 22, 2026 · update 7</p></section>
+  return `<section class="card stack" style="gap:10px"><h2>Account</h2><div class="between"><span class="muted" style="overflow-wrap:anywhere">${esc((S.user && S.user.email) || 'Signed in')}</span><button class="btn small" data-act="sign-out">Sign out</button></div><p class="fine" style="margin:0">App version: Oct 22, 2026 · update 8</p></section>
   <section class="card stack" style="gap:10px"><h2>Move data from the old app</h2>
     ${imp ? `<p class="fine" style="margin:0">Done on ${esc(fmtDate(new Date(imp.at), { month:'short', day:'numeric', year:'numeric' }))}: ${imp.records} records and ${imp.photos} photos.</p>` : `<p class="fine" style="margin:0">Brings over everything you saved in the Claude version: lists, chat, money, photos and the rest. Do this once, on one phone.</p>`}
     ${S.importMsg ? `<div class="banner">${esc(S.importMsg)}</div>` : ''}
@@ -4801,8 +4826,8 @@ const GAMES = [['dash','Dayla Dash','Run, jump and grab chicken (and shoes!). Be
   ['wduel','Word Duel','7 letters, 60 seconds. Who finds more words today?','lang','--sage'],['tot','This or That','5 quick picks a day. How in sync are you?','heart','--blush'],
   ['geo','Where in the world?','Real photos. Guess where each place is.','globe','--sky'],
   ['gw','Guess Who?','Ask yes-or-no questions to find their secret person first.','heart','--sky'],['talk','Talk cards','Fun and deep questions to ask each other.','heart','--blush']];
-const GAME_EMO = { gw:'🕵️', talk:'💬', dash:'🐾', catch:'🍗', fetch:'🎾', memory:'🃏', gts:'🎧', c4:'🔴', chk:'🏁', rev:'⚫', bship:'🚢', ttt:'❌', pict:'✏️', wordle:'🔤', sudoku:'🧩', wduel:'🔠', tot:'🤔', geo:'🌍', kq:'💞', trivia:'✝️', doodle:'🎨' };
-const GAME_SHORT = { gw:'Guess Who?', talk:'Talk cards', c4:'Connect 4', ttt:'Tic-tac-toe', pict:'Draw & Guess', wordle:'Daily word', sudoku:'Sudoku', wduel:'Word Duel', tot:'This or That', geo:'World guess', bship:'Battleship', rev:'Reversi', chk:'Checkers', fetch:'Fetch!', dash:'Dayla Dash', catch:'Treat Catch', memory:'Memory', gts:'Guess the sound', kq:'Know me?', trivia:'Bible trivia', doodle:'Doodle' };
+const GAME_EMO = { rpg:'🏝️', gw:'🕵️', talk:'💬', dash:'🐾', catch:'🍗', fetch:'🎾', memory:'🃏', gts:'🎧', c4:'🔴', chk:'🏁', rev:'⚫', bship:'🚢', ttt:'❌', pict:'✏️', wordle:'🔤', sudoku:'🧩', wduel:'🔠', tot:'🤔', geo:'🌍', kq:'💞', trivia:'✝️', doodle:'🎨' };
+const GAME_SHORT = { rpg:'Rhead Island', gw:'Guess Who?', talk:'Talk cards', c4:'Connect 4', ttt:'Tic-tac-toe', pict:'Draw & Guess', wordle:'Daily word', sudoku:'Sudoku', wduel:'Word Duel', tot:'This or That', geo:'World guess', bship:'Battleship', rev:'Reversi', chk:'Checkers', fetch:'Fetch!', dash:'Dayla Dash', catch:'Treat Catch', memory:'Memory', gts:'Guess the sound', kq:'Know me?', trivia:'Bible trivia', doodle:'Doodle' };
 const GAME_SECTIONS = [['🤝','Play together','Take turns from your own phones',['gw','c4','pict','kq']],['📅','Daily challenges','Same puzzle for both of you, new every day',['wordle','sudoku','wduel','tot','geo']],['🕹️','Arcade','Beat each other’s high score',['dash','memory','gts','trivia']],['💞','Just us','Make things and talk',['doodle','talk']]];
 const gdoc = id => S.data.games.find(x => x.id === id) || null;
 const shuffle = a => { const b = a.slice(); for(let i = b.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
@@ -4963,7 +4988,7 @@ function vGames(){
   const tabs = GAME_SECTIONS.map(([e, t, sub, ks], i) => [['together','daily','arcade','us'][i], e, t.replace('Play together', 'Together').replace('Daily challenges', 'Daily'), sub, ks]).concat([['scores','🏆','Scores','Who’s winning',[]]]);
   const cur = tabs.find(x => x[0] === tab) || tabs[0];
   const card = k => { const G = GAMES.find(x => x[0] === k); if(!G) return ''; const b = gameBadge(k); return `<button class="g-mini" data-act="game-sel" data-v="${k}" style="--c:var(${G[4]})"><span class="g-emo">${GAME_EMO[k] || '🎮'}</span><b>${esc(GAME_SHORT[k] || G[1])}</b>${b ? `<i class="g-dot ${/sage/.test(b) ? 'ok' : ''}">${/sage/.test(b) ? '✓' : '!'}</i>` : ''}</button>`; };
-  return pageHead('Games', 'Play together or beat each other’s scores') + rivalCard() + `
+  return pageHead('Games', 'Play together or beat each other’s scores') + `<button class="rpg-feature" data-act="rpg-open"><span class="rpg-f-art">🏝️</span><span class="grow"><span class="eyebrow">New adventure</span><b>Rhead Island</b><span class="fine">Explore the island with Dayla. Play alone or together.</span></span><span class="btn primary small">Play</span></button>` + rivalCard() + `
     ${waiting.length ? `<div class="g-wait">${waiting.map(([G, b]) => `<button data-act="game-sel" data-v="${G[0]}"><span>${GAME_EMO[G[0]] || '🎮'}</span><b>${esc(G[1])}</b>${b}</button>`).join('')}</div>` : ''}
     ${GAME_SECTIONS.map(([e, t, sub, ks]) => `<div class="g-sec2"><div class="g-sec2-h">${e} <b>${t}</b></div><div class="g-grid4">${ks.map(card).join('')}</div></div>`).join('')}
     <button class="g-scores-btn" data-act="g-scores">🏆 <b>Scoreboard</b><span>${S.gScores ? 'Hide ▲' : 'Show ▼'}</span></button>
@@ -5948,6 +5973,22 @@ async function c4Drop(c){
   if(!S.c4One) notifyTurn('c4', !!winner);
 }
 async function c4New(){ const st = c4State(), starter = other(st.starter || 'laura'); S.c4Last = -1; await setDoc('games/c4', { board:Array(42).fill(null), turn:starter, starter, winner:null, line:null, scores:st.scores || { david:0, laura:0, draw:0 }, at:Date.now() }); }
+/* ---------- Rhead Island (the RPG lives in /rpg.js, loaded only when opened) ---------- */
+function rpgRaining(){ try{ const w = meta('weather'), d = w && Array.isArray(w.days) ? w.days.find(x => x.date === ymd(new Date())) : null; return !!d && /rain|shower|storm|thunder|drizzle/i.test(String(d.cond || '')); }catch(e){ return false; } }
+function closeRPG(){ try{ window.RheadRPG && window.RheadRPG.stop(); }catch(e){} const h = document.getElementById('rpg-host'); if(h) h.remove(); document.documentElement.classList.remove('rpg-open'); }
+function openRPG(){
+  if(document.getElementById('rpg-host')) return;
+  const me = S.me || 'david', host = document.createElement('div'); host.id = 'rpg-host'; host.className = 'rpg-host'; host.innerHTML = '<div class="rpg-load">🏝️<br>Sailing to Rhead Island…</div>';
+  document.body.appendChild(host); document.documentElement.classList.add('rpg-open');
+  const api = { me, nameOf, avatar: w => normAv(av(w)), baseAv: () => Object.assign({}, AV_BASE), sfx: k => { try{ SFX.play(k); }catch(e){} },
+    load: () => { const d = gdoc('rpg_' + me); if(!d) return null; const o = Object.assign({}, d); delete o.id; return o; },
+    save: st => { setDoc('games/rpg_' + me, Object.assign({}, st, { at: Date.now() })); },
+    channel: n => SB ? SB.channel(n, { config: { broadcast: { self: false } } }) : null, unchannel: c => { try{ SB.removeChannel(c); }catch(e){} },
+    raining: rpgRaining, close: closeRPG };
+  const go2 = () => { try{ window.RheadRPG.start(host, api); }catch(e){ console.error(e); host.innerHTML = '<div class="rpg-load">The island couldn’t load. Close and try again.<br><br><button class="btn" onclick="this.closest(\'.rpg-host\').remove();document.documentElement.classList.remove(\'rpg-open\')">Close</button></div>'; } };
+  if(window.RheadRPG) return go2();
+  const sc = document.createElement('script'); sc.src = '/rpg.js?v=3'; sc.onload = go2; sc.onerror = () => { host.innerHTML = '<div class="rpg-load">No connection to the island right now.</div>'; setTimeout(closeRPG, 1800); }; document.head.appendChild(sc);
+}
 /* ---------- Guess Who? ---------- */
 const GW_NAMES = ['Bruno','Coco','Pepe','Maple','Rosa','Theo','Lulu','Rafa','Nina','Otis','Pía','Gus','Mila','Dante','Juno','Tito','Lola','Ezra','Bea','Iggy','Sol','Kiko','Vera','Moe','Paz','Rex','Ivy','Nico','Wren','Fito','Gigi','Hank','Luz','Abe','Tula','Remy'];
 const GW_HAIR = [['black','#171210'],['brown','#5B3B27'],['blonde','#E2C38A'],['red','#B8413A'],['gray','#B4B0AC'],['pink','#E58BAA']];
@@ -7310,6 +7351,7 @@ document.addEventListener('click', async ev => {
     case 'geo-next': geoNext(); break;
     case 'c4-new': c4New(); break;
     case 'gw-new': gwNew(); break;
+    case 'rpg-open': openRPG(); break;
     case 'gw-ask': gwAsk(t.dataset.v); break;
     case 'gw-guessmode': S.gwGuess = !S.gwGuess; S.gwPick = null; render(); break;
     case 'gw-card': { const i = Number(t.dataset.v), st = gwState(); if(!st || st.winner) break; if(S.gwGuess){ if(((st.down || {})[S.me || 'david'] || []).includes(i)) break; S.gwPick = i; SFX.play('tap'); render(); } else gwToggle(i); break; }

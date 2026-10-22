@@ -973,6 +973,10 @@ nav.tabs button.on svg{color:var(--cocoa)}
 .send-btn{flex:none;width:40px;height:40px;border-radius:50%;border:0;display:grid;place-items:center;background:var(--cocoa);color:var(--cocoa-ink);cursor:pointer;box-shadow:var(--shadow);transition:transform .12s}
 .send-btn:active{transform:scale(.88)}
 @media (prefers-reduced-motion: reduce){.msg.pop .b,.rx-bar,.b.typing i{animation:none}}
+
+.msg .t{white-space:pre-wrap}
+.composer form{align-items:flex-end}
+.composer #msg-text{resize:none;line-height:1.35;min-height:42px;max-height:140px;overflow-y:auto;font-family:inherit;display:block;height:42px;box-sizing:border-box}
 </style>
 
 <header class="top"><div id="deco" aria-hidden="true"></div><div class="wrap">
@@ -1637,6 +1641,7 @@ function startLive(){
   document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible'){ beat(); updateBadge(true); } });
   setInterval(() => { if(S.tab === 'chat') schedule(); }, 60000);
 }
+function growBox(el){ if(!el) return; if(!el.value){ el.style.height = ''; return; } el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight + 2, 140) + 'px'; }
 function sendTyping(){ const now = Date.now(); if(!S.typingCh || !S.me || now - (S.typingSent || 0) < 2000) return; S.typingSent = now; try{ S.typingCh.send({ type: 'broadcast', event: 'typing', payload: { who: S.me } }); }catch(e){} }
 /* the red number on the app icon */
 function badgeCount(){ if(!S.me || !S.db) return 0; return unreadCount() + S.data.notes.filter(n => n.to === S.me && !n.seen).length; }
@@ -1734,7 +1739,7 @@ function notifyCard(){
 }
 function accountCard(){
   const imp = meta('imported');
-  return `<section class="card stack" style="gap:10px"><h2>Account</h2><div class="between"><span class="muted" style="overflow-wrap:anywhere">${esc((S.user && S.user.email) || 'Signed in')}</span><button class="btn small" data-act="sign-out">Sign out</button></div><p class="fine" style="margin:0">App version: Oct 22, 2026 · update 2</p></section>
+  return `<section class="card stack" style="gap:10px"><h2>Account</h2><div class="between"><span class="muted" style="overflow-wrap:anywhere">${esc((S.user && S.user.email) || 'Signed in')}</span><button class="btn small" data-act="sign-out">Sign out</button></div><p class="fine" style="margin:0">App version: Oct 22, 2026 · update 3</p></section>
   <section class="card stack" style="gap:10px"><h2>Move data from the old app</h2>
     ${imp ? `<p class="fine" style="margin:0">Done on ${esc(fmtDate(new Date(imp.at), { month:'short', day:'numeric', year:'numeric' }))}: ${imp.records} records and ${imp.photos} photos.</p>` : `<p class="fine" style="margin:0">Brings over everything you saved in the Claude version: lists, chat, money, photos and the rest. Do this once, on one phone.</p>`}
     ${S.importMsg ? `<div class="banner">${esc(S.importMsg)}</div>` : ''}
@@ -3366,9 +3371,9 @@ function vChat(){
     const rx = Object.entries(m.rx || {}).filter(([, e]) => e).map(([, e]) => e);
     let inner;
     if(m.sticker) inner = `<div class="b stk-b">${stickerSVG(m.sticker, 120)}${last ? meta2 : ''}</div>`;
-    else if(m.img) inner = `<div class="b img-b"><button class="msg-img" data-act="chat-img" data-v="${esc(m.img)}"><img src="${BLOBU}${esc(m.img)}" alt="${m.gif ? 'GIF' : 'Photo'}" loading="lazy"></button>${m.text ? `<div class="cap">${linkify(esc(m.text))}</div>` : ''}${meta2}</div>`;
+    else if(m.img) inner = `<div class="b img-b"><button class="msg-img" data-act="chat-img" data-v="${esc(m.img)}"><img src="${BLOBU}${esc(m.img)}" alt="${m.gif ? 'GIF' : 'Photo'}" loading="lazy"></button>${m.text ? `<div class="cap t">${linkify(esc(m.text))}</div>` : ''}${meta2}</div>`;
     else if(emojiOnly(m.text)) inner = `<div class="b emo-b">${esc(m.text)}${meta2}</div>`;
-    else inner = `<div class="b">${linkify(esc(m.text))}${meta2}</div>`;
+    else inner = `<div class="b"><span class="t">${linkify(esc(m.text))}</span>${meta2}</div>`;
     const cls = ['msg', mine ? 'mine' : '', first ? 'gfirst' : '', last ? 'glast' : '', gPrev && gNext ? 'gmid' : '', rx.length ? 'hasrx' : '', fresh && m.at > fresh ? 'pop' : ''].join(' ');
     const bar = S.rxFor === m.id ? `<div class="rx-bar ${mine ? 'mine' : ''}">${RX.map(e => `<button data-act="rx-set" data-id="${esc(m.id)}" data-v="${e}" class="${(m.rx || {})[me] === e ? 'on' : ''}">${e}</button>`).join('')}</div>` : '';
     html += bar + `<div class="${cls}" data-act="msg-tap" data-id="${esc(m.id)}">${!mine ? `<span class="avs">${last ? mini(m.by) : ''}</span>` : ''}${inner.replace(/<\/div>$/, rx.length ? `<span class="rx">${rx.join('')}${rx.length > 1 && rx[0] === rx[1] ? '<small>2</small>' : ''}</span></div>` : '</div>')}</div>`;
@@ -3379,7 +3384,7 @@ function vChat(){
   <div class="chat" id="chat">${html || empty('Say hi', 'Send the first message. It shows up on both phones.')}</div>
   ${S.stkOpen ? `<div class="stk-tray"><div class="between"><b>Stickers</b><button class="icon-btn" data-act="stk-toggle" aria-label="Close">${ic('x', 18)}</button></div><div class="stk-grid">${Object.keys(STK).map(k => `<button data-act="stk-send" data-v="${k}">${stickerSVG(k, 78)}</button>`).join('')}</div></div>` : ''}
   ${S.chatImg ? `<div class="lightbox" data-act="chat-img" data-v=""><img src="${BLOBU}${esc(S.chatImg)}" alt=""></div>` : ''}
-  <div class="composer"><form data-form="msg"><label class="cmp-btn" aria-label="Send a photo or GIF">${ic('photo', 22)}<input type="file" id="msg-file" data-np="1" data-live="msg-file" accept="image/*" hidden></label><button type="button" class="cmp-btn ${S.stkOpen ? 'on' : ''}" data-act="stk-toggle" aria-label="Stickers">😊</button><input class="grow" type="text" id="msg-text" name="text" data-live="msg-typing" placeholder="Message ${S.me ? esc(nameOf(other(S.me))) : ''}" maxlength="1000" autocomplete="off" enterkeyhint="send"><button class="send-btn" aria-label="Send"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 19V5M5.5 11.5L12 5l6.5 6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></form></div>`;
+  <div class="composer"><form data-form="msg"><label class="cmp-btn" aria-label="Send a photo or GIF">${ic('photo', 22)}<input type="file" id="msg-file" data-np="1" data-live="msg-file" accept="image/*" hidden></label><button type="button" class="cmp-btn ${S.stkOpen ? 'on' : ''}" data-act="stk-toggle" aria-label="Stickers">😊</button><textarea class="grow" id="msg-text" name="text" rows="1" data-live="msg-typing" placeholder="Message ${S.me ? esc(nameOf(other(S.me))) : ''}" maxlength="2000" autocomplete="off" enterkeyhint="enter"></textarea><button class="send-btn" aria-label="Send"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 19V5M5.5 11.5L12 5l6.5 6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></form></div>`;
 }
 
 /* calendar */
@@ -6617,6 +6622,7 @@ function render(){
   if(S.tab === 'money' && S.finTab === 'calc') updateTip();
   afterRender(main);
   try{ updateBadge(); }catch(e){}
+  { const mt = document.getElementById('msg-text'); if(mt && mt.value) growBox(mt); }
   { const slot = document.getElementById('doodle-slot'); if(slot) slot.appendChild(doodleCanvas()); }
   { const ds = document.getElementById('dash-slot'); if(ds){ ds.appendChild(dashCanvas()); if(S.dash && S.dash.paused){ S.dash.paused = false; } dashDraw(); } }
   if(document.getElementById('lovemap')) bindMap();
@@ -7242,9 +7248,10 @@ document.addEventListener('click', async ev => {
   }
 });
 
+document.addEventListener('keydown', ev => { if(ev.target && ev.target.id === 'msg-text' && ev.key === 'Enter' && (ev.metaKey || ev.ctrlKey)){ ev.preventDefault(); const f = ev.target.closest('form'); if(f) f.requestSubmit(); } });
 document.addEventListener('input', ev => {
   const t = ev.target;
-  if(t.dataset.live === 'msg-typing'){ sendTyping(); return; }
+  if(t.dataset.live === 'msg-typing'){ growBox(t); sendTyping(); return; }
   if(t.dataset.live === 'av-num'){ const w = S.avFor || S.me || 'david'; const base = S.avDraft && S.avDraft.w === w ? S.avDraft.c : avRaw(w); S.avDraft = { w, c: Object.assign({}, base, { num: t.value.replace(/[^0-9]/g, '').slice(0, 2) }) }; const pv = $('#av-preview'); if(pv) pv.innerHTML = avPreview(S.avDraft.c); const sb = document.querySelector('[data-act="av-save"]'); if(sb) sb.disabled = false; return; }
   if(t.dataset.live === 'tr-text'){ trState().text = t.value; return; }
   if(t.dataset.live === 'gsearch'){ S.gq = t.value; render(); return; }
@@ -7349,7 +7356,7 @@ document.addEventListener('submit', async ev => {
       if(await setDoc('meta/lists', { names: names.concat(n) })){ S.listSel = n; ls.set('list', n); S.showForm.newlist = false; render(); }
       break; }
     case 'wish': if(await addDoc('wish', { title: v('title'), url: safeUrl(v('url')), price: parseFloat(v('price')) || 0, room: v('room') || 'Other', project: v('proj') || '', note: v('note'), prio: !!fd.get('prio'), got: false, photo: await photoFrom(f, '#w-photo') })){ S.showForm.wish = false; render(); toast('Saved to wishlist'); } break;
-    case 'msg': if(v('text')) addDoc('msgs', { text: v('text') }); setTimeout(() => { const el = $('#msg-text'); if(el) el.focus(); }, 30); break;
+    case 'msg': if(v('text')) addDoc('msgs', { text: v('text') }); setTimeout(() => { const el = $('#msg-text'); if(el){ el.value = ''; growBox(el); el.focus(); } }, 30); break;
     case 'event': if(await addDoc('events', { title: v('title'), date: v('date') || S.cal.sel, time: v('time'), who: v('who') || 'both', note: v('note'), repeat: v('repeat') || 'none', cat: v('cat') || 'Plans' })){ S.cal.sel = v('date') || S.cal.sel; const d = parseYmd(S.cal.sel); S.cal.y = d.getFullYear(); S.cal.m = d.getMonth(); S.showForm.event = false; render(); toast('Added to the calendar'); } break;
     case 'sched': {
       const days = [0,1,2,3,4,5,6].filter(i => fd.get('d' + i));

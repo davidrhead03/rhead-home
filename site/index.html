@@ -977,6 +977,10 @@ nav.tabs button.on svg{color:var(--cocoa)}
 .msg .t{white-space:pre-wrap}
 .composer form{align-items:flex-end}
 .composer #msg-text{resize:none;line-height:1.35;min-height:42px;max-height:140px;overflow-y:auto;font-family:inherit;display:block;height:42px;box-sizing:border-box}
+
+body.typing nav.tabs,body.typing .fab{display:none!important}
+body.typing .composer{bottom:calc(var(--kb,0px) + 6px)}
+body.typing .chat{padding-bottom:64px}
 </style>
 
 <header class="top"><div id="deco" aria-hidden="true"></div><div class="wrap">
@@ -1739,7 +1743,7 @@ function notifyCard(){
 }
 function accountCard(){
   const imp = meta('imported');
-  return `<section class="card stack" style="gap:10px"><h2>Account</h2><div class="between"><span class="muted" style="overflow-wrap:anywhere">${esc((S.user && S.user.email) || 'Signed in')}</span><button class="btn small" data-act="sign-out">Sign out</button></div><p class="fine" style="margin:0">App version: Oct 22, 2026 · update 3</p></section>
+  return `<section class="card stack" style="gap:10px"><h2>Account</h2><div class="between"><span class="muted" style="overflow-wrap:anywhere">${esc((S.user && S.user.email) || 'Signed in')}</span><button class="btn small" data-act="sign-out">Sign out</button></div><p class="fine" style="margin:0">App version: Oct 22, 2026 · update 4</p></section>
   <section class="card stack" style="gap:10px"><h2>Move data from the old app</h2>
     ${imp ? `<p class="fine" style="margin:0">Done on ${esc(fmtDate(new Date(imp.at), { month:'short', day:'numeric', year:'numeric' }))}: ${imp.records} records and ${imp.photos} photos.</p>` : `<p class="fine" style="margin:0">Brings over everything you saved in the Claude version: lists, chat, money, photos and the rest. Do this once, on one phone.</p>`}
     ${S.importMsg ? `<div class="banner">${esc(S.importMsg)}</div>` : ''}
@@ -7248,6 +7252,15 @@ document.addEventListener('click', async ev => {
   }
 });
 
+
+/* keyboard open in chat: hide the tab bar and sit the message box right on the keyboard */
+function kbUpdate(){ const vv = window.visualViewport; if(!vv) return; const kb = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)); document.documentElement.style.setProperty('--kb', kb + 'px'); }
+document.addEventListener('focusin', e => { if(e.target && e.target.id === 'msg-text'){ document.body.classList.add('typing'); kbUpdate(); setTimeout(() => { kbUpdate(); window.scrollTo(0, document.body.scrollHeight); }, 320); } });
+document.addEventListener('focusout', e => { if(e.target && e.target.id === 'msg-text') setTimeout(() => { const a = document.activeElement; if(!a || a.id !== 'msg-text'){ document.body.classList.remove('typing'); document.documentElement.style.setProperty('--kb', '0px'); } }, 120); });
+if(window.visualViewport){ visualViewport.addEventListener('resize', kbUpdate); visualViewport.addEventListener('scroll', kbUpdate); }
+/* tapping send keeps the keyboard open, like WhatsApp */
+document.addEventListener('mousedown', e => { if(e.target && e.target.closest && e.target.closest('.send-btn') && document.activeElement && document.activeElement.id === 'msg-text') e.preventDefault(); });
+document.addEventListener('touchend', e => { const b = e.target && e.target.closest && e.target.closest('.send-btn'); if(!b || !document.activeElement || document.activeElement.id !== 'msg-text') return; e.preventDefault(); const f = b.closest('form'); if(f) f.requestSubmit(); }, { passive:false });
 document.addEventListener('keydown', ev => { if(ev.target && ev.target.id === 'msg-text' && ev.key === 'Enter' && (ev.metaKey || ev.ctrlKey)){ ev.preventDefault(); const f = ev.target.closest('form'); if(f) f.requestSubmit(); } });
 document.addEventListener('input', ev => {
   const t = ev.target;

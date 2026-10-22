@@ -980,7 +980,7 @@ nav.tabs button.on svg{color:var(--cocoa)}
 
 body.typing nav.tabs,body.typing .fab{display:none!important}
 body.typing .composer{bottom:calc(var(--kb,0px) + 6px)}
-body.typing .chat{padding-bottom:64px}
+body.typing main{padding-bottom:0!important}body.typing .chat{padding-bottom:76px;margin-bottom:0}
 </style>
 
 <header class="top"><div id="deco" aria-hidden="true"></div><div class="wrap">
@@ -1743,7 +1743,7 @@ function notifyCard(){
 }
 function accountCard(){
   const imp = meta('imported');
-  return `<section class="card stack" style="gap:10px"><h2>Account</h2><div class="between"><span class="muted" style="overflow-wrap:anywhere">${esc((S.user && S.user.email) || 'Signed in')}</span><button class="btn small" data-act="sign-out">Sign out</button></div><p class="fine" style="margin:0">App version: Oct 22, 2026 · update 4</p></section>
+  return `<section class="card stack" style="gap:10px"><h2>Account</h2><div class="between"><span class="muted" style="overflow-wrap:anywhere">${esc((S.user && S.user.email) || 'Signed in')}</span><button class="btn small" data-act="sign-out">Sign out</button></div><p class="fine" style="margin:0">App version: Oct 22, 2026 · update 5</p></section>
   <section class="card stack" style="gap:10px"><h2>Move data from the old app</h2>
     ${imp ? `<p class="fine" style="margin:0">Done on ${esc(fmtDate(new Date(imp.at), { month:'short', day:'numeric', year:'numeric' }))}: ${imp.records} records and ${imp.photos} photos.</p>` : `<p class="fine" style="margin:0">Brings over everything you saved in the Claude version: lists, chat, money, photos and the rest. Do this once, on one phone.</p>`}
     ${S.importMsg ? `<div class="banner">${esc(S.importMsg)}</div>` : ''}

@@ -196,6 +196,19 @@ function drawMon(x, k, X, Y, t, s){
     P(5, 6, 2, 1, '#2A201C'); P(9, 6, 2, 1, '#2A201C'); P(7, 8, 2, 1, '#F4A6B8'); P(14, 7 - tl, 2, 2, '#E89A4A'); P(15, 5 - tl, 1, 2, '#E89A4A'); }
 }
 
+/* ---------- voices: little Paper Mario style blips ---------- */
+const VOICES = { 'Mayor Pip':[150,'triangle'], 'Rosa the Baker':[420,'sine'], 'Old Gus':[110,'square'], 'Coach Dre':[230,'triangle'], 'Pepper':[620,'square'], 'Dayla':[760,'square'], 'Croissant':[900,'sine'], 'Sign':[300,'sine'], 'Lighthouse':[260,'sine'], 'Rhead House':[330,'sine'] };
+let AC = null;
+function blip(name, ch, me){
+  if(!AC){ try{ AC = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ return; } }
+  if(AC.state === 'suspended') AC.resume();
+  const v = VOICES[name] || [me ? 300 : 360, 'sine'], o = AC.createOscillator(), g = AC.createGain(), now = AC.currentTime;
+  const vow = 'aeiouy'.includes(String(ch).toLowerCase()) ? 1.12 : 1, f = v[0] * vow * (0.94 + Math.random() * .12);
+  o.type = v[1]; o.frequency.setValueAtTime(f, now); o.frequency.exponentialRampToValueAtTime(f * (name === 'Croissant' ? 1.4 : .82), now + .06);
+  g.gain.setValueAtTime(0.0001, now); g.gain.exponentialRampToValueAtTime(v[1] === 'square' ? .035 : .07, now + .008); g.gain.exponentialRampToValueAtTime(0.0001, now + .07);
+  o.connect(g).connect(AC.destination); o.start(now); o.stop(now + .08);
+}
+
 /* ---------- people of Rhead Island ---------- */
 function npcAv(base, o){ return Object.assign({}, base, o); }
 function objective(W){
@@ -288,8 +301,9 @@ function start(host, api){
 
   /* --- input --- */
   const joy = $('.rpg-joy'), knob = joy.querySelector('i'); let jid = null, jx = 0, jy = 0;
-  host.addEventListener('pointerdown', e => { if(BT){ BT.tap(); return; } if(e.target.closest('button') || e.target.closest('.rpg-panel') || talk) return; if(e.clientX > host.clientWidth * .55) return; jid = e.pointerId; jx = e.clientX; jy = e.clientY; joy.style.left = jx + 'px'; joy.style.top = jy + 'px'; joy.classList.add('on'); try{ host.setPointerCapture(jid); }catch(er){} });
-  host.addEventListener('pointermove', e => { if(e.pointerId !== jid) return; let dx = e.clientX - jx, dy = e.clientY - jy; const L = Math.hypot(dx, dy), M = 44; if(L > M){ dx *= M / L; dy *= M / L; } knob.style.transform = `translate(${dx}px,${dy}px)`; input.x = Math.abs(dx) > 6 ? dx / M : 0; input.y = Math.abs(dy) > 6 ? dy / M : 0; });
+  const joyMove = e => { const r = joy.getBoundingClientRect(); jx = r.left + r.width / 2; jy = r.top + r.height / 2; let dx = e.clientX - jx, dy = e.clientY - jy; const L = Math.hypot(dx, dy), M = 40; if(L > M){ dx *= M / L; dy *= M / L; } knob.style.transform = `translate(${dx}px,${dy}px)`; input.x = Math.abs(dx) > 6 ? dx / M : 0; input.y = Math.abs(dy) > 6 ? dy / M : 0; };
+  host.addEventListener('pointerdown', e => { if(BT){ BT.tap(); return; } if(e.target.closest('button') || e.target.closest('.rpg-panel') || talk) return; if(e.clientX > host.clientWidth * .55) return; jid = e.pointerId; joy.classList.add('on'); joyMove(e); try{ host.setPointerCapture(jid); }catch(er){} });
+  host.addEventListener('pointermove', e => { if(e.pointerId !== jid) return; joyMove(e); });
   const jend = e => { if(e.pointerId !== jid) return; jid = null; input.x = input.y = 0; knob.style.transform = ''; joy.classList.remove('on'); };
   host.addEventListener('pointerup', jend); host.addEventListener('pointercancel', jend);
   const onKey = e => { const k = e.key.toLowerCase(); if(['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d',' ','e','enter','q'].includes(k)) e.preventDefault(); if(e.type === 'keydown' && (k === ' ' || k === 'e' || k === 'enter')){ if(BT) BT.tap(); else act(); return; } if(e.type === 'keydown' && k === 'q'){ sniff(); return; } input.keys[k] = e.type === 'keydown'; };
@@ -460,7 +474,7 @@ function start(host, api){
   function update(dt, now){
     let ix = input.x, iy = input.y; const k = input.keys;
     if(k.arrowleft || k.a) ix = -1; if(k.arrowright || k.d) ix = 1; if(k.arrowup || k.w) iy = -1; if(k.arrowdown || k.s) iy = 1;
-    if(talk){ ix = iy = 0; const L = talk.lines[talk.i]; if(talk.shown < L.length){ talk.shown = Math.min(L.length, talk.shown + dt * 45); boxText.textContent = L.slice(0, Math.floor(talk.shown)); } }
+    if(talk){ ix = iy = 0; const L = talk.lines[talk.i]; if(talk.shown < L.length){ const before = Math.floor(talk.shown); talk.shown = Math.min(L.length, talk.shown + dt * 45); const nowN = Math.floor(talk.shown); boxText.textContent = L.slice(0, nowN); if(api.soundOn() && !/^[(*]/.test(L)){ for(let c = before; c < nowN; c++){ if(c % 3 === 0 && /[a-zA-Z0-9]/.test(L[c])){ blip(talk.name, L[c]); break; } } } } }
     if(!$('.rpg-panel').hidden || pup.sniff > 0) ix = iy = 0;
     const L = Math.hypot(ix, iy); p.moving = L > .1;
     if(p.moving){ const sp = 78 * Math.min(1, L) * dt, vx = ix / Math.max(1, L) * sp, vy = iy / Math.max(1, L) * sp;

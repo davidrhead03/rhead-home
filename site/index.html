@@ -1036,7 +1036,7 @@ html.rpg-open,html.rpg-open body{overflow:hidden;overscroll-behavior:none}
 .rpg-talk span{position:absolute;right:16px;bottom:8px;color:#E0566B;font-size:12px;animation:rpgBob 1s infinite}
 @keyframes rpgPop{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
 @keyframes rpgBob{50%{transform:translateY(3px)}}
-.rpg-banner{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 64px);transform:translateX(-50%);background:rgba(42,32,28,.75);color:#fff;font-weight:700;padding:8px 16px;border-radius:14px;opacity:0;pointer-events:none;white-space:nowrap;font-size:15px}
+.rpg-banner{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 64px);transform:translateX(-50%);background:rgba(42,32,28,.85);color:#fff;font-weight:700;padding:9px 16px;border-radius:14px;opacity:0;pointer-events:none;white-space:normal;width:max-content;max-width:min(calc(100vw - 32px),480px);text-align:center;line-height:1.35;font-size:15px}
 .rpg-banner.show{animation:rpgBan 2.6s ease}
 @keyframes rpgBan{0%{opacity:0;transform:translate(-50%,-8px)}12%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0}}
 .rpg-top .grow{flex:1}
@@ -1835,7 +1835,7 @@ function notifyCard(){
 }
 function accountCard(){
   const imp = meta('imported');
-  return `<section class="card stack" style="gap:10px"><h2>Account</h2><div class="between"><span class="muted" style="overflow-wrap:anywhere">${esc((S.user && S.user.email) || 'Signed in')}</span><button class="btn small" data-act="sign-out">Sign out</button></div><p class="fine" style="margin:0">App version: Oct 22, 2026 · update 14</p></section>
+  return `<section class="card stack" style="gap:10px"><h2>Account</h2><div class="between"><span class="muted" style="overflow-wrap:anywhere">${esc((S.user && S.user.email) || 'Signed in')}</span><button class="btn small" data-act="sign-out">Sign out</button></div><p class="fine" style="margin:0">App version: Oct 22, 2026 · update 15</p></section>
   <section class="card stack" style="gap:10px"><h2>Move data from the old app</h2>
     ${imp ? `<p class="fine" style="margin:0">Done on ${esc(fmtDate(new Date(imp.at), { month:'short', day:'numeric', year:'numeric' }))}: ${imp.records} records and ${imp.photos} photos.</p>` : `<p class="fine" style="margin:0">Brings over everything you saved in the Claude version: lists, chat, money, photos and the rest. Do this once, on one phone.</p>`}
     ${S.importMsg ? `<div class="banner">${esc(S.importMsg)}</div>` : ''}
@@ -6028,7 +6028,7 @@ function openRPG(){
     raining: rpgRaining, soundOn: () => SET.sound !== false, close: closeRPG };
   const go2 = () => { try{ window.RheadRPG.start(host, api); }catch(e){ console.error(e); host.innerHTML = '<div class="rpg-load">The game couldn’t load. Close and try again.<br><br><button class="btn" onclick="this.closest(\'.rpg-host\').remove();document.documentElement.classList.remove(\'rpg-open\')">Close</button></div>'; } };
   if(window.RheadRPG) return go2();
-  const sc = document.createElement('script'); sc.src = '/rpg.js?v=10'; sc.onload = go2; sc.onerror = () => { host.innerHTML = '<div class="rpg-load">No connection right now.</div>'; setTimeout(closeRPG, 1800); }; document.head.appendChild(sc);
+  const sc = document.createElement('script'); sc.src = '/rpg.js?v=11'; sc.onload = go2; sc.onerror = () => { host.innerHTML = '<div class="rpg-load">No connection right now.</div>'; setTimeout(closeRPG, 1800); }; document.head.appendChild(sc);
 }
 /* ---------- Guess Who? ---------- */
 const GW_NAMES = ['Bruno','Coco','Pepe','Maple','Rosa','Theo','Lulu','Rafa','Nina','Otis','Pía','Gus','Mila','Dante','Juno','Tito','Lola','Ezra','Bea','Iggy','Sol','Kiko','Vera','Moe','Paz','Rex','Ivy','Nico','Wren','Fito','Gigi','Hank','Luz','Abe','Tula','Remy'];

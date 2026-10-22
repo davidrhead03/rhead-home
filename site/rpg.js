@@ -530,7 +530,7 @@ function start(host, api){
   if(ch){ ch.on('broadcast', { event: 'pos' }, ({ payload: q }) => { if(!q || q.who !== other) return; if(!remote.on){ remote.x = q.x; remote.y = q.y; banner(`${api.nameOf(other)} is here! 💕`); } remote.on = true; remote.tx = q.x; remote.ty = q.y; remote.d = q.d; remote.moving = q.m; remote.seen = performance.now(); })
     .on('broadcast', { event: 'bye' }, ({ payload: q }) => { if(q && q.who === other){ remote.on = false; banner(`${api.nameOf(other)} left the game`); } }).subscribe(); }
   const send = (ev, pl) => { try{ ch && ch.send({ type: 'broadcast', event: ev, payload: pl }); }catch(e){} };
-  function banner(text){ const b = $('.rpg-banner'); b.textContent = text; b.classList.remove('show'); void b.offsetWidth; b.classList.add('show'); }
+  function banner(text){ const b = $('.rpg-banner'); b.textContent = text; b.style.animationDuration = Math.min(7, Math.max(2.6, text.length / 14)) + 's'; b.classList.remove('show'); void b.offsetWidth; b.classList.add('show'); }
   function celebrate(text){ banner(text); api.sfx('success'); for(let i = 0; i < 40; i++) fx.push({ x: p.x, y: p.y - 10, vx: (Math.random() - .5) * 160, vy: -60 - Math.random() * 100, t: 1.4, c: ['#F2C14E','#E0566B','#58AEDD','#7FD07A','#FFFFFF'][i % 5] }); }
   if(W.p_done){ portal.open = true; portal.r = 21; }
 

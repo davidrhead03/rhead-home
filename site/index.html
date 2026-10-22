@@ -1593,6 +1593,7 @@ async function refreshWeather(){
 }
 
 /* ---------- notifications on this phone ---------- */
+const b64uOf = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const ub64 = s0 => { let s1 = String(s0).replace(/-/g, '+').replace(/_/g, '/'); while(s1.length % 4) s1 += '='; const b = atob(s1); return Uint8Array.from(b, c => c.charCodeAt(0)); };
 const isStandalone = () => window.navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
 const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -1604,6 +1605,7 @@ async function pushRefresh(){
   else {
     try{ const reg = await swReady(), sub = await reg.pushManager.getSubscription();
       st = sub && Notification.permission === 'granted' ? 'on' : 'off';
+      if(st === 'on'){ const want = ls.get('pushKey', ''), have = sub.options && sub.options.applicationServerKey ? b64uOf(sub.options.applicationServerKey) : ''; if(want && have && want !== have) st = 'off'; }
       if(st === 'on' && S.me && SB){ const j = sub.toJSON(); SB.from('push_subs').upsert({ endpoint: j.endpoint, who: S.me, sub: j, ua: navigator.userAgent.slice(0, 200) }).then(() => {}, () => {}); }
     }catch(e){ st = 'off'; }
   }
@@ -1618,7 +1620,9 @@ async function pushOn(){
     const reg = await swReady();
     const { data, error } = await SB.functions.invoke('notify', { body: { kind: 'key' } });
     if(error || !data || !data.publicKey) throw error || new Error('no key');
+    ls.set('pushKey', data.publicKey);
     let sub = await reg.pushManager.getSubscription();
+    if(sub){ const have = sub.options && sub.options.applicationServerKey ? b64uOf(sub.options.applicationServerKey) : ''; if(have !== data.publicKey){ const old = sub.endpoint; try{ await sub.unsubscribe(); }catch(e){} SB.from('push_subs').delete().eq('endpoint', old).then(() => {}, () => {}); sub = null; } }
     if(!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: ub64(data.publicKey) });
     const j = sub.toJSON();
     const r = await SB.from('push_subs').upsert({ endpoint: j.endpoint, who: S.me, sub: j, ua: navigator.userAgent.slice(0, 200) });
@@ -1627,7 +1631,7 @@ async function pushOn(){
   }catch(e){ console.warn('push', e); toast('Couldn’t turn on notifications. Check your connection and try again.'); pushRefresh(); }
 }
 async function pushTest(){
-  try{ const { data, error } = await SB.functions.invoke('notify', { body: { kind: 'test', me: S.me } }); if(error) throw error; toast(data && data.sent ? 'Test sent. It should pop up in a few seconds.' : 'No phone found for you yet. Turn notifications on first.'); }
+  try{ const { data, error } = await SB.functions.invoke('notify', { body: { kind: 'test', me: S.me } }); if(error) throw error; if(data && data.sent) toast('Test sent. It should pop up in a few seconds.'); else { toast('Couldn’t reach this phone. Tap “Turn on notifications” to refresh it.'); S.pushState = 'off'; render(); } }
   catch(e){ toast('The test didn’t go through. Try again in a minute.'); }
 }
 const NP_TYPES = [['chat','💬 Chat messages'],['note','💌 Love notes'],['list','🛒 Shopping list additions'],['event','📅 Calendar plans'],['bill','🧾 Bills due'],['task','✅ Tasks due'],['occasion','🎂 Birthdays & special days'],['trip','🧳 Trips'],['dayla','🐾 Dayla’s daily message']];
@@ -1656,7 +1660,7 @@ function notifyCard(){
 }
 function accountCard(){
   const imp = meta('imported');
-  return `<section class="card stack" style="gap:10px"><h2>Account</h2><div class="between"><span class="muted" style="overflow-wrap:anywhere">${esc((S.user && S.user.email) || 'Signed in')}</span><button class="btn small" data-act="sign-out">Sign out</button></div></section>
+  return `<section class="card stack" style="gap:10px"><h2>Account</h2><div class="between"><span class="muted" style="overflow-wrap:anywhere">${esc((S.user && S.user.email) || 'Signed in')}</span><button class="btn small" data-act="sign-out">Sign out</button></div><p class="fine" style="margin:0">App version: Oct 22, 2026 · update 1</p></section>
   <section class="card stack" style="gap:10px"><h2>Move data from the old app</h2>
     ${imp ? `<p class="fine" style="margin:0">Done on ${esc(fmtDate(new Date(imp.at), { month:'short', day:'numeric', year:'numeric' }))}: ${imp.records} records and ${imp.photos} photos.</p>` : `<p class="fine" style="margin:0">Brings over everything you saved in the Claude version: lists, chat, money, photos and the rest. Do this once, on one phone.</p>`}
     ${S.importMsg ? `<div class="banner">${esc(S.importMsg)}</div>` : ''}

@@ -1743,7 +1743,7 @@ function notifyCard(){
 }
 function accountCard(){
   const imp = meta('imported');
-  return `<section class="card stack" style="gap:10px"><h2>Account</h2><div class="between"><span class="muted" style="overflow-wrap:anywhere">${esc((S.user && S.user.email) || 'Signed in')}</span><button class="btn small" data-act="sign-out">Sign out</button></div><p class="fine" style="margin:0">App version: Oct 22, 2026 · update 5</p></section>
+  return `<section class="card stack" style="gap:10px"><h2>Account</h2><div class="between"><span class="muted" style="overflow-wrap:anywhere">${esc((S.user && S.user.email) || 'Signed in')}</span><button class="btn small" data-act="sign-out">Sign out</button></div><p class="fine" style="margin:0">App version: Oct 22, 2026 · update 6</p></section>
   <section class="card stack" style="gap:10px"><h2>Move data from the old app</h2>
     ${imp ? `<p class="fine" style="margin:0">Done on ${esc(fmtDate(new Date(imp.at), { month:'short', day:'numeric', year:'numeric' }))}: ${imp.records} records and ${imp.photos} photos.</p>` : `<p class="fine" style="margin:0">Brings over everything you saved in the Claude version: lists, chat, money, photos and the rest. Do this once, on one phone.</p>`}
     ${S.importMsg ? `<div class="banner">${esc(S.importMsg)}</div>` : ''}
@@ -3138,7 +3138,8 @@ function entryRow(e, withDel){
   if(e.kind === 'sched') return `<div class="li"><span class="pill sky">${esc(fmtTime(e.start))}–${esc(fmtTime(e.end))}</span><div class="txt">${esc(e.title)}<div class="sub">${esc(nameOf(e.who))}${e.place ? ' · ' + esc(e.place) : ''}</div></div>${mini(e.who)}</div>`;
   const who = e.who === 'both' ? 'Both of us' : nameOf(e.who);
   const rep = e.repeat && e.repeat !== 'none' ? ' · ' + (REPEATS.find(r => r[0] === e.repeat) || ['', ''])[1] : '';
-  return `<div class="li"><span class="pill cocoa">${esc(fmtTime(e.time) || (e.cat && e.cat !== 'Plans' ? e.cat : 'All day'))}</span><div class="txt">${esc(e.title)}<div class="sub">${esc(who)}${esc(rep)}${e.note ? ' · ' + esc(e.note) : ''}</div></div>${withDel ? delBtn('events', e.id, e.title) : ''}</div>`;
+  if(withDel && S.evEdit === e.id) return `<div class="li" style="display:block">${eventForm(null, get('events', e.id) || e).replace('margin-top:10px', 'margin-top:0')}</div>`;
+  return `<div class="li"><span class="pill cocoa">${esc(tRange(e.time, e.end) || (e.cat && e.cat !== 'Plans' ? e.cat : 'All day'))}</span><div class="txt">${esc(e.title)}<div class="sub">${esc(who)}${esc(rep)}${e.note ? ' · ' + esc(e.note) : ''}</div></div>${withDel ? editBtn('ev-edit', e.id, e.title) + delBtn('events', e.id, e.title) : ''}</div>`;
 }
 
 /* ---------- weather ---------- */
@@ -3178,8 +3179,11 @@ function myDayCard(d, title){
   const todos = cal.filter(e => e.kind === 'todo');
   const total = items.length + todos.length, nDone = items.filter(i => done.includes(i.id)).length + todos.filter(t => t.done).length;
   const whoTxt = x => x === 'both' || !x ? 'Both of us' : nameOf(x);
+  const dayName = isToday ? 'today' : esc(fmtDate(d, { month:'short', day:'numeric' }));
+  const planForm = it => { const x = it || {}, p = it ? 'ple-' : 'pl-', cur = !it ? 'once' : it.date ? 'once' : (it.days || []).length === 7 ? 'daily' : String(it.days) === '1,2,3,4,5' ? 'weekdays' : String(it.days) === '0,6' ? 'weekends' : 'dow';
+    return `<form class="stack" data-form="plan-item" data-who="${w}" data-dk="${dk}" ${it ? `data-id="${esc(it.id)}"` : ''} style="gap:8px"><input type="text" id="${p}text" name="text" placeholder="${w === 'dayla' ? 'e.g. Breakfast, Dinner, Walk' : 'e.g. Read 20 min, Walk Dayla'}" required maxlength="60" autocomplete="off" value="${esc(x.text || '')}"><div class="row" style="flex-wrap:nowrap"><label class="f grow">From<input type="time" id="${p}time" name="time" value="${esc(x.time || '')}"></label><label class="f grow">To<input type="time" id="${p}end" name="end" value="${esc(x.end || '')}"></label></div><div class="row" style="flex-wrap:nowrap"><select id="${p}rep" name="rep" class="grow">${[['once', 'Just ' + dayName],['daily','Every day'],['weekdays','Weekdays'],['weekends','Weekends'],['dow', 'Every ' + esc(fmtDate(d, { weekday:'long' }))]].map(([v, l]) => `<option value="${v}" ${cur === v ? 'selected' : ''}>${l}</option>`).join('')}</select>${it ? '' : '<button class="btn primary">Add</button>'}</div>${it ? `<div class="row" style="flex-wrap:nowrap"><button type="button" class="btn grow" data-act="plan-edit" data-id="">Cancel</button><button class="btn primary grow">Save changes</button></div>` : ''}</form>`; };
   const row = (k, time, inner, tail) => `<div class="li">${time !== null ? `<span class="tcol">${time}</span>` : ''}<span class="kbar ${k}"></span>${inner}${tail || ''}</div>`;
-  const evRow = (e, time) => row('ev', time, `<div class="txt">${esc(e.title)}<div class="sub">Event · ${esc(whoTxt(e.who))}${e.cat && e.cat !== 'Plans' ? ' · ' + esc(e.cat) : ''}${e.note ? ' · ' + esc(e.note) : ''}</div></div>`, delBtn('events', e.id, e.title));
+  const evRow = (e, time) => S.evEdit === e.id ? `<div class="li" style="display:block">${eventForm(null, get('events', e.id) || e).replace('margin-top:10px', 'margin-top:0')}</div>` : row('ev', time, `<div class="txt">${esc(e.title)}<div class="sub">Event${e.end ? ' · until ' + esc(fmtTime(e.end)) : ''} · ${esc(whoTxt(e.who))}${e.cat && e.cat !== 'Plans' ? ' · ' + esc(e.cat) : ''}${e.note ? ' · ' + esc(e.note) : ''}</div></div>`, editBtn('ev-edit', e.id, e.title) + delBtn('events', e.id, e.title));
   const todoRow = (e, time) => `<div class="li ${e.done ? 'done' : ''}">${time !== null ? `<span class="tcol">${time}</span>` : ''}<span class="kbar todo"></span><button class="check ${e.done ? 'on' : ''}" data-act="todo-tog" data-id="${esc(e.id)}" aria-label="${e.done ? 'Undo' : 'Check off'} ${esc(e.title)}">${ic('check', 15)}</button><div class="txt">${esc(e.title)}<div class="sub">Task</div></div></div>`;
   /* all-day: things with no time */
   const allDay = cal.filter(e => !(e.kind === 'ev' && e.time)).map(e => {
@@ -3190,13 +3194,11 @@ function myDayCard(d, title){
   /* timeline: schedules, timed events and plan items, in time order */
   const timed = scheds.map(s => [s.start || '', row('sched', esc(fmtTime(s.start)), `<div class="txt">${esc(s.title)}<div class="sub">Schedule · until ${esc(fmtTime(s.end))}${s.place ? ' · ' + esc(s.place) : ''}</div></div>`)])
     .concat(cal.filter(e => e.kind === 'ev' && e.time).map(e => [e.time, evRow(e, esc(fmtTime(e.time)))]))
-    .concat(items.map(i => { const on = done.includes(i.id); return [i.time || '99', `<div class="li ${on ? 'done' : ''}"><span class="tcol">${i.time ? esc(fmtTime(i.time)) : 'Anytime'}</span><span class="kbar plan"></span><button class="check ${on ? 'on' : ''}" data-act="plan-tog" data-id="${esc(i.id)}" data-who="${w}" data-dk="${dk}" aria-label="${on ? 'Uncheck' : 'Check off'} ${esc(i.text)}">${ic('check', 15)}</button><div class="txt">${esc(i.text)}<div class="sub">Plan · ${i.date ? 'just this day' : esc(daysLabel(i.days))}</div></div>${delBtn('routine', i.id, i.text)}</div>`]; }))
+    .concat(items.map(i => { const on = done.includes(i.id); if(S.planEdit === i.id) return [i.time || '99', `<div class="li" style="display:block">${planForm(i)}</div>`]; return [i.time || '99', `<div class="li ${on ? 'done' : ''}"><span class="tcol">${i.time ? esc(fmtTime(i.time)) : 'Anytime'}</span><span class="kbar plan"></span><button class="check ${on ? 'on' : ''}" data-act="plan-tog" data-id="${esc(i.id)}" data-who="${w}" data-dk="${dk}" aria-label="${on ? 'Uncheck' : 'Check off'} ${esc(i.text)}">${ic('check', 15)}</button><div class="txt">${esc(i.text)}<div class="sub">Plan${i.end ? ' · until ' + esc(fmtTime(i.end)) : ''} · ${i.date ? 'just this day' : esc(daysLabel(i.days))}</div></div>${editBtn('plan-edit', i.id, i.text)}${delBtn('routine', i.id, i.text)}</div>`]; }))
     .sort((a, b) => a[0].localeCompare(b[0])).map(x => x[1]).join('');
   const noSched = w !== 'dayla' && !S.data.scheds.some(s => s.who === w);
   const mode = S.dayAdd || 'plan';
-  const dayName = isToday ? 'today' : esc(fmtDate(d, { month:'short', day:'numeric' }));
-  const planForm = `<form class="stack" data-form="plan-item" data-who="${w}" data-dk="${dk}" style="gap:8px"><div class="row" style="flex-wrap:nowrap"><input class="grow" type="text" id="pl-text" name="text" placeholder="${w === 'dayla' ? 'e.g. Breakfast, Dinner, Walk' : 'e.g. Read 20 min, Walk Dayla'}" required maxlength="60" autocomplete="off"><input type="time" id="pl-time" name="time" style="width:auto;flex:none"></div><div class="row" style="flex-wrap:nowrap"><select id="pl-rep" name="rep" class="grow"><option value="once">Just ${dayName}</option><option value="daily">Every day</option><option value="weekdays">Weekdays</option><option value="weekends">Weekends</option><option value="dow">Every ${esc(fmtDate(d, { weekday:'long' }))}</option></select><button class="btn primary">Add</button></div></form>`;
-  const addBox = w === 'dayla' ? planForm : `<div class="seg" style="margin-bottom:8px">${[['plan','Plan or habit'],['event','Calendar event']].map(([v, l]) => `<button type="button" class="${mode === v ? 'on' : ''}" data-act="dayadd" data-v="${v}">${l}</button>`).join('')}</div>${mode === 'event' ? eventForm(dk).replace('margin-top:10px', 'margin-top:0') : planForm}`;
+  const addBox = w === 'dayla' ? planForm() : `<div class="seg" style="margin-bottom:8px">${[['plan','Plan or habit'],['event','Calendar event']].map(([v, l]) => `<button type="button" class="${mode === v ? 'on' : ''}" data-act="dayadd" data-v="${v}">${l}</button>`).join('')}</div>${mode === 'event' ? eventForm(dk).replace('margin-top:10px', 'margin-top:0') : planForm()}`;
   return `<section class="card"><div class="between" style="flex-wrap:wrap"><h2>${esc(title || (isToday ? 'My day' : 'Day plan'))}</h2><div style="min-width:210px">${seg('planwho', w, [['david','David'],['laura','Laura'],['dayla','Dayla']])}</div></div>
     ${total ? `<div class="bar" style="margin-top:12px"><i style="width:${Math.round(nDone / total * 100)}%"></i></div><div class="fine" style="margin-top:4px">${nDone} of ${total} checked off</div>` : ''}
     ${allDay ? `<div class="dsec"><div class="eyebrow">All day</div><div class="tl">${allDay}</div></div>` : ''}
@@ -3392,16 +3394,20 @@ function vChat(){
 }
 
 /* calendar */
-function eventForm(dk){
-  return `<form class="stack" data-form="event" style="gap:10px;margin-top:10px">
-    <input type="text" id="ev-title" name="title" placeholder="What's happening? e.g. Laura's birthday" required maxlength="80">
-    <div class="row"><label class="f grow">Date<input type="date" id="ev-date" name="date" value="${dk || S.cal.sel}" required></label><label class="f grow">Time<input type="time" id="ev-time" name="time"></label></div>
-    <div class="row"><label class="f grow">Repeats<select id="ev-repeat" name="repeat">${REPEATS.map(r => `<option value="${r[0]}">${r[1]}</option>`).join('')}</select></label><label class="f grow">Type<select id="ev-cat" name="cat">${EV_CATS.map(c => `<option>${c}</option>`).join('')}</select></label></div>
-    <label class="f">Who<select id="ev-who" name="who"><option value="both">Both of us</option><option value="david">David</option><option value="laura">Laura</option></select></label>
-    <input type="text" id="ev-note" name="note" placeholder="Note (optional)" maxlength="200">
-    <p class="fine" style="margin:0">For birthdays and anniversaries, choose “Every year” and enter the original date (with the year) so the app can show the age.</p>
-    <button class="btn primary">Save</button></form>`;
+function eventForm(dk, ev){
+  const e = ev || {}, p = ev ? 'eve-' : 'ev-';
+  return `<form class="stack" data-form="event" ${ev ? `data-id="${esc(ev.id)}"` : ''} style="gap:10px;margin-top:10px">
+    <input type="text" id="${p}title" name="title" placeholder="What's happening? e.g. Laura's birthday" required maxlength="80" value="${esc(e.title || '')}">
+    <label class="f">Date<input type="date" id="${p}date" name="date" value="${esc(e.date || dk || S.cal.sel)}" required></label>
+    <div class="row" style="flex-wrap:nowrap"><label class="f grow">From<input type="time" id="${p}time" name="time" value="${esc(e.time || '')}"></label><label class="f grow">To<input type="time" id="${p}end" name="end" value="${esc(e.end || '')}"></label></div>
+    <div class="row"><label class="f grow">Repeats<select id="${p}repeat" name="repeat">${REPEATS.map(r => `<option value="${r[0]}" ${(e.repeat || 'none') === r[0] ? 'selected' : ''}>${r[1]}</option>`).join('')}</select></label><label class="f grow">Type<select id="${p}cat" name="cat">${EV_CATS.map(c => `<option ${(e.cat || '') === c ? 'selected' : ''}>${c}</option>`).join('')}</select></label></div>
+    <label class="f">Who<select id="${p}who" name="who">${[['both','Both of us'],['david','David'],['laura','Laura']].map(([v, l]) => `<option value="${v}" ${(e.who || 'both') === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+    <input type="text" id="${p}note" name="note" placeholder="Note (optional)" maxlength="200" value="${esc(e.note || '')}">
+    ${ev ? (ev.repeat && ev.repeat !== 'none' ? '<p class="fine" style="margin:0">This repeats, so your changes apply to every time it happens.</p>' : '') : '<p class="fine" style="margin:0">Leave the times empty for an all-day event. For birthdays and anniversaries, choose “Every year” and enter the original date (with the year) so the app can show the age.</p>'}
+    ${ev ? `<div class="row" style="flex-wrap:nowrap"><button type="button" class="btn grow" data-act="ev-edit" data-id="">Cancel</button><button class="btn primary grow">Save changes</button></div>` : '<button class="btn primary">Save</button>'}</form>`;
 }
+const tRange = (a, b) => a ? fmtTime(a) + (b ? '–' + fmtTime(b) : '') : '';
+function editBtn(act, id, label){ return `<button type="button" class="icon-btn" data-act="${act}" data-id="${esc(id)}" aria-label="Edit ${esc(label)}">${ic('pencil', 16)}</button>`; }
 function schedForm(who){
   return `<form class="stack" data-form="sched" style="gap:10px">
     <div class="row"><label class="f grow">Whose schedule<select id="sc-who" name="who"><option value="david" ${who === 'david' ? 'selected' : ''}>David</option><option value="laura" ${who === 'laura' ? 'selected' : ''}>Laura</option><option value="dayla" ${who === 'dayla' ? 'selected' : ''}>Dayla</option></select></label><label class="f grow">What<input type="text" id="sc-title" name="title" required maxlength="60" placeholder="Work, gym, Dayla's breakfast…"></label></div>
@@ -3462,7 +3468,7 @@ function upcomingCard(){
   const up = S.data.events.map(e => [e, nextOcc(e, from)]).filter(x => x[1] && dayNum(x[1]) - dayNum(from) <= 120).sort((a, b) => a[1] - b[1]).slice(0, 6);
   const hol = []; for(let i = 0; i < 45 && hol.length < 3; i++){ const d = addDays(from, i); holsOn(d).filter(h => !/Daylight|Black Friday|Ash Wednesday/.test(h)).forEach(h => hol.push([h, d])); }
   if(!up.length && !hol.length) return '';
-  const rows = up.map(([e, d]) => [d, `<div class="li"><span class="pill">${esc(fmtDate(d, { month:'short', day:'numeric' }))}</span><div class="txt">${esc(evTitle(e, d))}<div class="sub">${esc(fmtTime(e.time) || e.cat || 'All day')}${e.repeat && e.repeat !== 'none' ? ' · repeats' : ''}</div></div></div>`])
+  const rows = up.map(([e, d]) => [d, `<div class="li"><span class="pill">${esc(fmtDate(d, { month:'short', day:'numeric' }))}</span><div class="txt">${esc(evTitle(e, d))}<div class="sub">${esc(tRange(e.time, e.end) || e.cat || 'All day')}${e.repeat && e.repeat !== 'none' ? ' · repeats' : ''}</div></div></div>`])
     .concat(hol.slice(0, 3).map(([h, d]) => [d, `<div class="li"><span class="pill sage">${esc(fmtDate(d, { month:'short', day:'numeric' }))}</span><div class="txt">${esc(h)}</div></div>`]))
     .sort((a, b) => a[0] - b[0]).map(x => x[1]).join('');
   return `<section class="card"><h2>Coming up</h2><div class="list" style="margin-top:4px">${rows}</div></section>`;
@@ -6993,6 +6999,8 @@ document.addEventListener('click', async ev => {
       S.confirm = null; const list = closetOf(w).slice(); list.splice(i, 1);
       if(await setDoc('meta/closet-' + w, { list })) toast('Outfit removed'); render(); break; }
     case 'planwho': S.planWho = t.dataset.v; render(); break;
+    case 'ev-edit': S.evEdit = id || null; S.planEdit = null; render(); break;
+    case 'plan-edit': S.planEdit = id || null; S.evEdit = null; render(); break;
     case 'dayadd': S.dayAdd = t.dataset.v; S.dayAddOpen = true; render(); break;
     case 'dayadd-open': S.dayAddOpen = !S.dayAddOpen; break;
     case 'open-day': { S.cal.sel = t.dataset.v; const d = parseYmd(t.dataset.v); S.cal.y = d.getFullYear(); S.cal.m = d.getMonth(); S.cal.view = 'plan'; ls.set('calview', 'plan'); render(); try{ scrollTo(0, 0); }catch(e){} break; }
@@ -7349,7 +7357,8 @@ document.addEventListener('submit', async ev => {
     case 'plan-item': {
       const w = f.dataset.who, dk = f.dataset.dk, rep = v('rep'), d = parseYmd(dk);
       const days = rep === 'daily' ? [0,1,2,3,4,5,6] : rep === 'weekdays' ? [1,2,3,4,5] : rep === 'weekends' ? [0,6] : rep === 'dow' ? [d.getDay()] : null;
-      if(v('text') && await addDoc('routine', { who:w, text:v('text'), time:v('time'), date: rep === 'once' ? dk : null, days })){ const el = $('#pl-text'); if(el) el.focus(); }
+      if(fid){ if(v('text') && await updDoc('routine', fid, { text:v('text'), time:v('time'), end:v('end'), date: rep === 'once' ? dk : null, days })){ S.planEdit = null; render(); toast('Saved'); } break; }
+      if(v('text') && await addDoc('routine', { who:w, text:v('text'), time:v('time'), end:v('end'), date: rep === 'once' ? dk : null, days })){ const el = $('#pl-text'); if(el) el.focus(); }
       break; }
     case 'goalnew': {
       const kind = v('kind') || 'number';
@@ -7370,7 +7379,8 @@ document.addEventListener('submit', async ev => {
       break; }
     case 'wish': if(await addDoc('wish', { title: v('title'), url: safeUrl(v('url')), price: parseFloat(v('price')) || 0, room: v('room') || 'Other', project: v('proj') || '', note: v('note'), prio: !!fd.get('prio'), got: false, photo: await photoFrom(f, '#w-photo') })){ S.showForm.wish = false; render(); toast('Saved to wishlist'); } break;
     case 'msg': if(v('text')) addDoc('msgs', { text: v('text') }); setTimeout(() => { const el = $('#msg-text'); if(el){ el.value = ''; growBox(el); el.focus(); } }, 30); break;
-    case 'event': if(await addDoc('events', { title: v('title'), date: v('date') || S.cal.sel, time: v('time'), who: v('who') || 'both', note: v('note'), repeat: v('repeat') || 'none', cat: v('cat') || 'Plans' })){ S.cal.sel = v('date') || S.cal.sel; const d = parseYmd(S.cal.sel); S.cal.y = d.getFullYear(); S.cal.m = d.getMonth(); S.showForm.event = false; render(); toast('Added to the calendar'); } break;
+    case 'event': if(fid){ if(await updDoc('events', fid, { title: v('title'), date: v('date') || S.cal.sel, time: v('time'), end: v('time') ? v('end') : '', who: v('who') || 'both', note: v('note'), repeat: v('repeat') || 'none', cat: v('cat') || 'Plans' })){ S.evEdit = null; render(); toast('Saved'); } break; }
+      if(await addDoc('events', { title: v('title'), date: v('date') || S.cal.sel, time: v('time'), end: v('time') ? v('end') : '', who: v('who') || 'both', note: v('note'), repeat: v('repeat') || 'none', cat: v('cat') || 'Plans' })){ S.cal.sel = v('date') || S.cal.sel; const d = parseYmd(S.cal.sel); S.cal.y = d.getFullYear(); S.cal.m = d.getMonth(); S.showForm.event = false; render(); toast('Added to the calendar'); } break;
     case 'sched': {
       const days = [0,1,2,3,4,5,6].filter(i => fd.get('d' + i));
       if(!days.length){ toast('Pick at least one day'); break; }

@@ -923,6 +923,56 @@ nav.tabs button.on svg{color:var(--cocoa)}
 .pill{transition:transform .2s}
 .li.done .txt{transition:opacity .3s}
 @media (prefers-reduced-motion: reduce){#season,.spark{display:none}#deco .tw,.sbadge{animation:none}}
+
+/* ---------- chat: iMessage / WhatsApp feel ---------- */
+.chat-head{display:flex;align-items:center;gap:10px;padding:8px 10px;margin:0 -6px 8px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 70px);z-index:4;background:var(--glass);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-radius:18px;box-shadow:var(--shadow)}
+.chat-head b{display:block;font-size:17px;line-height:1.2}
+.chat-head small{display:block;font-size:12.5px;color:var(--muted)}
+.chat-head small.on{color:var(--sage);font-weight:600}
+.chat{gap:2px;padding:12px 10px 86px;margin:0 -6px;border-radius:22px;background-color:var(--surface2);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='%237a5236' fill-opacity='.06'%3E%3Cpath d='M24 30c-4-4-9 1-5 5l5 5 5-5c4-4-1-9-5-5z'/%3E%3Cg transform='translate(84 26)'%3E%3Cellipse cx='0' cy='4' rx='5' ry='4'/%3E%3Ccircle cx='-5' cy='-3' r='2'/%3E%3Ccircle cx='-1.6' cy='-6' r='2'/%3E%3Ccircle cx='1.8' cy='-6' r='2'/%3E%3Ccircle cx='5' cy='-3' r='2'/%3E%3C/g%3E%3Cpath d='M90 88c-4-4-9 1-5 5l5 5 5-5c4-4-1-9-5-5z'/%3E%3Cg transform='translate(30 92)'%3E%3Cellipse cx='0' cy='4' rx='5' ry='4'/%3E%3Ccircle cx='-5' cy='-3' r='2'/%3E%3Ccircle cx='-1.6' cy='-6' r='2'/%3E%3Ccircle cx='1.8' cy='-6' r='2'/%3E%3Ccircle cx='5' cy='-3' r='2'/%3E%3C/g%3E%3Ccircle cx='60' cy='60' r='2.5'/%3E%3C/g%3E%3C/svg%3E")}
+.msg{max-width:80%;gap:6px;cursor:pointer;-webkit-user-select:none;user-select:none}
+.msg.gfirst{margin-top:8px}
+.msg .avs{width:22px;flex:none;display:flex;align-items:flex-end}
+.msg .b{position:relative;padding:7px 11px 6px;border-radius:18px;font-size:15.5px;line-height:1.35;-webkit-user-select:text;user-select:text}
+.msg:not(.mine):not(.gfirst) .b{border-top-left-radius:6px}
+.msg:not(.mine):not(.glast) .b{border-bottom-left-radius:6px}
+.msg:not(.mine).glast .b{border-bottom-left-radius:4px}
+.msg.mine:not(.gfirst) .b{border-top-right-radius:6px}
+.msg.mine:not(.glast) .b{border-bottom-right-radius:6px}
+.msg.mine.glast .b{border-bottom-right-radius:4px}
+.msg .b .meta{float:right;display:inline-flex;align-items:center;gap:3px;margin:7px 0 -4px 10px;font-size:10.5px;opacity:.72;white-space:nowrap;line-height:1}
+.msg time{display:none}
+.tick{width:16px;height:10px}
+.tick.read{color:#7FD3FF;opacity:1}
+.msg:not(.mine) .tick.read{color:#2E9BD6}
+.msg .b a{color:inherit;text-decoration:underline;overflow-wrap:anywhere}
+.msg .b.emo-b{background:none!important;box-shadow:none!important;border:0!important;font-size:42px;line-height:1.15;padding:0 2px;color:var(--ink)}
+.msg .b.emo-b .meta,.msg .b.stk-b .meta{float:none;display:flex;justify-content:flex-end;margin:2px 4px 0;font-size:10.5px;color:var(--muted)}
+.msg .b.img-b .cap{padding:6px 6px 0}
+.msg .b.img-b .meta{margin:4px 4px 2px 10px}
+.msg.hasrx{margin-bottom:14px}
+.msg .rx{position:absolute;bottom:-15px;right:8px;display:inline-flex;align-items:center;gap:1px;background:var(--surface);border-radius:12px;padding:1px 5px;font-size:14px;line-height:1.4;box-shadow:0 1px 4px rgba(0,0,0,.16);color:var(--ink)}
+.msg.mine .rx{right:auto;left:8px}
+.msg .rx small{font-size:11px;color:var(--muted);margin-left:2px}
+.rx-bar{display:flex;gap:2px;align-self:flex-start;margin:6px 0 2px 28px;background:var(--surface);border-radius:26px;padding:4px 6px;box-shadow:0 6px 20px rgba(0,0,0,.18);animation:rxIn .22s cubic-bezier(.3,1.5,.5,1)}
+.rx-bar.mine{align-self:flex-end;margin-left:0}
+.rx-bar button{border:0;background:none;font-size:26px;width:40px;height:40px;border-radius:50%;cursor:pointer;transition:transform .12s}
+.rx-bar button:active{transform:scale(1.3)}
+.rx-bar button.on{background:var(--blush-soft)}
+@keyframes rxIn{from{transform:scale(.6) translateY(8px);opacity:0}}
+.msg.pop .b{animation:msgPop .3s cubic-bezier(.3,1.4,.5,1)}
+@keyframes msgPop{from{transform:scale(.7) translateY(6px);opacity:0}}
+.b.typing{display:flex;gap:4px;align-items:center;padding:12px 14px!important}
+.b.typing i{width:7px;height:7px;border-radius:50%;background:var(--muted);opacity:.5;animation:typeDot 1.2s infinite}
+.b.typing i:nth-child(2){animation-delay:.15s}.b.typing i:nth-child(3){animation-delay:.3s}
+@keyframes typeDot{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-4px);opacity:1}}
+.daysep{margin:12px 0 4px}
+.daysep span{display:inline-block;background:var(--surface);color:var(--muted);font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:10px;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.composer form{align-items:center}
+.composer #msg-text{border-radius:22px;border:1px solid var(--line);background:var(--surface);padding:10px 14px;font-size:16px;min-width:0}
+.send-btn{flex:none;width:40px;height:40px;border-radius:50%;border:0;display:grid;place-items:center;background:var(--cocoa);color:var(--cocoa-ink);cursor:pointer;box-shadow:var(--shadow);transition:transform .12s}
+.send-btn:active{transform:scale(.88)}
+@media (prefers-reduced-motion: reduce){.msg.pop .b,.rx-bar,.b.typing i{animation:none}}
 </style>
 
 <header class="top"><div id="deco" aria-hidden="true"></div><div class="wrap">
@@ -1558,6 +1608,7 @@ async function startDb(){
     if(COLS[name]) q = COLS[name](q);
     q.onSnapshot(snap => {
       S.data[name] = snap.docs.map(d => Object.assign({ id: d.id }, d.data())); (S.loadedCols = S.loadedCols || new Set()).add(name);
+      if(name === 'msgs' && S.typingUntil){ const lm = snap.docs.length ? snap.docs[0].data() : null; if(lm && lm.by !== S.me && Date.now() - (Number(lm.at) || 0) < 10000) S.typingUntil = 0; }
       if(name === 'drafts') adoptRemoteDraft();
       if(name === 'meta') adoptPrefs();
       schedule();
@@ -1569,9 +1620,32 @@ async function startDb(){
   S.sample = null;
   schedule();
   try{ S.user = (await SB.auth.getUser()).data.user; }catch(e){}
+  startLive();
   refreshWeather(); pushRefresh(); setTimeout(handleHash, 50);
 }
 const NOTIFY_COLS = ['msgs', 'notes', 'items'];
+function startLive(){
+  try{
+    S.typingCh = SB.channel('rhead-typing', { config: { broadcast: { self: false } } }).on('broadcast', { event: 'typing' }, ({ payload }) => {
+      if(!payload || payload.who === S.me) return;
+      S.typingUntil = Date.now() + 4500; if(S.tab === 'chat') schedule();
+      clearTimeout(S.typingT); S.typingT = setTimeout(() => { if(S.tab === 'chat') schedule(); }, 4700);
+    }).subscribe();
+  }catch(e){}
+  const beat = () => { if(document.visibilityState === 'visible' && S.me && S.db) S.db.doc('meta/online_' + S.me).set({ at: Date.now() }).catch(() => {}); };
+  beat(); setInterval(beat, 120000);
+  document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible'){ beat(); updateBadge(true); } });
+  setInterval(() => { if(S.tab === 'chat') schedule(); }, 60000);
+}
+function sendTyping(){ const now = Date.now(); if(!S.typingCh || !S.me || now - (S.typingSent || 0) < 2000) return; S.typingSent = now; try{ S.typingCh.send({ type: 'broadcast', event: 'typing', payload: { who: S.me } }); }catch(e){} }
+/* the red number on the app icon */
+function badgeCount(){ if(!S.me || !S.db) return 0; return unreadCount() + S.data.notes.filter(n => n.to === S.me && !n.seen).length; }
+let BADGE_LAST = -1;
+function updateBadge(force){
+  const n = badgeCount(); if(n === BADGE_LAST && !force) return; BADGE_LAST = n;
+  try{ if('setAppBadge' in navigator){ n ? navigator.setAppBadge(n).catch(() => {}) : navigator.clearAppBadge().catch(() => {}); } }catch(e){}
+  try{ caches.open('rhead-badge').then(c => c.put('/badge', new Response(String(n)))).catch(() => {}); }catch(e){}
+}
 function notifyEvent(col, id){ if(!SB) return; SB.functions.invoke('notify', { body: { kind: 'event', col, id } }).catch(() => {}); }
 
 /* ---------- weather straight from the National Weather Service ---------- */
@@ -1660,7 +1734,7 @@ function notifyCard(){
 }
 function accountCard(){
   const imp = meta('imported');
-  return `<section class="card stack" style="gap:10px"><h2>Account</h2><div class="between"><span class="muted" style="overflow-wrap:anywhere">${esc((S.user && S.user.email) || 'Signed in')}</span><button class="btn small" data-act="sign-out">Sign out</button></div><p class="fine" style="margin:0">App version: Oct 22, 2026 · update 1</p></section>
+  return `<section class="card stack" style="gap:10px"><h2>Account</h2><div class="between"><span class="muted" style="overflow-wrap:anywhere">${esc((S.user && S.user.email) || 'Signed in')}</span><button class="btn small" data-act="sign-out">Sign out</button></div><p class="fine" style="margin:0">App version: Oct 22, 2026 · update 2</p></section>
   <section class="card stack" style="gap:10px"><h2>Move data from the old app</h2>
     ${imp ? `<p class="fine" style="margin:0">Done on ${esc(fmtDate(new Date(imp.at), { month:'short', day:'numeric', year:'numeric' }))}: ${imp.records} records and ${imp.photos} photos.</p>` : `<p class="fine" style="margin:0">Brings over everything you saved in the Claude version: lists, chat, money, photos and the rest. Do this once, on one phone.</p>`}
     ${S.importMsg ? `<div class="banner">${esc(S.importMsg)}</div>` : ''}
@@ -3265,24 +3339,47 @@ async function sendChatImage(file){ if(!S.assets){ toast('Sending pictures needs
   try{ toast(/gif/i.test(file.type) ? 'Sending GIF…' : 'Sending photo…'); let id;
     if(/gif/i.test(file.type) && file.size < 12e6){ const r = await S.assets.upload(file, { type:'image/gif' }); id = r.id; } else id = await uploadPhoto(file);
     await addDoc('msgs', Object.assign({ text:'', img:id }, /gif/i.test(file.type) ? { gif:true } : {})); SFX.play('send'); }catch(e){ toast('Couldn’t send that picture'); } }
+const RX = ['❤️','😂','👍','😮','😢','🙏'];
+const TICK = read => `<svg class="tick ${read ? 'read' : ''}" viewBox="0 0 18 11" aria-label="${read ? 'Read' : 'Sent'}"><path d="M1 6l3 3 6-7M7.5 9l1 1 6-8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const emojiOnly = t => { const x = String(t || '').trim(); if(!x || x.length > 24 || /[A-Za-z0-9]/.test(x)) return false; const em = x.match(/\p{Extended_Pictographic}/gu) || []; return em.length >= 1 && em.length <= 3 && /^[\p{Extended_Pictographic}\p{Emoji_Component}‍️\s]+$/u.test(x); };
+const linkify = h => h.replace(/(https?:\/\/[^\s<]+)/g, u => `<a href="${u}" target="_blank" rel="noopener">${u}</a>`);
+function activeLine(w){
+  if(S.typingUntil && S.typingUntil > Date.now()) return ['typing…', 'on'];
+  const at = Number((meta('online_' + w) || {}).at) || 0; if(!at) return ['Just the two of you', ''];
+  const mins = Math.floor((Date.now() - at) / 60000);
+  if(mins < 3) return ['Active now', 'on'];
+  if(mins < 60) return [`Active ${mins}m ago`, ''];
+  const d = new Date(at), t = d.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
+  return [ymd(d) === ymd(new Date()) ? `Active today at ${t}` : `Active ${fmtDate(d)}`, ''];
+}
 function vChat(){
-  const msgs = S.data.msgs.slice().sort((a, b) => a.at - b.at);
-  if(S.me && msgs.length) markChatSeen(Math.max(...msgs.map(m => Number(m.at) || 0)));
-  let lastDay = '';
-  const body = msgs.map(m => {
-    const d = new Date(m.at), dk = ymd(d);
-    const sep = dk !== lastDay ? `<div class="daysep">${dk === ymd(new Date()) ? 'Today' : esc(fmtDate(d))}</div>` : '';
-    lastDay = dk;
-    const tm = `<time>${d.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' })}</time>`;
-    if(m.sticker) return sep + `<div class="msg ${m.by === S.me ? 'mine' : ''}">${mini(m.by)}<div class="b stk-b">${stickerSVG(m.sticker, 120)}${tm}</div></div>`;
-    if(m.img) return sep + `<div class="msg ${m.by === S.me ? 'mine' : ''}">${mini(m.by)}<div class="b img-b"><button class="msg-img" data-act="chat-img" data-v="${esc(m.img)}"><img src="${BLOBU}${esc(m.img)}" alt="${m.gif ? 'GIF' : 'Photo'}" loading="lazy"></button>${m.text ? `<div style="padding:6px 4px 0">${esc(m.text)}</div>` : ''}${tm}</div></div>`;
-    return sep + `<div class="msg ${m.by === S.me ? 'mine' : ''}">${mini(m.by)}<div class="b">${esc(m.text)}${tm}</div></div>`;
-  }).join('');
-  return `<div class="between"><h2 style="font-size:22px">Just us two</h2><span class="muted" style="font-size:13px">Private to you and ${S.me ? nameOf(other(S.me)) : 'your spouse'}</span></div>
-  <div class="chat" id="chat">${body || empty('Say hi', 'Send the first message. It shows up on both phones.')}</div>
+  const msgs = S.data.msgs.slice().sort((a, b) => a.at - b.at), me = S.me, them = me ? other(me) : 'laura';
+  if(me && msgs.length) markChatSeen(Math.max(...msgs.map(m => Number(m.at) || 0)));
+  const seenThem = Number((meta('seen_' + them) || {}).chat) || 0, near = (x, y) => x && y && x.by === y.by && ymd(new Date(x.at)) === ymd(new Date(y.at)) && Math.abs(y.at - x.at) < 3 * 60e3;
+  const fresh = S.chatMax || 0; S.chatMax = msgs.length ? msgs[msgs.length - 1].at : 0;
+  let lastDay = '', html = '';
+  msgs.forEach((m, i) => {
+    const d = new Date(m.at), dk = ymd(d), prev = msgs[i - 1], next = msgs[i + 1];
+    if(dk !== lastDay){ html += `<div class="daysep"><span>${dk === ymd(new Date()) ? 'Today' : dk === ymd(addDays(new Date(), -1)) ? 'Yesterday' : esc(fmtDate(d))}</span></div>`; lastDay = dk; }
+    const mine = m.by === me, gPrev = near(prev, m), gNext = near(m, next), first = !gPrev, last = !gNext;
+    const time = d.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' }), meta2 = `<span class="meta">${time}${mine ? TICK(seenThem >= m.at) : ''}</span>`;
+    const rx = Object.entries(m.rx || {}).filter(([, e]) => e).map(([, e]) => e);
+    let inner;
+    if(m.sticker) inner = `<div class="b stk-b">${stickerSVG(m.sticker, 120)}${last ? meta2 : ''}</div>`;
+    else if(m.img) inner = `<div class="b img-b"><button class="msg-img" data-act="chat-img" data-v="${esc(m.img)}"><img src="${BLOBU}${esc(m.img)}" alt="${m.gif ? 'GIF' : 'Photo'}" loading="lazy"></button>${m.text ? `<div class="cap">${linkify(esc(m.text))}</div>` : ''}${meta2}</div>`;
+    else if(emojiOnly(m.text)) inner = `<div class="b emo-b">${esc(m.text)}${meta2}</div>`;
+    else inner = `<div class="b">${linkify(esc(m.text))}${meta2}</div>`;
+    const cls = ['msg', mine ? 'mine' : '', first ? 'gfirst' : '', last ? 'glast' : '', gPrev && gNext ? 'gmid' : '', rx.length ? 'hasrx' : '', fresh && m.at > fresh ? 'pop' : ''].join(' ');
+    const bar = S.rxFor === m.id ? `<div class="rx-bar ${mine ? 'mine' : ''}">${RX.map(e => `<button data-act="rx-set" data-id="${esc(m.id)}" data-v="${e}" class="${(m.rx || {})[me] === e ? 'on' : ''}">${e}</button>`).join('')}</div>` : '';
+    html += bar + `<div class="${cls}" data-act="msg-tap" data-id="${esc(m.id)}">${!mine ? `<span class="avs">${last ? mini(m.by) : ''}</span>` : ''}${inner.replace(/<\/div>$/, rx.length ? `<span class="rx">${rx.join('')}${rx.length > 1 && rx[0] === rx[1] ? '<small>2</small>' : ''}</span></div>` : '</div>')}</div>`;
+  });
+  if(S.typingUntil && S.typingUntil > Date.now()) html += `<div class="msg gfirst glast pop"><span class="avs">${mini(them)}</span><div class="b typing" aria-label="${esc(nameOf(them))} is typing"><i></i><i></i><i></i></div></div>`;
+  const [line, on] = activeLine(them);
+  return `<div class="chat-head">${avatarSVG(av(them), 44)}<div><b>${esc(nameOf(them))}</b><small class="${on}">${esc(line)}</small></div></div>
+  <div class="chat" id="chat">${html || empty('Say hi', 'Send the first message. It shows up on both phones.')}</div>
   ${S.stkOpen ? `<div class="stk-tray"><div class="between"><b>Stickers</b><button class="icon-btn" data-act="stk-toggle" aria-label="Close">${ic('x', 18)}</button></div><div class="stk-grid">${Object.keys(STK).map(k => `<button data-act="stk-send" data-v="${k}">${stickerSVG(k, 78)}</button>`).join('')}</div></div>` : ''}
   ${S.chatImg ? `<div class="lightbox" data-act="chat-img" data-v=""><img src="${BLOBU}${esc(S.chatImg)}" alt=""></div>` : ''}
-  <div class="composer"><form data-form="msg"><label class="cmp-btn" aria-label="Send a photo or GIF">${ic('photo', 22)}<input type="file" id="msg-file" data-np="1" data-live="msg-file" accept="image/*" hidden></label><button type="button" class="cmp-btn ${S.stkOpen ? 'on' : ''}" data-act="stk-toggle" aria-label="Stickers">😊</button><input class="grow" type="text" id="msg-text" name="text" placeholder="Message ${S.me ? nameOf(other(S.me)) : ''}…" maxlength="1000" autocomplete="off"><button class="btn primary">Send</button></form></div>`;
+  <div class="composer"><form data-form="msg"><label class="cmp-btn" aria-label="Send a photo or GIF">${ic('photo', 22)}<input type="file" id="msg-file" data-np="1" data-live="msg-file" accept="image/*" hidden></label><button type="button" class="cmp-btn ${S.stkOpen ? 'on' : ''}" data-act="stk-toggle" aria-label="Stickers">😊</button><input class="grow" type="text" id="msg-text" name="text" data-live="msg-typing" placeholder="Message ${S.me ? esc(nameOf(other(S.me))) : ''}" maxlength="1000" autocomplete="off" enterkeyhint="send"><button class="send-btn" aria-label="Send"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 19V5M5.5 11.5L12 5l6.5 6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></form></div>`;
 }
 
 /* calendar */
@@ -6519,6 +6616,7 @@ function render(){
   if(S.bible.scrollTo && S.tab === 'home' && S.page === 'faith'){ const st = S.bible.scrollTo; if(st === 'top'){ S.bible.scrollTo = null; } else { const el = document.getElementById('v' + st); if(el){ S.bible.scrollTo = null; setTimeout(() => el.scrollIntoView({ block:'center' }), 30); } } }
   if(S.tab === 'money' && S.finTab === 'calc') updateTip();
   afterRender(main);
+  try{ updateBadge(); }catch(e){}
   { const slot = document.getElementById('doodle-slot'); if(slot) slot.appendChild(doodleCanvas()); }
   { const ds = document.getElementById('dash-slot'); if(ds){ ds.appendChild(dashCanvas()); if(S.dash && S.dash.paused){ S.dash.paused = false; } dashDraw(); } }
   if(document.getElementById('lovemap')) bindMap();
@@ -6720,6 +6818,7 @@ function fxFor(t, act){
   if(act === 'del'){ SFX.play(S.confirm === t.dataset.col + ':' + t.dataset.id ? 'del' : 'tap'); return; }
   if(act === 'dayla-photo-next'){ SFX.play('bark'); haptic(15); const ph = t; hearts(ph); return; }
   if(act === 'av-poke'){ SFX.play('pop'); return; }
+  if(act === 'msg-tap' || act === 'rx-set') return;
   if(act === 'sdk-num' || act === 'sdk-hint' || act === 'pin-sel' || act === 'c4-drop' || act === 'kq-ans' || act === 'kq-guess') return;
   if(act === 'mem-flip' || act === 'triv-pick' || act === 'ttt-move' || act === 'gts-pick' || act === 'gts-play' || act === 'gts-start') return;
   if(act === 'talk-next'){ SFX.play('open'); return; }
@@ -6997,6 +7096,8 @@ document.addEventListener('click', async ev => {
     case 'g-tab': S.gTab = t.dataset.v; ls.set('gtab', S.gTab); SFX.play('tap'); render(); break;
     case 'debt-edit': S.debtEdit = t.dataset.id || null; render(); break;
     case 'stk-toggle': S.stkOpen = !S.stkOpen; SFX.play('tap'); render(); break;
+    case 'msg-tap': if(ev.target.closest('a')) break; S.rxFor = S.rxFor === id ? null : id; haptic(6); render(); break;
+    case 'rx-set': { const m = get('msgs', id); if(!m || !S.me) break; const rx = Object.assign({}, m.rx || {}); rx[S.me] = rx[S.me] === t.dataset.v ? null : t.dataset.v; S.rxFor = null; SFX.play('pop'); haptic(10); await updDoc('msgs', id, { rx }); render(); break; }
     case 'stk-send': S.stkOpen = false; SFX.play('send'); haptic(10); addDoc('msgs', { text:'', sticker:t.dataset.v }); render(); break;
     case 'chat-img': S.chatImg = t.dataset.v || null; render(); break;
     case 'apps-edit': S.appsEdit = !S.appsEdit; SFX.play('tap'); render(); break;
@@ -7143,6 +7244,7 @@ document.addEventListener('click', async ev => {
 
 document.addEventListener('input', ev => {
   const t = ev.target;
+  if(t.dataset.live === 'msg-typing'){ sendTyping(); return; }
   if(t.dataset.live === 'av-num'){ const w = S.avFor || S.me || 'david'; const base = S.avDraft && S.avDraft.w === w ? S.avDraft.c : avRaw(w); S.avDraft = { w, c: Object.assign({}, base, { num: t.value.replace(/[^0-9]/g, '').slice(0, 2) }) }; const pv = $('#av-preview'); if(pv) pv.innerHTML = avPreview(S.avDraft.c); const sb = document.querySelector('[data-act="av-save"]'); if(sb) sb.disabled = false; return; }
   if(t.dataset.live === 'tr-text'){ trState().text = t.value; return; }
   if(t.dataset.live === 'gsearch'){ S.gq = t.value; render(); return; }

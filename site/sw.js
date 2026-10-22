@@ -1,5 +1,5 @@
 // Rhead Home service worker: shows notifications and keeps the app working offline.
-const CACHE = 'rhead-v1';
+const CACHE = 'rhead-v1';  // app files; the icon badge count lives in 'rhead-badge'
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
@@ -21,6 +21,11 @@ self.addEventListener('fetch', (e) => {
 self.addEventListener('push', (e) => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch (x) { d = { title: 'Rhead Home', body: e.data ? e.data.text() : '' }; }
+  const bump = (d.tag === 'chat' || d.tag === 'note') ? caches.open('rhead-badge').then((c) => c.match('/badge').then((r) => (r ? r.text() : '0')).then((t) => {
+    const n = (parseInt(t, 10) || 0) + 1;
+    return c.put('/badge', new Response(String(n))).then(() => (self.navigator && self.navigator.setAppBadge ? self.navigator.setAppBadge(n) : null));
+  })).catch(() => {}) : Promise.resolve();
+  e.waitUntil(bump);
   e.waitUntil(self.registration.showNotification(d.title || 'Rhead Home', {
     body: d.body || '',
     icon: '/icons/icon-192.png',

@@ -1038,6 +1038,35 @@ html.rpg-open,html.rpg-open body{overflow:hidden;overscroll-behavior:none}
 .rpg-banner{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 64px);transform:translateX(-50%);background:rgba(42,32,28,.75);color:#fff;font-weight:700;padding:8px 16px;border-radius:14px;opacity:0;pointer-events:none;white-space:nowrap;font-size:15px}
 .rpg-banner.show{animation:rpgBan 2.6s ease}
 @keyframes rpgBan{0%{opacity:0;transform:translate(-50%,-8px)}12%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0}}
+.rpg-top .grow{flex:1}
+.rpg-hud{background:rgba(42,32,28,.6);color:#fff;font-weight:700;font-size:13.5px;padding:6px 12px;border-radius:99px;white-space:nowrap}
+.rpg-bagbtn{pointer-events:auto;width:40px;height:40px;border-radius:50%;border:0;background:rgba(42,32,28,.6);font-size:19px;cursor:pointer}
+.rpg-b{position:absolute;right:calc(env(safe-area-inset-right,0px) + 104px);bottom:calc(env(safe-area-inset-bottom,0px) + 22px);width:56px;height:56px;border-radius:50%;border:0;background:#8A5A36;color:#fff;font-size:24px;box-shadow:0 4px 0 #5E3B22,0 8px 16px rgba(0,0,0,.22);cursor:pointer;touch-action:none}
+.rpg-b:active{transform:translateY(3px);box-shadow:0 1px 0 #5E3B22}
+.rpg-panel{position:absolute;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 60px);bottom:calc(env(safe-area-inset-bottom,0px) + 14px);max-width:520px;margin:0 auto;overflow:auto;background:#FFFDF7;color:#2A201C;border-radius:22px;padding:14px 16px;box-shadow:0 0 0 3px #2A201C,0 12px 30px rgba(0,0,0,.3);animation:rpgPop .25s cubic-bezier(.3,1.5,.5,1)}
+.rpg-panel[hidden]{display:none}
+.rpg-pn-h{display:flex;justify-content:space-between;align-items:center;font-size:18px}
+.rpg-pn-h button{border:0;background:#EFE7DC;border-radius:50%;width:34px;height:34px;font-size:15px;cursor:pointer}
+.rpg-pn-s{margin-top:12px;padding-top:10px;border-top:1px dashed #DDD1C2}.rpg-pn-s p{margin:4px 0 0;line-height:1.45}
+.rpg-item{display:flex;justify-content:space-between;align-items:center;padding:6px 0}
+.rpg-item button{border:0;background:#4F8761;color:#fff;font-weight:700;border-radius:99px;padding:7px 12px;cursor:pointer}.rpg-item button:disabled{opacity:.4}
+.rpg-dex{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:6px}
+.rpg-dex>div{background:#F4EDE2;border-radius:14px;padding:8px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px}
+.rpg-dex canvas{width:56px;height:56px;image-rendering:pixelated}.rpg-dex b{font-size:14px}.rpg-dex span{font-size:12px;color:#8A7F74}.rpg-dex small{font-size:11.5px;color:#6B6158;line-height:1.3}
+.rpg-dex .unk canvas{opacity:.5}
+.rpg-bt{position:absolute;inset:0;background:#1E2A3A;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 10px) 12px calc(env(safe-area-inset-bottom,0px) + 14px);z-index:3}
+.rpg-bt[hidden]{display:none}
+.rpg-btcv{width:100%;max-width:560px;aspect-ratio:200/120;image-rendering:pixelated;border-radius:16px;box-shadow:0 0 0 3px #2A201C,0 10px 30px rgba(0,0,0,.4)}
+.rpg-bthp{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;color:#fff;font-weight:700;font-size:14px}.rpg-bthp span{background:rgba(255,255,255,.12);padding:5px 10px;border-radius:99px}
+.rpg-btmsg{color:#fff;font-size:16.5px;text-align:center;min-height:46px;max-width:520px;line-height:1.4}
+.rpg-btbar{position:relative;width:min(86%,420px);height:26px;border-radius:99px;background:rgba(255,255,255,.15);box-shadow:inset 0 0 0 2px rgba(255,255,255,.4);overflow:hidden}
+.rpg-btbar[hidden]{display:none}
+.rpg-btbar .z{position:absolute;left:68%;width:20%;top:0;bottom:0;background:#7FD07A}
+.rpg-btbar i{position:absolute;top:-2px;bottom:-2px;width:6px;margin-left:-3px;background:#fff;border-radius:3px;box-shadow:0 0 8px #fff}
+.rpg-btmenu{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:min(100%,460px)}
+.rpg-btmenu[hidden]{display:none}
+.rpg-btmenu button{border:0;border-radius:16px;padding:14px 10px;font-size:16px;font-weight:800;background:#FFFDF7;color:#2A201C;box-shadow:0 4px 0 #B9AC9C;cursor:pointer}
+.rpg-btmenu button:active{transform:translateY(3px);box-shadow:0 1px 0 #B9AC9C}.rpg-btmenu button:disabled{opacity:.4}
 body.typing nav.tabs,body.typing .fab{display:none!important}
 body.typing .composer{bottom:calc(var(--kb,0px) + 6px)}
 body.typing main{padding-bottom:0!important}body.typing .chat{padding-bottom:76px;margin-bottom:0}
@@ -1804,7 +1833,7 @@ function notifyCard(){
 }
 function accountCard(){
   const imp = meta('imported');
-  return `<section class="card stack" style="gap:10px"><h2>Account</h2><div class="between"><span class="muted" style="overflow-wrap:anywhere">${esc((S.user && S.user.email) || 'Signed in')}</span><button class="btn small" data-act="sign-out">Sign out</button></div><p class="fine" style="margin:0">App version: Oct 22, 2026 · update 8</p></section>
+  return `<section class="card stack" style="gap:10px"><h2>Account</h2><div class="between"><span class="muted" style="overflow-wrap:anywhere">${esc((S.user && S.user.email) || 'Signed in')}</span><button class="btn small" data-act="sign-out">Sign out</button></div><p class="fine" style="margin:0">App version: Oct 22, 2026 · update 9</p></section>
   <section class="card stack" style="gap:10px"><h2>Move data from the old app</h2>
     ${imp ? `<p class="fine" style="margin:0">Done on ${esc(fmtDate(new Date(imp.at), { month:'short', day:'numeric', year:'numeric' }))}: ${imp.records} records and ${imp.photos} photos.</p>` : `<p class="fine" style="margin:0">Brings over everything you saved in the Claude version: lists, chat, money, photos and the rest. Do this once, on one phone.</p>`}
     ${S.importMsg ? `<div class="banner">${esc(S.importMsg)}</div>` : ''}
@@ -5983,11 +6012,13 @@ function openRPG(){
   const api = { me, nameOf, avatar: w => normAv(av(w)), baseAv: () => Object.assign({}, AV_BASE), sfx: k => { try{ SFX.play(k); }catch(e){} },
     load: () => { const d = gdoc('rpg_' + me); if(!d) return null; const o = Object.assign({}, d); delete o.id; return o; },
     save: st => { setDoc('games/rpg_' + me, Object.assign({}, st, { at: Date.now() })); },
+    loadWorld: () => { const d = gdoc('rpg_world'); if(!d) return null; const o = Object.assign({}, d); delete o.id; return o; },
+    saveWorld: w => { const o = Object.assign({}, w); delete o.id; setDoc('games/rpg_world', Object.assign(o, { at: Date.now() })); },
     channel: n => SB ? SB.channel(n, { config: { broadcast: { self: false } } }) : null, unchannel: c => { try{ SB.removeChannel(c); }catch(e){} },
     raining: rpgRaining, close: closeRPG };
   const go2 = () => { try{ window.RheadRPG.start(host, api); }catch(e){ console.error(e); host.innerHTML = '<div class="rpg-load">The island couldn’t load. Close and try again.<br><br><button class="btn" onclick="this.closest(\'.rpg-host\').remove();document.documentElement.classList.remove(\'rpg-open\')">Close</button></div>'; } };
   if(window.RheadRPG) return go2();
-  const sc = document.createElement('script'); sc.src = '/rpg.js?v=3'; sc.onload = go2; sc.onerror = () => { host.innerHTML = '<div class="rpg-load">No connection to the island right now.</div>'; setTimeout(closeRPG, 1800); }; document.head.appendChild(sc);
+  const sc = document.createElement('script'); sc.src = '/rpg.js?v=5'; sc.onload = go2; sc.onerror = () => { host.innerHTML = '<div class="rpg-load">No connection to the island right now.</div>'; setTimeout(closeRPG, 1800); }; document.head.appendChild(sc);
 }
 /* ---------- Guess Who? ---------- */
 const GW_NAMES = ['Bruno','Coco','Pepe','Maple','Rosa','Theo','Lulu','Rafa','Nina','Otis','Pía','Gus','Mila','Dante','Juno','Tito','Lola','Ezra','Bea','Iggy','Sol','Kiko','Vera','Moe','Paz','Rex','Ivy','Nico','Wren','Fito','Gigi','Hank','Luz','Abe','Tula','Remy'];

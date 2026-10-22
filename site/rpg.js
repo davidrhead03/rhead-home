@@ -1,5 +1,5 @@
 /* =============================================================
-   Rhead Adventures: Where's Dayla? A pixel RPG for David & Laura
+   Where's Dayla? A pixel RPG for David & Laura
    Loaded only when the game is opened. window.RheadRPG.start(host, api)
    ============================================================= */
 (function(){
@@ -702,7 +702,7 @@ function start(host, api){
   function loop(now){ const dt = Math.min(.05, (now - prev) / 1000); prev = now; if(BT) BT.draw(now); else { update(dt, now); draw(now); } raf = requestAnimationFrame(loop); }
   raf = requestAnimationFrame(loop);
   if(saved.intro) unstick();
-  setTimeout(() => { if(!saved.intro) introScene(); else { MUS.play('home'); if(W.p_start && !W.p_done) banner('📜 ' + objective(W, st)); } }, 400);
+  setTimeout(() => { if(!saved.intro) introScene(); else { MUS.play('home'); if(W.p_start && !W.p_done) banner('📜 ' + objective(W, st)); else if(W.p_done) say('Where’s Dayla?', ['(You finished the Prologue! 🎉)', '(Chapter 1: Bogotá is still being built. Until then you can explore, talk to everyone and peek through the portal in the dog park.)', '(Come back soon. Dayla is waiting! 🐾)']); } }, 400);
 
   G.stop = () => { cancelAnimationFrame(raf); MUS.stop(); window.removeEventListener('resize', resize); window.removeEventListener('keydown', onKey); window.removeEventListener('keyup', onKey); send('bye', { who: me }); api.save(pack()); try{ ch && api.unchannel(ch); }catch(e){} };
 }

@@ -346,7 +346,7 @@ function makeNPCs(api){
 }
 const SIGNS = [
   { x:19, y:17, text:'🌴 Welcome to the neighbourhood! ↑ Town Hall · ← Rhead House · → Mami Elsa’s Kitchen · ↓ Dog Park and Pool' },
-  { x:26, y:19, text:'🏀 Rhead Court. Tip-off coming soon!' },
+  { x:26, y:19, text:'🏀 Rhead Court. Talk to Coach JP for the 3-point shootout!' },
   { x:15, y:25, text:'🐾 Rhead Dog Park. Off-leash fun! Please pick up after your dog.' },
   { x:27, y:28, text:'🏊 Community Pool. No running! (Joshua, this means you.)' }
 ];
@@ -368,7 +368,8 @@ const BOG = {
   ],
   signs: [
     { x:23, y:25, text:'↑ Plaza · ↗ Monserrate · ↙ Portal home' },
-    { x:28, y:22, text:'⛰️ Monserrate. 3,152 m above the sea. Bring a jacket!' }
+    { x:28, y:22, text:'⛰️ Monserrate. 3,152 m above the sea. Bring a jacket!' },
+    { x:14, y:22, text:'🗿 Simón Bolívar, standing tall in the Plaza de Bolívar. ¡Bienvenidos a Colombia! (Welcome to Colombia!) 🇨🇴' }
   ],
   areas: [ [0, 0, MW, MH, 'Bogotá'], [8, 16, 23, 26, 'The Plaza'], [26, 0, MW, 22, 'Monserrate'] ],
   portal: { x: 6 * 16 + 8, y: 35 * 16 + 8 },
@@ -414,7 +415,7 @@ function objectiveB(W){
   if(!W.b_condor) return 'Climb Monserrate! The trail starts east of the plaza. Watch out for Hairballs on the stairs.';
   if(!W.b_gap) return 'There’s a gap in the trail. Stand by it and tap 🐾 so Cóndorito can fly you across.';
   if(!W.b_done) return 'Reach the top of Monserrate. Something big is waiting there.';
-  return 'Chapter 1 complete! The portal points to New York. Chapter 2 is coming soon.';
+  return 'Chapter 1 complete! Step into the portal (southwest corner) to travel to New York.';
 }
 function makeBogotaNPCs(api){
   const b = api.baseAv(), L = api.me === 'laura', son = L ? 'mija' : 'mijo';
@@ -460,9 +461,10 @@ const NYCL = {
   ],
   signs: [
     { x:27, y:11, text:'🗽 Welcome to New York! ↑ Times Square · → Central Park · ↙ Street-ball court · ↓ Subway' },
-    { x:13, y:23, text:'🏀 Rucker-style street-ball court. Tournament today!' }
+    { x:13, y:23, text:'🏀 Rucker-style street-ball court. Tournament today!' },
+    { x:29, y:36, text:'🗽 The Statue of Liberty! A gift from France in 1886. She’s 93 meters tall with her torch.' }
   ],
-  areas: [ [0, 0, MW, MH, 'New York'], [2, 0, 27, 10, 'Times Square'], [30, 0, MW, 22, 'Central Park'], [3, 24, 13, 32, 'Street-ball Court'] ],
+  areas: [ [0, 0, MW, MH, 'New York'], [2, 0, 27, 10, 'Times Square'], [30, 0, MW, 22, 'Central Park'], [3, 24, 13, 32, 'Street-ball Court'], [29, 32, MW, MH, 'Liberty Harbor'] ],
   portal: { x: 22 * 16 + 8, y: 36 * 16 + 8 },
   spawn: [22, 34],
   lamp: { x: 24, y: 10 }
@@ -487,6 +489,8 @@ function buildNYC(){
   // buildings
   NYCL.houses.forEach(h => { for(let y = h.y; y < h.y + h.h; y++) for(let x = h.x; x < h.x + h.w; x++) set(x, y, 'h'); });
   // subway entrance, lamppost, hot dog cart
+  for(let y = 33; y < 39; y++) for(let x = 31; x < 43; x++) set(x, y, '~');
+  set(36, 35, 'h'); set(37, 35, 'h'); set(36, 36, 'h'); set(37, 36, 'h');
   set(18, 25, 'U'); set(19, 25, 'U'); set(NYCL.lamp.x, NYCL.lamp.y - 1, 'L');
   // little plaza around the portal
   for(let y = 34; y < 38; y++) for(let x = 19; x < 26; x++) set(x, y, 'w');
@@ -552,6 +556,26 @@ function makeNYCNPCs(api){
   ];
 }
 
+/* ---------- flags ---------- */
+function drawFlag(c, kind, x, y, w, h, t, wave){
+  for(let i = 0; i < w; i++){
+    const off = wave ? Math.round(Math.sin(t * 4 - Math.floor(i / 3) * 1.1) * .9 * (i / w)) : 0;
+    for(let r = 0; r < h; r++){
+      let col;
+      if(kind === 'co') col = r < h / 2 ? '#FCD116' : r < h * 3 / 4 ? '#003893' : '#CE1126';
+      else if(kind === 'ca'){ const leaf = Math.abs(i - (w - 1) / 2) <= w / 9 + (r === Math.floor(h / 2) ? w / 9 : 0) && r >= h / 4 && r < h * 3 / 4 + 1; col = i < w / 4 || i >= w * 3 / 4 || leaf ? '#D52B1E' : '#FFFFFF'; }
+      else { const canton = i < Math.ceil(w * .42) && r < Math.ceil(h * 7 / 13); col = canton ? (((i + r) % 2 === 0 && i > 0 && r > 0 && r % 2 === 1) ? '#FFFFFF' : '#3C3B6E') : (Math.floor(r * 13 / h) % 2 ? '#FFFFFF' : '#B22234'); }
+      c.fillStyle = col; c.fillRect(x + i, y + r + off, 1, 1);
+    }
+  }
+}
+const PLACE = { home: { flag:'us', title:'Home', sub:'Pompano Beach, Florida · USA' }, bogota: { flag:'co', title:'Bogotá', sub:'Colombia' }, nyc: { flag:'us', title:'New York City', sub:'New York · USA' } };
+const FLAGPOLES = {
+  home: [[17, 7, 'us'], [25, 7, 'us'], [4, 9, 'ca'], [12, 9, 'co']],
+  bogota: [[9, 17, 'co'], [21, 17, 'co'], [9, 24, 'co'], [21, 24, 'co'], [3, 32, 'co']],
+  nyc: [[4, 8, 'us'], [14, 9, 'us'], [25, 12, 'us'], [14, 26, 'us'], [30, 33, 'us']]
+};
+
 /* ---------- game ---------- */
 function start(host, api){
   stop();
@@ -574,6 +598,18 @@ function start(host, api){
   // parked cars
   (HOME ? [[20, 32, '#C9473D'], [24, 32, '#3E6E8E'], [22, 35, '#E9E2D6']] : []).forEach(([cx0, cy0, col]) => { const px = cx0 * T + 1, py = cy0 * T; bx.fillStyle = 'rgba(0,0,0,.2)'; bx.fillRect(px + 1, py + 26, 14, 3); bx.fillStyle = col; bx.fillRect(px, py + 2, 14, 24); bx.fillStyle = '#BFE6F5'; bx.fillRect(px + 2, py + 5, 10, 5); bx.fillRect(px + 2, py + 18, 10, 4); bx.fillStyle = shade(col, -.25); bx.fillRect(px, py + 11, 14, 6); map[cy0][cx0] = map[cy0 + 1][cx0] = 'h'; });
 
+  // place decor: taxis, carts, bunting, landmarks
+  const cab = (cx0, cy0, col, check) => { const px = cx0 * T + 1, py = cy0 * T; bx.fillStyle = 'rgba(0,0,0,.2)'; bx.fillRect(px + 1, py + 26, 14, 3); bx.fillStyle = col; bx.fillRect(px, py + 2, 14, 24); bx.fillStyle = '#BFE6F5'; bx.fillRect(px + 2, py + 5, 10, 5); bx.fillRect(px + 2, py + 18, 10, 4); bx.fillStyle = shade(col, -.25); bx.fillRect(px, py + 11, 14, 6); if(check){ for(let i = 0; i < 14; i += 2){ bx.fillStyle = (i / 2) % 2 ? '#1A1414' : '#FFFFFF'; bx.fillRect(px + i, py + 12, 2, 2); bx.fillStyle = (i / 2) % 2 ? '#FFFFFF' : '#1A1414'; bx.fillRect(px + i, py + 14, 2, 2); } bx.fillStyle = '#FFFFFF'; bx.fillRect(px + 4, py + 1, 6, 2); } map[cy0][cx0] = map[cy0 + 1][cx0] = 'h'; };
+  const cart = (cx0, cy0, top1, top2, body, label) => { const px = cx0 * T, py = cy0 * T; bx.fillStyle = 'rgba(0,0,0,.2)'; bx.fillRect(px + 2, py + 14, 28, 3); bx.fillStyle = body; bx.fillRect(px + 2, py + 4, 28, 10); bx.fillStyle = '#2A201C'; bx.fillRect(px + 5, py + 13, 4, 3); bx.fillRect(px + 23, py + 13, 4, 3); for(let i = 0; i < 32; i += 4){ tx.fillStyle = (i / 4) % 2 ? top1 : top2; tx.fillRect(px + i, py - 6, 4, 6); } tx.fillStyle = '#6E7280'; tx.fillRect(px + 2, py, 1, 4); tx.fillRect(px + 29, py, 1, 4); bx.fillStyle = shade(body, .3); bx.fillRect(px + 6, py + 6, 20, 4); map[cy0][cx0] = map[cy0][cx0 + 1] = 'h'; };
+  const bunting = (x0, x1, y0, cols) => { const py = y0 * T + 2; tx.fillStyle = 'rgba(42,32,28,.6)'; for(let x = x0 * T; x < x1 * T; x++) tx.fillRect(x, py + Math.round(Math.sin((x - x0 * T) / (T * 2) * Math.PI) * 3), 1, 1); for(let x = x0 * T + 3, i = 0; x < x1 * T - 3; x += 8, i++){ const sy = py + Math.round(Math.sin((x - x0 * T) / (T * 2) * Math.PI) * 3); tx.fillStyle = cols[i % cols.length]; tx.fillRect(x, sy + 1, 5, 2); tx.fillRect(x + 1, sy + 3, 3, 2); tx.fillRect(x + 2, sy + 5, 1, 1); } };
+  if(NY){ cab(8, 10, '#F2C14E', 1); cab(21, 10, '#F2C14E', 1); cab(3, 21, '#F2C14E', 1); cab(33, 21, '#F2C14E', 1); cart(14, 19, '#C9473D', '#FFFFFF', '#B5BAC2', 'HOT DOGS');
+    // Statue of Liberty on her island
+    const sx = 36 * T, sy = 35 * T; bx.fillStyle = '#9AA36B'; bx.fillRect(sx - 2, sy + 2, 36, 30); bx.fillStyle = '#B9A98A'; bx.fillRect(sx + 6, sy + 8, 20, 22); bx.fillStyle = '#A8977A'; bx.fillRect(sx + 6, sy + 26, 20, 4);
+    tx.fillStyle = '#6FB59E'; tx.fillRect(sx + 11, sy - 14, 10, 22); tx.fillRect(sx + 9, sy - 2, 14, 10); tx.fillStyle = '#5A9C86'; tx.fillRect(sx + 13, sy - 10, 2, 18); tx.fillStyle = '#6FB59E'; tx.fillRect(sx + 12, sy - 21, 8, 7); for(let i = 0; i < 5; i++) tx.fillRect(sx + 11 + i * 2, sy - 24, 1, 3); tx.fillRect(sx + 19, sy - 32, 3, 14); tx.fillStyle = '#F2C14E'; tx.fillRect(sx + 18, sy - 36, 5, 4); tx.fillStyle = '#F28C38'; tx.fillRect(sx + 19, sy - 38, 3, 2); tx.fillStyle = '#5A9C86'; tx.fillRect(sx + 8, sy - 8, 4, 6); }
+  if(BGT){ bunting(2, 26, 7, ['#FCD116', '#003893', '#CE1126']); bunting(2, 42, 26, ['#FCD116', '#003893', '#CE1126']); cart(24, 23, '#FCD116', '#CE1126', '#7B4B2F', 'CAFÉ'); cab(30, 31, '#F2C14E', 0); }
+  if(HOME) bunting(16, 26, 8, ['#B22234', '#FFFFFF', '#3C3B6E']);
+  const poles = (FLAGPOLES[LOC] || []).map(([fx0, fy0, k]) => { map[fy0][fx0] = 'h'; bx.fillStyle = 'rgba(0,0,0,.2)'; bx.fillRect(fx0 * T + 5, fy0 * T + 13, 7, 2); bx.fillStyle = '#9AA3AD'; bx.fillRect(fx0 * T + 6, fy0 * T + 11, 5, 3); return { x: fx0 * T + 8, y: fy0 * T + 13, k }; });
+  let card = { t0: 0, place: PLACE[LOC] };
   host.innerHTML = `<canvas class="rpg-cv"></canvas>
     <div class="rpg-top"><button class="rpg-x" aria-label="Leave the game">✕</button><div class="rpg-area"></div><div class="grow"></div><div class="rpg-hud"></div><button class="rpg-bagbtn rpg-mus" aria-label="Music on or off">🎵</button><button class="rpg-bagbtn rpg-bag" aria-label="Bag and journal">🎒</button></div>
     <div class="rpg-joy"><i></i></div><button class="rpg-a" aria-label="Talk or look">A</button><button class="rpg-b" aria-label="Partner action">🐾</button>
@@ -691,12 +727,18 @@ function start(host, api){
     if(portal.open && Math.hypot(PT.x - fx2, PT.y - fy2) < 26 && (W.p_done || !HOME)){
       const opts = []; if(!HOME) opts.push(['🏠 Home', () => travel('home')]); if(!BGT) opts.push(['⛰️ Bogotá', () => travel('bogota')]); if(!NY && W.b_done) opts.push(['🗽 New York', () => travel('nyc')]); opts.push(['Stay here', null]);
       say('Portal', ['(The portal swirls with color. Where do you want to go?)'], null, opts); return; }
-    if(portal.open && Math.hypot(PT.x - fx2, PT.y - fy2) < 26){ say('Portal', ['(The portal swirls with color. Through it you can see a city high up in green mountains… Bogotá!)', '(Chapter 1: Bogotá is coming in the next update. Hold on, Dayla!) 🐾']); return; }
+    if(portal.open && Math.hypot(PT.x - fx2, PT.y - fy2) < 26){ say('Portal', ['(The portal swirls with color. Through it you can see a city high up in green mountains… Bogotá!)', '(Finish the Prologue first. Hold on, Dayla!) 🐾']); return; }
     const s = SG.find(s => Math.hypot(s.x * T + 8 - fx2, s.y * T + 8 - fy2) < 16); if(s){ say('Sign', [s.text]); return; }
     const h = HS.find(h => Math.hypot((h.x + h.door) * T + 8 - fx2, (h.y + h.h) * T - fy2) < 16);
     if(h){ if(h.id === 'home') say('Rhead House', W.p_start && !W.p_done ? ['Home feels so quiet without Dayla…', 'You rest for a moment and catch your breath.', '(Hearts refilled! ❤️)'] : ['Home sweet home. 🏠', 'You rest for a bit.', '(Hearts refilled! ❤️)'], () => { st.hp = st.mhp; st.dhp = st.dmhp; hud(); saveNow(); }); else say(h.name, [h.sign]); return; }
     if(remote.on && Math.hypot(remote.x - fx2, remote.y - fy2) < 18){ say(api.nameOf(other), ['💕 *waves at you*']); return; }
     if(pup.vis && Math.hypot(pup.x - fx2, pup.y - fy2) < 18){ if(pup.who === 'dayla') say('Dayla', ['*happy wiggle* 🐾']); else if(pup.who === 'coo') say('Coo-coo', [['Coo! You want a bagel? I know a guy.', 'Coo. This city never sleeps. Neither do I.', 'Fuggedaboutit, we’ll find her, pal.'][Math.floor(Math.random() * 3)]]); else if(pup.who === 'condor') say('Cóndorito', ['¡Vamos, parcero! (Let’s go, buddy!) 🦅']); else { sfx('yap'); say('Alejandro', [['*yip!* (Alejandro is ready for action.)', '*sniff sniff* (He keeps looking toward the dog park.)', '*wags his whole long body*'][Math.floor(Math.random() * 3)]]); } }
+  }
+  function nextUp(){
+    if(W.n_done) return ['(You finished Chapter 2: New York! 🎉)', '(Chapter 3: Pirates is still being built. Your progress is saved. Come back soon! 🏴‍☠️)'];
+    if(W.b_done) return ['(Chapter 2: New York is open! 🗽)', NY ? '(Keep going! Tap 🎒 to see what to do next.)' : '(Step into a portal and pick New York.)'];
+    if(W.p_done) return ['(Chapter 1: Bogotá is open! ⛰️)', BGT ? '(Keep going! Tap 🎒 to see what to do next.)' : '(Step into the portal in the dog park to travel there.)'];
+    return ['(Tap 🎒 to see what to do next.)'];
   }
   function gateMissing(){ const m = []; if(!W.p_ernesto || !W.p_joshua || !W.p_joseph) m.push('get the family’s help'); if(cats(W) < 3) m.push(`defeat the Hairballs outside (${cats(W)}/3)`); return m; }
   function gateTalk(){
@@ -766,7 +808,7 @@ function start(host, api){
     MUS.stop(); sfx('portal'); portal.open = true; for(let i = 0; i <= 26; i++){ portal.r = i * .8; holo.a = 1 - i / 26; await sleep(35); } holo.vis = false; holo.tilt = 0;
     await sayP(ME, ['The portal is open! That’s our way through.', 'Hold on, Dayla. We’re coming! 🐾']);
     setWorld({ p_done: 1 }); saveNow(); scene = false; MUS.play('victory'); celebrate('📜 Prologue complete!');
-    setTimeout(() => say('Portal', ['(Through the swirling portal you can see a city high up in green mountains… Bogotá!)', '(Chapter 1: Bogotá is coming in the next update. Your progress is saved.)']), 1800);
+    setTimeout(() => say('Portal', ['(Through the swirling portal you can see a city high up in green mountains… Bogotá!)', '(Chapter 1: Bogotá is open! Step into the portal whenever you’re ready.)']), 1800);
   }
 
   async function bogotaEnd(){
@@ -1024,7 +1066,7 @@ function start(host, api){
     if(now - lastSent > (p.moving ? 90 : 1500)){ lastSent = now; send('pos', { who: me, x: Math.round(p.x), y: Math.round(p.y), d: p.d, m: p.moving }); }
     if(dirty && now - lastSave > 6000){ dirty = false; saveNow(); }
     const tx2 = p.x / T, ty2 = p.y / T, a = AR.slice().reverse().find(([x0, y0, x1, y1]) => tx2 >= x0 && tx2 < x1 && ty2 >= y0 && ty2 < y1);
-    if(a && a[4] !== area){ area = a[4]; const el = $('.rpg-area'); el.textContent = area; el.classList.remove('pulse'); void el.offsetWidth; el.classList.add('pulse'); }
+    if(a && a[4] !== area){ area = a[4]; const el = $('.rpg-area'); el.textContent = area; const fl = document.createElement('i'); fl.className = 'rpg-flag ' + PLACE[LOC].flag; el.prepend(fl); el.classList.remove('pulse'); void el.offsetWidth; el.classList.add('pulse'); }
     if(shake > 0) shake -= dt;
   }
   function spr(sheet, Wd, H, ent, sx, sy){ cx.drawImage(sheet, (ent.f || 0) * Wd, (ent.d || 0) * H, Wd, H, Math.round(sx), Math.round(sy), Wd, H); }
@@ -1047,6 +1089,7 @@ function start(host, api){
     if(pup.vis) ents.push({ y: pup.y, fn: () => pup.who === 'coo' ? drawMon(cx, 'pigeon', pup.x - 8 - camx, pup.y - 12 - camy, t, 1) : pup.who === 'condor' ? drawMon(cx, 'condor', pup.x - 8 - camx, pup.y - 16 - camy, t, 1) : spr(SHEETS[pup.who], 16, 14, pup, pup.x - 8 - camx, pup.y - 12 - camy) });
     if(duck.vis) ents.push({ y: duck.y, fn: () => { if(duck.glow > 0){ cx.fillStyle = `rgba(255,226,122,${duck.glow * (.35 + Math.sin(t * 8) * .15)})`; cx.beginPath(); cx.arc(duck.x - camx, duck.y - 6 - camy, 11, 0, 7); cx.fill(); } drawMon(cx, 'duck', duck.x - 7 - camx, duck.y - 12 - camy, t * (duck.scripted ? 2 : 0), 1); } });
     npcs.forEach(n => ents.push({ y: n.y, fn: () => n.pigeon ? drawMon(cx, 'pigeon', n.x - 8 - camx, n.y - 12 - camy, t, 1) : n.chunk ? drawMon(cx, 'chunkers', n.x - 10 - camx, n.y - 16 - camy, t, 1) : n.bird ? drawMon(cx, 'condor', n.x - 8 - camx, n.y - 16 - camy, t, 1) : n.dog ? spr(n.sheet, 16, 14, n, n.x - 8 - camx, n.y - 12 - camy) : spr(n.sheet, 16, 22, n, n.x - 8 - camx, n.y - 20 - camy) }));
+    poles.forEach(f => ents.push({ y: f.y, fn: () => { const px = f.x - camx, py = f.y - camy; cx.fillStyle = '#C4BFB8'; cx.fillRect(px, py - 26, 1, 26); cx.fillStyle = '#F2C14E'; cx.fillRect(px - 1, py - 27, 2, 1); drawFlag(cx, f.k, px + 1, py - 26, 12, 8, t + f.x * .01, true); } }));
     if(remote.on) ents.push({ y: remote.y, fn: () => spr(sheets[other], 16, 22, remote, remote.x - 8 - camx, remote.y - 20 - camy) });
     mons.forEach(m => { if(!monShown(m)) return; ents.push({ y: m.y, fn: () => drawMon(cx, m.k, m.x - (m.k !== 'hairball' ? 10 : 9) - camx, m.y - (m.k !== 'hairball' ? 20 : 14) - camy, t + m.hx, 1) }); });
     if(bogDayla) ents.push({ y: bogDayla.y, fn: () => spr(SHEETS.dayla, 16, 14, { f: Math.floor(t * 6) % 2 ? 1 : 0, d: 0 }, bogDayla.x - 8 - camx, bogDayla.y - 12 - camy) });
@@ -1063,14 +1106,16 @@ function start(host, api){
     if(hr >= 20 || hr < 5.5) a = .36; else if(hr >= 18.5){ a = (hr - 18.5) / 1.5 * .36; col = '60,30,90'; } else if(hr < 7){ a = (7 - hr) / 1.5 * .3; col = '90,50,80'; }
     if(a > 0){ cx.fillStyle = `rgba(${col},${a})`; cx.fillRect(0, 0, vw, vh); }
     if(BGT && !W.b_dogs){ const bx0 = 30 * T - camx, by0 = 22 * T - camy; for(const ox of [1, 6, 11]){ cx.fillStyle = '#F28C38'; cx.fillRect(bx0 + ox, by0 + 6, 4, 8); cx.fillStyle = '#FFFFFF'; cx.fillRect(bx0 + ox, by0 + 9, 4, 2); cx.fillStyle = '#C96A20'; cx.fillRect(bx0 + ox - 1, by0 + 14, 6, 2); } }
+    if(card.t0){ const e = Math.max(0, (now - card.t0) / 1000); if(e > 4.2) card.t0 = 0; else { const al = Math.min(1, e / .4, (4.2 - e) / .6), w = 132, x0 = Math.round(vw / 2 - w / 2), y0 = Math.round(vh * .22); cx.save(); cx.globalAlpha = al; cx.fillStyle = 'rgba(42,32,28,.82)'; cx.fillRect(x0, y0, w, 34); cx.fillStyle = '#F2C14E'; cx.fillRect(x0, y0 + 33, w, 1); drawFlag(cx, card.place.flag, x0 + 6, y0 + 7, 21, 14, t, false); cx.textAlign = 'left'; cx.fillStyle = '#FFFFFF'; cx.font = 'bold 10px sans-serif'; cx.fillText(card.place.title, x0 + 33, y0 + 15); cx.fillStyle = '#E9D9C2'; cx.font = '6.5px sans-serif'; cx.fillText(card.place.sub, x0 + 33, y0 + 25); cx.restore(); } }
     if(HOME && api.raining && api.raining()){ cx.fillStyle = 'rgba(200,220,255,.55)'; for(let i = 0; i < 70; i++){ const rx = (hash(i, 1) * vw + t * 40) % vw, ry = (hash(i, 2) * vh + t * 220 + i * 13) % vh; cx.fillRect(Math.round(rx), Math.round(ry), 1, 4); } }
   }
   function loop(now){ const dt = Math.min(.05, (now - prev) / 1000); prev = now; if(BB) BB.draw(now, dt); else if(BT) BT.draw(now); else { update(dt, now); draw(now); } raf = requestAnimationFrame(loop); }
   raf = requestAnimationFrame(loop);
   if(saved.intro) unstick();
-  if(NY) setTimeout(() => { MUS.play('nyc'); if(!W.n_in){ say('New York', ['(Whoosh! You tumble out of the portal onto a busy sidewalk… in NEW YORK CITY!)', '(Honking cabs, giant screens, the smell of hot dogs and pizza.)', `${ME}: Dayla came through here too. Somebody in this city must have seen her.`, '(Maybe try Central Park, northeast. Pigeons see everything.)'], () => { setWorld({ n_in: 1 }); }); } else if(!W.n_done) banner('📜 ' + objectiveN(W)); else say('Where’s Dayla?', ['(You finished Chapter 2! 🎉 Chapter 3 is still being built. Come back soon!)']); }, 400);
-  else if(BGT) setTimeout(() => { MUS.play('bogota'); if(!W.b_in){ say('Bogotá', ['(Whoosh! You tumble out of the portal into a little park… in BOGOTÁ!)', '(Green mountains all around, colorful houses, and the smell of arepas.)', `${ME}: Dayla came through here. I can feel it.`, '(Laura’s friends Alejandra and Samuel are on the plaza. Maybe they can help!)'], () => { setWorld({ b_in: 1 }); }); } else if(!W.b_done) banner('📜 ' + objectiveB(W)); else say('Where’s Dayla?', ['(You finished Chapter 1! 🎉 Chapter 2: New York is still being built. Come back soon!)']); }, 400);
-  else setTimeout(() => { if(!saved.intro) introScene(); else { MUS.play('home'); if(W.p_start && !W.p_done) banner('📜 ' + (HOME ? objective(W, st) : BGT ? objectiveB(W) : objectiveN(W))); else if(W.p_done) say('Where’s Dayla?', ['(You finished the Prologue! 🎉)', '(Chapter 1: Bogotá is still being built. Until then you can explore, talk to everyone and peek through the portal in the dog park.)', '(Come back soon. Dayla is waiting! 🐾)']); } }, 400);
+  if(saved.intro) setTimeout(() => { card.t0 = performance.now(); }, 250);
+  if(NY) setTimeout(() => { MUS.play('nyc'); if(!W.n_in){ say('New York', ['(Whoosh! You tumble out of the portal onto a busy sidewalk… in NEW YORK CITY!)', '(Honking cabs, giant screens, the smell of hot dogs and pizza.)', `${ME}: Dayla came through here too. Somebody in this city must have seen her.`, '(Maybe try Central Park, northeast. Pigeons see everything.)'], () => { setWorld({ n_in: 1 }); }); } else if(!W.n_done) banner('📜 ' + objectiveN(W)); else say('Where’s Dayla?', nextUp()); }, 400);
+  else if(BGT) setTimeout(() => { MUS.play('bogota'); if(!W.b_in){ say('Bogotá', ['(Whoosh! You tumble out of the portal into a little park… in BOGOTÁ!)', '(Green mountains all around, colorful houses, and the smell of arepas.)', `${ME}: Dayla came through here. I can feel it.`, '(Laura’s friends Alejandra and Samuel are on the plaza. Maybe they can help!)'], () => { setWorld({ b_in: 1 }); }); } else if(!W.b_done) banner('📜 ' + objectiveB(W)); else say('Where’s Dayla?', nextUp()); }, 400);
+  else setTimeout(() => { if(!saved.intro) introScene(); else { MUS.play('home'); if(W.p_start && !W.p_done) banner('📜 ' + (HOME ? objective(W, st) : BGT ? objectiveB(W) : objectiveN(W))); else if(W.p_done) say('Where’s Dayla?', nextUp()); } }, 400);
 
   G.stop = () => { cancelAnimationFrame(raf); MUS.stop(); window.removeEventListener('resize', resize); window.removeEventListener('keydown', onKey); window.removeEventListener('keyup', onKey); send('bye', { who: me }); api.save(pack()); try{ ch && api.unchannel(ch); }catch(e){} };
 }

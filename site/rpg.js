@@ -198,9 +198,9 @@ const MONS = {
   sarge: { name:'Sergeant Hairball', hp:10, atk:2, coins:15, xp:10, boss:1, emo:'🪖', diary:'Yells a LOT. Probably sad inside. I would still bite his tail. 3/10.' },
   duck: { name:'Big Duck', emo:'🦆', diary:'MY duck. Best duck. Squeaky, chewy, perfect. Why did it quack?? 11/10.' },
   alejandro: { name:'Alejandro', emo:'🐕', diary:'My best friend. Long. Loud. Brave. Smells great. 10/10.' },
-  lunita: { name:'Lunita', emo:'🐕', diary:'FAST. Barks at everything. Saw me first. We are friends now. 9/10.' },
+  lunita: { name:'Lunita', emo:'🐕', diary:'Brown like me! FAST. Barks at everything. Saw me first. 9/10.' },
   papu: { name:'Papu', emo:'🐶', diary:'Gray. Snorts like a little tractor. Very serious guard. 8/10.' },
-  moka: { name:'Moka', emo:'🐶', diary:'Brown like me! Always chewing something mysterious. 9/10.' },
+  moka: { name:'Moka', emo:'🐶', diary:'Light brown and chunky. Always chewing something mysterious. 9/10.' },
   condor: { name:'Cóndorito', emo:'🦅', diary:'Big bird. Bald head. Dramatic. Let me ride on his back once. 10/10, would fly again.' },
   capi: { name:'Captain Hairball', hp:9, atk:2, coins:25, xp:14, boss:1, emo:'🎖️', diary:'Red helmet. Bossy. Chased me up a whole mountain. Rude. 2/10.' }
 };
@@ -259,15 +259,15 @@ const SONGS = {
   bogota: { bpm:100, div:2, shaker:1, lead:[67,0,70,0,74,0,72,70, 69,0,72,0,70,0,69,67, 65,0,69,0,72,0,70,69, 67,0,0,0,62,0,65,0, 67,0,70,0,74,0,75,74, 72,0,70,0,69,0,70,72, 74,0,72,0,70,0,69,65, 67,0,0,0,0,0,0,0], bass:[43,0,50,0,43,0,50,0, 41,0,48,0,41,0,48,0, 39,0,46,0,39,0,46,0, 38,0,45,0,38,0,50,0] },
   victory: { bpm:140, div:2, once:1, lead:[72,76,79,84,0,79,84,0], bass:[48,52,55,60,0,55,60,0] }
 };
-const MUS = (() => { let cur = null, step = 0, nextT = 0, timer = null, want = null, on = true;
+const MUS = (() => { let prevSong = null, cur = null, step = 0, nextT = 0, timer = null, want = null, on = true;
   try{ on = localStorage.getItem('rpgMusic') !== 'off'; }catch(e){}
   const hz = n => 440 * Math.pow(2, (n - 69) / 12);
   function tick(){ if(!cur || !AC) return; const S = SONGS[cur], dur = 60 / S.bpm / S.div;
     while(nextT < AC.currentTime + .2){ const i = step % S.lead.length, a = S.lead[i], b = S.bass[i % S.bass.length];
       if(a) tone('square', hz(a), nextT, dur * .9, .028); if(b) tone('triangle', hz(b), nextT, dur * .95, .05);
       if(S.div === 4 && i % 4 === 0) noise(nextT, .03, .03); if(S.shaker && i % 2 === 1) noise(nextT, .025, .025);
-      nextT += dur; step++; if(S.once && step >= S.lead.length){ const back = want === cur ? 'home' : want; cur = null; if(back && back !== 'victory') setTimeout(() => play(back), 300); return; } } }
-  function play(name){ want = name; if(!on || !SOUND_ON() || !audio()) return; if(cur === name) return; cur = name; step = 0; nextT = AC.currentTime + .05; if(!timer) timer = setInterval(tick, 60); }
+      nextT += dur; step++; if(S.once && step >= S.lead.length){ const back = want === cur ? (prevSong || 'home') : want; cur = null; if(back && back !== 'victory') setTimeout(() => play(back), 300); return; } } }
+  function play(name){ if(name === 'victory' && cur && cur !== 'victory') prevSong = (cur === 'battle' || cur === 'boss') ? null : cur; if(name !== 'victory' && name !== 'battle' && name !== 'boss') prevSong = name; want = name; if(!on || !SOUND_ON() || !audio()) return; if(cur === name) return; cur = name; step = 0; nextT = AC.currentTime + .05; if(!timer) timer = setInterval(tick, 60); }
   function stop(){ cur = null; if(timer){ clearInterval(timer); timer = null; } }
   return { play, stop, get on(){ return on; }, toggle(){ on = !on; try{ localStorage.setItem('rpgMusic', on ? 'on' : 'off'); }catch(e){} if(!on){ const w = want; stop(); want = w; } else if(want) play(want); return on; }, resume(){ if(want && !cur) play(want); } };
 })();
@@ -396,7 +396,7 @@ function bogTiles(x, tx, ty, ch, map){
   if(ch === 'M'){ P(0, 0, T, T, h < .5 ? '#4E8A55' : '#467F4D'); if(h < .3) P(3 + Math.floor(h * 20), 5, 5, 4, '#8E8A85'); if(h > .8) P(6, 2, 4, 6, '#2F6B3E'); }
   if(ch === 'S'){ P(0, 0, T, T, '#A9A49E'); P(0, 4, T, 1, '#8E8A85'); P(0, 9, T, 1, '#8E8A85'); P(0, 14, T, 1, '#8E8A85'); }
   if(ch === 'X'){ P(0, 0, T, T, '#2A3350'); P(0, 0, T, 2, '#4E8A55'); P(2, 7, 12, 2, 'rgba(255,255,255,.25)'); }
-  if(ch === 'B'){ for(const ox of [1, 6, 11]){ P(ox, 6, 4, 8, '#F28C38'); P(ox, 9, 4, 2, '#FFFFFF'); P(ox - 1, 14, 6, 2, '#C96A20'); } }
+
   if(ch === '.'){ P(0, 0, T, T, h < .5 ? '#74C062' : '#6DBB5A'); }
   if(ch === 'T') { P(6, 9, 4, 7, '#7B4B2F'); }
   if(ch === 'b'){ P(2, 5, 12, 10, '#3F8C4A'); P(4, 5, 4, 3, '#5DAF5F'); P(9, 9, 2, 2, '#F2C14E'); }
@@ -470,7 +470,7 @@ function start(host, api){
   const cv = $('.rpg-cv'), cx = cv.getContext('2d');
   const me = api.me, other = me === 'david' ? 'laura' : 'david', ME = api.nameOf(me);
   const sheets = { [me]: heroSheet(api.avatar(me)), [other]: heroSheet(api.avatar(other)) };
-  const SHEETS = { dayla: dogSheet(), alejandro: dogSheet({ B:'#2A201C', D:'#1A1414', Wt:'#F4F4F4', long:1 }), lunita: dogSheet({ B:'#C98E5A', D:'#8A5A36', Wt:'#E9C49A' }), papu: dogSheet({ B:'#8E8A93', D:'#6E6A72', Wt:'#C4C0C8' }), moka: dogSheet({ B:'#7B4B2F', D:'#5A3520', Wt:'#C9A47A' }) };
+  const SHEETS = { dayla: dogSheet(), alejandro: dogSheet({ B:'#2A201C', D:'#1A1414', Wt:'#F4F4F4', long:1 }), lunita: dogSheet({ B:'#7B4B2F', D:'#5A3520', Wt:'#C9A47A' }), papu: dogSheet({ B:'#8E8A93', D:'#6E6A72', Wt:'#C4C0C8' }), moka: dogSheet({ B:'#C98E5A', D:'#8A5A36', Wt:'#E9C49A' }) };
   let npcs = HOME ? makeNPCs(api) : makeBogotaNPCs(api);
   const saved = api.load() || {};
   const st = Object.assign({ hp:10, mhp:10, dhp:5, dmhp:5, lv:1, xp:0, coins:0, items:{ snack:1 }, diary:{}, partner:null }, saved);
@@ -691,13 +691,15 @@ function start(host, api){
     const el = $('.rpg-bt'), bc = el.querySelector('canvas'), bcx = bc.getContext('2d'), menu = el.querySelector('.rpg-btmenu'), msg = el.querySelector('.rpg-btmsg'), bar = el.querySelector('.rpg-btbar'), hpEl = el.querySelector('.rpg-bthp');
     const fxPos = (f, i) => f.k !== 'hairball' ? 104 : 124 + i * 34;
     const hero = { ox: 0, oy: 0, flash: 0 }, pupB = { ox: 0, oy: 0, flash: 0 }, pops = [];
-    let tapAt = 0, waiting = null, ring = null, needle = null, over = false;
-    BT = { tap(){ tapAt = performance.now(); if(waiting){ const w = waiting; waiting = null; w(tapAt); } }, draw };
+    let tapAt = 0, waiting = null, ring = null, needle = null, over = false, sp = 1, cheer = 0, taps = 0, mash = null;
+    const CROWD = ['#3E6E8E','#E07A93','#F2C14E','#4F8761','#7A5BC4','#C9473D','#58AEDD','#E2AE55','#6C5B9E','#D27A8B','#2A3350','#7FD07A'];
+    const addSP = n => { sp = Math.min(5, sp + n); cheer = 1.2; if(n > 0) sfx('nice'); showHP(); };
+    BT = { tap(){ tapAt = performance.now(); if(mash) taps++; if(waiting){ const w = waiting; waiting = null; w(tapAt); } }, draw };
     el.hidden = false; $('.rpg-panel').hidden = true; sfx('hiss'); MUS.play(def.boss ? 'boss' : 'battle');
     const wait = ms => new Promise(r => setTimeout(r, ms));
     const tween = (o, k, to, ms) => new Promise(r => { const from = o[k], s = performance.now(); const step = () => { const q = Math.min(1, (performance.now() - s) / ms); o[k] = from + (to - from) * (1 - Math.pow(1 - q, 3)); if(q < 1) requestAnimationFrame(step); else r(); }; step(); });
     const say2 = t => { msg.textContent = t; };
-    const showHP = () => { hpEl.innerHTML = `<span>${ME} ❤️ ${st.hp}/${st.mhp}</span>${pal ? `<span>${pal.name} 🐾 ${st.dhp}/${st.dmhp}</span>` : ''}<span>${foes.filter(f => !f.dead).map(f => `${MONS[f.k].emo} ${f.hp}`).join(' · ')}</span>`; };
+    const showHP = () => { hpEl.innerHTML = `<span>${ME} ❤️ ${st.hp}/${st.mhp}</span>${pal ? `<span>${pal.name} 🐾 ${st.dhp}/${st.dmhp}</span>` : ''}<span>${foes.filter(f => !f.dead).map(f => `${MONS[f.k].emo} ${f.hp}`).join(' · ')}</span><span>✨ ${'★'.repeat(sp)}${'☆'.repeat(5 - sp)}</span>`; };
     const pop = (x, y, t, c) => pops.push({ x, y, t, c: c || '#FFFFFF', life: 1 });
     function draw(now){
       const t = now / 1000; bcx.imageSmoothingEnabled = false;
@@ -706,6 +708,8 @@ function start(host, api){
       if(HOME){ bcx.fillStyle = '#C79A63'; for(let i = 0; i < 200; i += 12){ bcx.fillRect(i, 50, 3, 14); } bcx.fillRect(0, 54, 200, 2); bcx.fillRect(0, 60, 200, 2); } else { bcx.fillStyle = '#4E8A55'; bcx.beginPath(); bcx.moveTo(0, 62); bcx.lineTo(40, 22); bcx.lineTo(80, 50); bcx.lineTo(130, 12); bcx.lineTo(200, 58); bcx.lineTo(200, 62); bcx.fill(); bcx.fillStyle = '#FBF6EE'; bcx.fillRect(126, 10, 8, 5); bcx.fillStyle = '#A9A49E'; bcx.fillRect(0, 60, 200, 4); }
       bcx.fillStyle = 'rgba(255,255,255,.8)'; for(let i = 0; i < 3; i++){ const cxp = (i * 80 + t * 6) % 240 - 20; bcx.fillRect(cxp, 14 + i * 7, 22, 5); bcx.fillRect(cxp + 4, 11 + i * 7, 12, 4); }
       bcx.fillStyle = '#C9473D'; bcx.fillRect(0, 108, 200, 12); bcx.fillStyle = '#A93A4C'; for(let i = 0; i < 200; i += 10) bcx.fillRect(i, 108, 5, 12);
+      cheer = Math.max(0, cheer - .016); for(let i = 0; i < 14; i++){ const jx = 4 + i * 14, jy = 112 - (cheer > 0 ? Math.abs(Math.sin(t * 14 + i)) * 4 : Math.abs(Math.sin(t * 2 + i)) * 1); bcx.fillStyle = CROWD[i % CROWD.length]; bcx.fillRect(jx, jy + 3, 9, 6); bcx.fillStyle = ['#F6D5BC','#C98E68','#7C4F34','#E3B08C'][i % 4]; bcx.fillRect(jx + 2, jy - 2, 5, 5); if(cheer > .3 && i % 3 === 0){ bcx.fillRect(jx - 1, jy - 4, 2, 3); bcx.fillRect(jx + 8, jy - 4, 2, 3); } }
+      if(mash){ const q = Math.min(1, (now - mash.s) / mash.ms); bcx.fillStyle = 'rgba(0,0,0,.45)'; bcx.fillRect(40, 30, 120, 22); bcx.fillStyle = '#F2C14E'; bcx.fillRect(42, 44, 116 * Math.min(1, taps / 20), 6); bcx.fillStyle = '#fff'; bcx.font = 'bold 9px sans-serif'; bcx.textAlign = 'center'; bcx.fillText(`TAP TAP TAP! ${taps}`, 100, 41); if(q >= 1){ const r = mash.res; mash = null; r(taps); } }
       const hs = sheets[me]; bcx.globalAlpha = hero.flash > 0 && Math.floor(now / 60) % 2 ? .3 : 1; bcx.drawImage(hs, 0, 2 * 22, 16, 22, 44 + hero.ox, 64 + hero.oy, 32, 44); bcx.globalAlpha = 1;
       if(pal){ bcx.globalAlpha = st.dhp <= 0 ? .4 : pupB.flash > 0 && Math.floor(now / 60) % 2 ? .3 : 1; if(pal.bird) drawMon(bcx, 'condor', 14 + pupB.ox, 72 + pupB.oy + Math.sin(t * 5) * 2, t, 2); else bcx.drawImage(pal.sheet, (Math.floor(t * 4) % 2) * 16, 2 * 14, 16, 14, 16 + pupB.ox, 82 + pupB.oy, 32, 28); bcx.globalAlpha = 1; }
       foes.forEach((f, i) => { if(f.dead >= 1) return; bcx.globalAlpha = f.dead ? 1 - f.dead : f.flash > 0 && Math.floor(now / 60) % 2 ? .3 : 1; drawMon(bcx, f.k, fxPos(f, i) + f.ox, f.k !== 'hairball' ? 64 : 80 - (i % 2) * 6, t + i, 2); bcx.globalAlpha = 1; });
@@ -716,16 +720,28 @@ function start(host, api){
       if(needle){ const q = Math.min(1, (now - needle.s) / needle.ms); bar.querySelector('i').style.left = (q * 100) + '%'; if(q >= 1 && waiting){ const w = waiting; waiting = null; w(0); } }
     }
     async function aim(){ bar.hidden = false; needle = { s: performance.now(), ms: 1000 }; say2('Tap when the marker hits the green!'); const at = await new Promise(r => { waiting = r; }); const q = at ? (at - needle.s) / needle.ms : 1; needle = null; bar.hidden = true; return Math.abs(q - .78) < .1; }
-    function menuOn(){ const alive = foes.filter(f => !f.dead); menu.innerHTML = `<button data-m="bonk">👊 Bonk</button>${pal ? `<button data-m="pounce" ${st.dhp > 0 ? '' : 'disabled'}>${pal.emo} ${pal.name} ${pal.move}</button>` : ''}<button data-m="snack" ${st.items.snack ? '' : 'disabled'}>🫓 Arepa ×${st.items.snack}</button><button data-m="run" ${def.boss ? 'disabled' : ''}>🏃 Run</button>`; menu.hidden = false; say2(`What will you do? (${alive.length} left)`);
+    function menuOn(){ const alive = foes.filter(f => !f.dead); menu.innerHTML = `<button data-m="bonk">👊 Bonk</button>${pal ? `<button data-m="pounce" ${st.dhp > 0 ? '' : 'disabled'}>${pal.emo} ${pal.name} ${pal.move}</button>` : ''}<button data-m="snack" ${st.items.snack ? '' : 'disabled'}>🫓 Arepa ×${st.items.snack}</button><button data-m="special" ${sp >= 3 ? '' : 'disabled'} style="grid-column:1/-1">✨ ${specialName()} (3 ★)</button><button data-m="run" ${def.boss ? 'disabled' : ''}>🏃 Run</button>`; menu.hidden = false; say2(`What will you do? (${alive.length} left)`);
       menu.querySelectorAll('button').forEach(b => b.onclick = ev => { ev.stopPropagation(); menu.hidden = true; turn(b.dataset.m); }); }
     async function hitFoe(dmg, nice, who){ const f = foes.find(f => !f.dead); if(!f) return; const fxp = fxPos(f, foes.indexOf(f)) + (f.k !== 'hairball' ? 20 : 14);
       const actor = who === 'pup' ? pupB : hero; if(who === 'pup') sfx(pal && pal.bird ? 'portal' : 'yap'); await tween(actor, 'ox', who === 'pup' ? 90 : 70, 220); f.hp = Math.max(0, f.hp - dmg); f.flash = .4; sfx(nice ? 'nice' : 'hit'); pop(fxp, 64, nice ? `NICE! -${dmg}` : `-${dmg}`, nice ? '#F2C14E' : '#FFFFFF'); showHP(); await tween(actor, 'ox', 0, 260);
       if(f.hp <= 0){ sfx('hiss'); await tween(f, 'dead', 1, 400); } }
+    function specialName(){ return pal && !pal.bird && st.dhp > 0 ? 'Zoomies (hits all)' : pal && pal.bird && st.dhp > 0 ? 'Sky Dive (one big hit)' : 'Arepa Rain (heal + hit all)'; }
+    async function special(){
+      sp -= 3; showHP(); say2('✨ SPECIAL! Tap as fast as you can!'); cheer = 2; sfx('portal');
+      taps = 0; const n = await new Promise(r => { mash = { s: performance.now(), ms: 2200, res: r }; });
+      const power = Math.min(4, 1 + Math.floor(n / 6)); addSP(0); cheer = 2;
+      if(pal && pal.bird && st.dhp > 0){ await hitFoe(power + 1, true, 'pup'); }
+      else if(pal && st.dhp > 0){ for(const f of foes.filter(f => !f.dead)){ const i = foes.indexOf(f); pupB.ox = 0; await tween(pupB, 'ox', fxPos(f, i) - 30, 160); f.hp = Math.max(0, f.hp - power); f.flash = .4; sfx('nice'); pop(fxPos(f, i) + 14, 64, `ZOOM! -${power}`, '#F2C14E'); showHP(); if(f.hp <= 0){ sfx('hiss'); tween(f, 'dead', 1, 400); } } await tween(pupB, 'ox', 0, 260); await wait(300); }
+      else { st.hp = Math.min(st.mhp, st.hp + power + 2); pop(60, 56, `+${power + 2} ❤️`, '#7FD07A'); for(const f of foes.filter(f => !f.dead)){ const i = foes.indexOf(f); f.hp = Math.max(0, f.hp - 1); f.flash = .4; pop(fxPos(f, i) + 14, 64, '-1', '#fff'); if(f.hp <= 0){ tween(f, 'dead', 1, 400); } } sfx('nice'); showHP(); hud(); await wait(700); }
+      say2(n >= 18 ? 'The crowd goes WILD! 🎉' : n >= 10 ? 'Great special!' : 'Nice try!');
+      await wait(500);
+    }
     async function turn(m){
+      if(m === 'special'){ await special(); if(foes.every(f => f.dead || f.hp <= 0)){ foes.forEach(f => f.dead = 1); return finish('win'); } await wait(250); return foeTurn(); }
       if(m === 'run'){ if(Math.random() < .75){ say2('You got away safely!'); await wait(700); return finish('run'); } say2('Couldn’t get away!'); await wait(700); return foeTurn(); }
       if(m === 'snack'){ st.items.snack--; st.hp = Math.min(st.mhp, st.hp + 5); st.dhp = Math.min(st.dmhp, st.dhp + 3); pop(60, 60, '+5 ❤️', '#7FD07A'); showHP(); hud(); say2('Munch munch. Mami Elsa’s arepas hit different!'); api.sfx('pop'); await wait(900); return foeTurn(); }
       say2(m === 'bonk' ? `${ME} gets ready to bonk!` : pal && pal.bird ? 'Cóndorito circles high above…' : 'Alejandro crouches… wiggles…'); const nice = await aim();
-      await hitFoe(nice ? 2 : 1, nice, m === 'pounce' ? 'pup' : 'hero');
+      await hitFoe(nice ? 2 : 1, nice, m === 'pounce' ? 'pup' : 'hero'); if(nice) addSP(1);
       if(foes.every(f => f.dead)) return finish('win');
       await wait(250); foeTurn();
     }
@@ -736,11 +752,13 @@ function start(host, api){
         await wait(500 + Math.random() * 500);
         const dur = 650 + Math.random() * 350, hitAt = performance.now() + dur; ring = { x: toPup ? 32 : 60, y: toPup ? 90 : 80, at: hitAt, ms: dur };
         tapAt = 0; await tween(f, 'ox', toPup ? -100 : -76, dur); ring = null;
-        const guard = tapAt && hitAt - tapAt < 260 && hitAt - tapAt > -90;
-        const dmg = Math.max(0, f.atk - (guard ? 1 : 0));
+        const perfect = tapAt && Math.abs(hitAt - tapAt) < 75, guard = perfect || (tapAt && hitAt - tapAt < 260 && hitAt - tapAt > -90);
+        const dmg = perfect ? 0 : Math.max(0, f.atk - (guard ? 1 : 0));
+        if(perfect){ f.hp = Math.max(0, f.hp - 1); f.flash = .4; pop(fxPos(f, foes.indexOf(f)) + 14, 60, 'COUNTER! -1', '#F2C14E'); addSP(2); } else if(guard) addSP(1);
         if(toPup) st.dhp = Math.max(0, st.dhp - dmg); else st.hp = Math.max(0, st.hp - dmg);
-        tgt.flash = dmg ? .5 : 0; pop(toPup ? 32 : 60, toPup ? 76 : 60, guard ? (dmg ? `GUARD! -${dmg}` : 'GUARD!') : `-${dmg}`, guard ? '#7FD07A' : '#E0566B'); sfx(guard ? 'guard' : 'hurt'); showHP(); hud();
+        tgt.flash = dmg ? .5 : 0; pop(toPup ? 32 : 60, toPup ? 76 : 60, perfect ? 'PERFECT!' : guard ? (dmg ? `GUARD! -${dmg}` : 'GUARD!') : `-${dmg}`, perfect ? '#F2C14E' : guard ? '#7FD07A' : '#E0566B'); sfx(guard ? 'guard' : 'hurt'); showHP(); hud();
         await tween(f, 'ox', 0, 300);
+        if(f.hp <= 0 && !f.dead){ sfx('hiss'); await tween(f, 'dead', 1, 400); if(foes.every(x => x.dead)) return finish('win'); }
         if(toPup && st.dhp <= 0){ say2(`${pal.name} is all tuckered out! 💤`); await wait(800); }
         if(st.hp <= 0) return finish('lose');
         await wait(200);
@@ -836,7 +854,8 @@ function start(host, api){
     const hr = new Date().getHours() + new Date().getMinutes() / 60; let a = 0, col = '20,30,80';
     if(hr >= 20 || hr < 5.5) a = .36; else if(hr >= 18.5){ a = (hr - 18.5) / 1.5 * .36; col = '60,30,90'; } else if(hr < 7){ a = (7 - hr) / 1.5 * .3; col = '90,50,80'; }
     if(a > 0){ cx.fillStyle = `rgba(${col},${a})`; cx.fillRect(0, 0, vw, vh); }
-    if(api.raining && api.raining()){ cx.fillStyle = 'rgba(200,220,255,.55)'; for(let i = 0; i < 70; i++){ const rx = (hash(i, 1) * vw + t * 40) % vw, ry = (hash(i, 2) * vh + t * 220 + i * 13) % vh; cx.fillRect(Math.round(rx), Math.round(ry), 1, 4); } }
+    if(!HOME && !W.b_dogs){ const bx0 = 30 * T - camx, by0 = 22 * T - camy; for(const ox of [1, 6, 11]){ cx.fillStyle = '#F28C38'; cx.fillRect(bx0 + ox, by0 + 6, 4, 8); cx.fillStyle = '#FFFFFF'; cx.fillRect(bx0 + ox, by0 + 9, 4, 2); cx.fillStyle = '#C96A20'; cx.fillRect(bx0 + ox - 1, by0 + 14, 6, 2); } }
+    if(HOME && api.raining && api.raining()){ cx.fillStyle = 'rgba(200,220,255,.55)'; for(let i = 0; i < 70; i++){ const rx = (hash(i, 1) * vw + t * 40) % vw, ry = (hash(i, 2) * vh + t * 220 + i * 13) % vh; cx.fillRect(Math.round(rx), Math.round(ry), 1, 4); } }
   }
   function loop(now){ const dt = Math.min(.05, (now - prev) / 1000); prev = now; if(BT) BT.draw(now); else { update(dt, now); draw(now); } raf = requestAnimationFrame(loop); }
   raf = requestAnimationFrame(loop);

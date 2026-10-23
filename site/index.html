@@ -1623,6 +1623,22 @@ const listNames = () => { const m = meta('lists'); return (m && Array.isArray(m.
 
 /* ---------- db ---------- */
 let renderQ = false;
+/* chat: only swap the bits that changed, so photos, the keyboard and your scroll spot stay put */
+function tagSrc(el, depth){ [...el.children].forEach(c => { c._src = c.outerHTML; if(depth > 1 && c.id === 'chat') tagSrc(c, depth - 1); }); }
+function patchKids(parent, html, depth){
+  const tpl = document.createElement('template'); tpl.innerHTML = html; patchInto(parent, tpl.content, depth);
+}
+function patchInto(parent, src, depth){
+  const nk = [...src.children];
+  nk.forEach((n, i) => {
+    const o = parent.children[i], code = n.outerHTML;
+    if(o && o._src === code) return;
+    if(o && depth > 1 && n.id === 'chat' && o.id === 'chat'){ patchInto(o, n, depth - 1); o._src = code; return; }
+    const fresh = n.cloneNode(true); fresh._src = code; if(o) parent.replaceChild(fresh, o); else parent.appendChild(fresh);
+    if(depth > 1 && fresh.id === 'chat') tagSrc(fresh, 1);
+  });
+  while(parent.children.length > nk.length) parent.lastElementChild.remove();
+}
 function schedule(){ if(renderQ) return; renderQ = true; requestAnimationFrame(() => { renderQ = false; render(); }); }
 function noDb(){ toast(S.authNeeded ? "Sign in first." : "Still connecting… try again in a moment."); return false; }
 function fail(e){
@@ -1836,7 +1852,7 @@ function notifyCard(){
 }
 function accountCard(){
   const imp = meta('imported');
-  return `<section class="card stack" style="gap:10px"><h2>Account</h2><div class="between"><span class="muted" style="overflow-wrap:anywhere">${esc((S.user && S.user.email) || 'Signed in')}</span><button class="btn small" data-act="sign-out">Sign out</button></div><p class="fine" style="margin:0">App version: Oct 23, 2026 · update 22</p></section>
+  return `<section class="card stack" style="gap:10px"><h2>Account</h2><div class="between"><span class="muted" style="overflow-wrap:anywhere">${esc((S.user && S.user.email) || 'Signed in')}</span><button class="btn small" data-act="sign-out">Sign out</button></div><p class="fine" style="margin:0">App version: Oct 23, 2026 · update 23</p></section>
   <section class="card stack" style="gap:10px"><h2>Move data from the old app</h2>
     ${imp ? `<p class="fine" style="margin:0">Done on ${esc(fmtDate(new Date(imp.at), { month:'short', day:'numeric', year:'numeric' }))}: ${imp.records} records and ${imp.photos} photos.</p>` : `<p class="fine" style="margin:0">Brings over everything you saved in the Claude version: lists, chat, money, photos and the rest. Do this once, on one phone.</p>`}
     ${S.importMsg ? `<div class="banner">${esc(S.importMsg)}</div>` : ''}
@@ -3444,6 +3460,10 @@ async function sendChatImage(file){ if(!S.assets){ toast('Sending pictures needs
     if(/gif/i.test(file.type) && file.size < 12e6){ const r = await S.assets.upload(file, { type:'image/gif' }); id = r.id; } else id = await uploadPhoto(file);
     await addDoc('msgs', Object.assign({ text:'', img:id }, /gif/i.test(file.type) ? { gif:true } : {})); SFX.play('send'); }catch(e){ toast('Couldn’t send that picture'); } }
 const RX = ['❤️','😂','👍','😮','😢','🙏'];
+let DIMS = null;
+function imgDim(id){ DIMS = DIMS || ls.get('imgDims', {}); const d = DIMS[id]; if(!d) return ''; const k = Math.min(1, 220 / d[0], 280 / d[1]); return `style="width:${Math.round(d[0] * k)}px;height:${Math.round(d[1] * k)}px"`; }
+function rememberDim(img, id){ DIMS = DIMS || ls.get('imgDims', {}); if(DIMS[id] || !img.naturalWidth) return; DIMS[id] = [img.naturalWidth, img.naturalHeight]; const keys = Object.keys(DIMS); if(keys.length > 400) delete DIMS[keys[0]]; ls.set('imgDims', DIMS); }
+window.rememberDim = rememberDim;
 const TICK = read => `<svg class="tick ${read ? 'read' : ''}" viewBox="0 0 18 11" aria-label="${read ? 'Read' : 'Sent'}"><path d="M1 6l3 3 6-7M7.5 9l1 1 6-8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 const emojiOnly = t => { const x = String(t || '').trim(); if(!x || x.length > 24 || /[A-Za-z0-9]/.test(x)) return false; const em = x.match(/\p{Extended_Pictographic}/gu) || []; return em.length >= 1 && em.length <= 3 && /^[\p{Extended_Pictographic}\p{Emoji_Component}‍️\s]+$/u.test(x); };
 const linkify = h => h.replace(/(https?:\/\/[^\s<]+)/g, u => `<a href="${u}" target="_blank" rel="noopener">${u}</a>`);
@@ -3470,7 +3490,7 @@ function vChat(){
     const rx = Object.entries(m.rx || {}).filter(([, e]) => e).map(([, e]) => e);
     let inner;
     if(m.sticker) inner = `<div class="b stk-b">${stickerSVG(m.sticker, 120)}${last ? meta2 : ''}</div>`;
-    else if(m.img) inner = `<div class="b img-b"><button class="msg-img" data-act="chat-img" data-v="${esc(m.img)}"><img src="${BLOBU}${esc(m.img)}" alt="${m.gif ? 'GIF' : 'Photo'}" loading="lazy"></button>${m.text ? `<div class="cap t">${linkify(esc(m.text))}</div>` : ''}${meta2}</div>`;
+    else if(m.img) inner = `<div class="b img-b"><button class="msg-img" data-act="chat-img" data-v="${esc(m.img)}"><img src="${BLOBU}${esc(m.img)}" alt="${m.gif ? 'GIF' : 'Photo'}" ${imgDim(m.img)} onload="rememberDim(this,'${esc(m.img)}')"></button>${m.text ? `<div class="cap t">${linkify(esc(m.text))}</div>` : ''}${meta2}</div>`;
     else if(emojiOnly(m.text)) inner = `<div class="b emo-b">${esc(m.text)}${meta2}</div>`;
     else inner = `<div class="b"><span class="t">${linkify(esc(m.text))}</span>${meta2}</div>`;
     const cls = ['msg', mine ? 'mine' : '', first ? 'gfirst' : '', last ? 'glast' : '', gPrev && gNext ? 'gmid' : '', rx.length ? 'hasrx' : '', fresh && m.at > fresh ? 'pop' : ''].join(' ');
@@ -6840,7 +6860,7 @@ function render(){
   else if(S.tab === 'chat') html = vChat();
   else if(S.tab === 'cal') html = vCal();
   else html = vMoney();
-  main.innerHTML = html;
+  if(S.tab === 'chat' && wasChat && main._chat) patchKids(main, html, 2); else { main.innerHTML = html; main._chat = S.tab === 'chat'; if(main._chat) tagSrc(main, 2); }
 
   main.querySelectorAll('input[id],textarea[id],select[id]').forEach(el => { if(el.id in vals && el.type !== 'file' && !el.dataset.np){ if(el.type === 'checkbox') el.checked = vals[el.id]; else el.value = vals[el.id]; } });
   if(fid){ const el = document.getElementById(fid); if(el){ el.focus({ preventScroll:true }); if(sel) try{ el.setSelectionRange(sel[0], sel[1]); }catch(e){} } }
@@ -7489,9 +7509,10 @@ document.addEventListener('click', async ev => {
 
 
 /* keyboard open in chat: hide the tab bar and sit the message box right on the keyboard */
-function kbUpdate(){ const vv = window.visualViewport; if(!vv) return; const kb = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)); document.documentElement.style.setProperty('--kb', kb + 'px'); }
+let kbLast = -1, kbRaf = 0;
+function kbUpdate(){ if(kbRaf) return; kbRaf = requestAnimationFrame(() => { kbRaf = 0; const vv = window.visualViewport; if(!vv) return; let kb = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)); if(!document.body.classList.contains('typing')) kb = 0; if(Math.abs(kb - kbLast) < 3) return; kbLast = kb; document.documentElement.style.setProperty('--kb', kb + 'px'); }); }
 document.addEventListener('focusin', e => { if(e.target && e.target.id === 'msg-text'){ document.body.classList.add('typing'); kbUpdate(); setTimeout(() => { kbUpdate(); window.scrollTo(0, document.body.scrollHeight); }, 320); } });
-document.addEventListener('focusout', e => { if(e.target && e.target.id === 'msg-text') setTimeout(() => { const a = document.activeElement; if(!a || a.id !== 'msg-text'){ document.body.classList.remove('typing'); document.documentElement.style.setProperty('--kb', '0px'); } }, 120); });
+document.addEventListener('focusout', e => { if(e.target && e.target.id === 'msg-text') setTimeout(() => { const a = document.activeElement; if(!a || a.id !== 'msg-text'){ document.body.classList.remove('typing'); document.documentElement.style.setProperty('--kb', '0px'); kbLast = 0; } }, 120); });
 if(window.visualViewport){ visualViewport.addEventListener('resize', kbUpdate); visualViewport.addEventListener('scroll', kbUpdate); }
 /* tapping send keeps the keyboard open, like WhatsApp */
 document.addEventListener('mousedown', e => { if(e.target && e.target.closest && e.target.closest('.send-btn') && document.activeElement && document.activeElement.id === 'msg-text') e.preventDefault(); });

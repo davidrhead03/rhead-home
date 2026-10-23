@@ -320,13 +320,13 @@ function makeNPCs(api){
     { id:'juandi', name:'Juandi', x:25, y:29, d:0, wander:1, av:npcAv(b, { skin:'#D9A07A', hair:'#171210', style:'short', shirt:'#F2C14E', pants:'#3B4F6B', bottom:'shorts' }),
       lines: (me, W, c) => { const n = DIARY.filter(k => c.st.diary[k]).length; return lost(W) ? ['Bro, a portal?! That’s straight out of Pokémon. ⚽', `Dayla’s Diary has ${n} page${n === 1 ? '' : 's'} filled in. Keep filling it, she’ll want to read it when she’s back!`] : ['¡Hey! ⚽ I’m going pro after graduation. Then I’m buying a stadium. 😎']; } },
     { id:'jp', name:'Coach JP', x:31, y:23, d:3, av:npcAv(b, { skin:'#F6D5BC', hair:'#171210', style:'short', shirt:'#3E6E8E', pants:'#2A201C', hat:'cap', accent:'#C9473D' }),
-      lines: me => [`What’s good, ${me}! ¿Qué más? (What’s up?)`, 'The court’s almost ready. New nets, new ball, new shot meter.', 'Come back soon and we’ll see if you can hit a green release. 🏀'] },
+      bball:1, lines: (me, W, c) => [`What’s good, ${me}! ¿Qué más? (What’s up?)`, 'The court is READY. New nets, new ball, new shot meter.', '45 seconds. Hold to shoot, let go at the top of the meter. Hit the green and it’s money. 🏀', (c.st.bb && c.st.bb.best) ? `Your best so far: ${c.st.bb.best} points. Tyler’s record is 24.` : 'Tyler’s record is 24. Think you can beat it?'] },
     { id:'ana', name:'Ana', x:29, y:24, d:3, wander:1, av:npcAv(b, { skin:'#EDC3A3', hair:'#D2692E', style:'long', shirt:'#F4A6B8', pants:'#3B4F6B', lashes:'natural' }),
       lines: () => ['¡Hola, hola! JP talks about basketball all day. ALL day. 😂', 'When the court opens, I’ll be the loudest one cheering. ¡Vamos! 🧡'] },
     { id:'diego', name:'Diego', x:29, y:20, d:0, wander:1, av:npcAv(b, { skin:'#D9A07A', hair:'#2A201C', style:'side', facial:'mustache', shirt:'#C9473D', pants:'#3B4F6B' }),
       lines: () => [`¡Hola, ${son}! I am Diego.`, 'Basketball, soccer, I play everything. Before, I worked at Costco. The free samples were the best part. 😄'] },
     { id:'tyler', name:'Tyler', x:33, y:20, d:0, wander:1, av:npcAv(b, { skin:'#FBE0CC', hair:'#8A5A36', style:'buzz', glasses:'square', shirt:'#7A5BC4', pants:'#2A201C' }),
-      lines: () => [L ? 'Hey Laura! Tell David to hop on 2K tonight.' : 'Bro, you hopping on 2K tonight?', 'Also, when the court’s done, you’re getting cooked. Just saying. 🏀'] },
+      lines: (me, W, c) => (c.st.bb && c.st.bb.best > 24) ? ['Wait, you scored ' + c.st.bb.best + '?! …Okay. You’re cooking now. 🔥', 'Run it back sometime. I want my record back.'] : [L ? 'Hey Laura! Tell David to hop on 2K tonight.' : 'Bro, you hopping on 2K tonight?', 'My shootout record is 24. Beat that and I’ll admit you’re better. (I won’t.) 🏀'] },
     { id:'steven', name:'Steven', x:28, y:3, d:0, av:npcAv(b, { skin:'#F6D5BC', hair:'#8A5A36', style:'buzz', facial:'fullbeard', shirt:'#4F8761', pants:'#C9B79C', shoes:'boots' }),
       lines: (me, W) => [L ? 'Hey Laura!' : 'Hey bud!', lost(W) ? 'Dayla went missing? I’m flying back to Surrey tonight, but call me if you need anything. Anything at all.' : 'Just finished a workout. Now I’m scouting a hiking trail through the woods up here.'] },
     { id:'baba', name:'Baba', x:31, y:34, d:0, av:npcAv(b, { skin:'#FBE0CC', hair:'#D6D0C8', style:'curly', shirt:'#B39CE0', bottom:'skirt', pants:'#6C5B9E' }),
@@ -465,6 +465,7 @@ function start(host, api){
     <div class="rpg-joy"><i></i></div><button class="rpg-a" aria-label="Talk or look">A</button><button class="rpg-b" aria-label="Partner action">🐾</button>
     <div class="rpg-talk" hidden><b></b><p></p><span>▼</span></div><div class="rpg-banner"></div>
     <div class="rpg-panel" hidden></div>
+    <div class="rpg-bb" hidden><canvas width="200" height="140"></canvas><div class="rpg-bbhud"></div><button class="rpg-bbshoot">Hold to shoot 🏀</button></div>
     <div class="rpg-bt" hidden><canvas class="rpg-btcv" width="200" height="120"></canvas><div class="rpg-bthp"></div><div class="rpg-btmsg"></div><div class="rpg-btbar" hidden><span class="z"></span><i></i></div><div class="rpg-btmenu"></div></div>`;
   const $ = s => host.querySelector(s);
   const cv = $('.rpg-cv'), cx = cv.getContext('2d');
@@ -515,11 +516,11 @@ function start(host, api){
   const joy = $('.rpg-joy'), knob = joy.querySelector('i'); let jid = null, jx = 0, jy = 0;
   const unlock = () => { audio(); MUS.resume(); };
   const joyMove = e => { const r = joy.getBoundingClientRect(); jx = r.left + r.width / 2; jy = r.top + r.height / 2; let dx = e.clientX - jx, dy = e.clientY - jy; const L = Math.hypot(dx, dy), M = 40; if(L > M){ dx *= M / L; dy *= M / L; } knob.style.transform = `translate(${dx}px,${dy}px)`; input.x = Math.abs(dx) > 6 ? dx / M : 0; input.y = Math.abs(dy) > 6 ? dy / M : 0; };
-  host.addEventListener('pointerdown', e => { unlock(); if(BT){ BT.tap(); return; } if(e.target.closest('button') || e.target.closest('.rpg-panel') || talk) return; if(e.clientX > host.clientWidth * .55) return; jid = e.pointerId; joy.classList.add('on'); joyMove(e); try{ host.setPointerCapture(jid); }catch(er){} });
+  host.addEventListener('pointerdown', e => { unlock(); if(BB) return; if(BT){ BT.tap(); return; } if(e.target.closest('button') || e.target.closest('.rpg-panel') || talk) return; if(e.clientX > host.clientWidth * .55) return; jid = e.pointerId; joy.classList.add('on'); joyMove(e); try{ host.setPointerCapture(jid); }catch(er){} });
   host.addEventListener('pointermove', e => { if(e.pointerId !== jid) return; joyMove(e); });
   const jend = e => { if(e.pointerId !== jid) return; jid = null; input.x = input.y = 0; knob.style.transform = ''; joy.classList.remove('on'); };
   host.addEventListener('pointerup', jend); host.addEventListener('pointercancel', jend);
-  const onKey = e => { const k = e.key.toLowerCase(); if(['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d',' ','e','enter','q'].includes(k)) e.preventDefault(); if(e.type === 'keydown') unlock(); if(e.type === 'keydown' && (k === ' ' || k === 'e' || k === 'enter')){ if(BT) BT.tap(); else act(); return; } if(e.type === 'keydown' && k === 'q'){ partnerAct(); return; } input.keys[k] = e.type === 'keydown'; };
+  const onKey = e => { const k = e.key.toLowerCase(); if(['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d',' ','e','enter','q'].includes(k)) e.preventDefault(); if(e.type === 'keydown') unlock(); if(BB && k === ' '){ if(e.type === 'keydown' && !e.repeat) BB.down(); if(e.type === 'keyup') BB.up(); return; } if(e.type === 'keydown' && (k === ' ' || k === 'e' || k === 'enter')){ if(BT) BT.tap(); else act(); return; } if(e.type === 'keydown' && k === 'q'){ partnerAct(); return; } input.keys[k] = e.type === 'keydown'; };
   window.addEventListener('keydown', onKey); window.addEventListener('keyup', onKey);
   $('.rpg-a').addEventListener('click', () => { if(!BT) act(); });
   $('.rpg-b').addEventListener('click', () => { if(!BT && !talk && !scene) partnerAct(); });
@@ -530,7 +531,7 @@ function start(host, api){
   musBtn.addEventListener('click', () => { unlock(); MUS.toggle(); musLook(); banner(MUS.on ? '🎵 Music on' : '🔇 Music off'); });
 
   /* --- saving --- */
-  const pack = () => ({ x: Math.round(p.x), y: Math.round(p.y), d: p.d, seen: 1, intro: saved.intro || 0, hp: st.hp, mhp: st.mhp, dhp: st.dhp, dmhp: st.dmhp, lv: st.lv, xp: st.xp, coins: st.coins, items: st.items, diary: st.diary, partner: st.partner || null, partners: st.partners, got_elsa: st.got_elsa || 0, got_elsa2: st.got_elsa2 || 0 });
+  const pack = () => ({ x: Math.round(p.x), y: Math.round(p.y), d: p.d, seen: 1, intro: saved.intro || 0, hp: st.hp, mhp: st.mhp, dhp: st.dhp, dmhp: st.dmhp, lv: st.lv, xp: st.xp, coins: st.coins, items: st.items, diary: st.diary, partner: st.partner || null, partners: st.partners, got_elsa: st.got_elsa || 0, got_elsa2: st.got_elsa2 || 0, bb: st.bb || null });
   const saveNow = () => { lastSave = performance.now(); api.save(pack()); };
   function setWorld(patch){ if(!patch) return; W = Object.assign({}, W, patch); api.saveWorld(W); }
   function hud(){ $('.rpg-hud').innerHTML = `❤️ ${st.hp}/${st.mhp} · 🪙 ${st.coins}`; $('.rpg-b').style.opacity = pup.vis ? 1 : .45; }
@@ -554,6 +555,7 @@ function start(host, api){
     const fx2 = p.x + [0, -14, 14, 0][p.d], fy2 = p.y + [14, 0, 0, -14][p.d];
     const n = npcs.find(n => Math.hypot(n.x - fx2, n.y - fy2) < 16);
     if(n){ n.d = [3, 2, 1, 0][p.d]; n.t = 3;
+      if(n.bball){ say(n.name, n.lines(ME, W, { st }), null, [['🏀 Start the Shootout', () => basketball()], ['Not now', null]]); return; }
       if(n.taxi){ say(n.name, n.lines(ME, W, { st }), null, (HOME ? TAXI : TAXI_B).map(([l, a, b2, nm]) => [l, () => taxiTo(a, b2, nm)]).concat([['✈️ Airport', () => say('Titin', ['¿El aeropuerto? ¡Todavía no! Pronto. (The airport? Not yet! Soon.) ✈️'])], ['No, gracias', null]])); return; }
       say(n.name, n.lines(ME, W, { st }), () => {
         if(n.gift && HOME && W.p_start && !W.p_done && !st.got_elsa){ st.got_elsa = 1; st.items.snack += 3; saveNow(); api.sfx('success'); }
@@ -657,6 +659,69 @@ function start(host, api){
     setTimeout(() => say('Where’s Dayla?', ['(Chapter 1: Bogotá complete! 🎉)', '(Chapter 2: New York is still being built. Your progress is saved. Come back soon!)']), 1800);
   }
   let bogDayla = null, portal2 = null;
+  /* --- basketball shootout at Rhead Court --- */
+  let BB = null;
+  function basketball(){
+    const el = $('.rpg-bb'), c = el.querySelector('canvas'), x = c.getContext('2d'), hudEl = el.querySelector('.rpg-bbhud'), btn = el.querySelector('.rpg-bbshoot');
+    const SPOTS = [[60, 2], [44, 2], [28, 3], [52, 2], [20, 3]], HOOP = { x: 170, y: 46 };
+    const g = { t: 45, score: 0, made: 0, shots: 0, streak: 0, spot: 0, meter: 0, hold: false, ball: null, msg: '', msgT: 0, done: false, greens: 0 };
+    st.bb = st.bb || { best: 0, games: 0 };
+    el.hidden = false; MUS.play('battle'); api.sfx('open');
+    const hud = () => { hudEl.innerHTML = `<span>⏱ ${Math.ceil(g.t)}s</span><span>🏀 ${g.score} pts</span><span>🎯 ${g.made}/${g.shots}</span><span>🏆 Best ${st.bb.best}</span>`; };
+    const shoot = () => {
+      if(g.ball || g.done) return; const m = g.meter, green = Math.abs(m - .9) < .045, good = m > .78 && m < .99;
+      const make = green || (good && Math.random() < .72) || (!good && Math.random() < .12);
+      const [sx, pts] = SPOTS[g.spot % SPOTS.length]; g.shots++;
+      g.ball = { x: sx + 10, y: 82, t: 0, make, green, pts, miss: make ? 0 : (m < .78 ? -14 : 10) };
+      g.msg = green ? 'GREEN! 💚' : m > .99 ? 'Too late' : m < .78 ? 'Too early' : make ? 'Good release' : 'Rimmed out…'; g.msgT = 1.2;
+      sfx(green ? 'nice' : 'step');
+    };
+    BB = {
+      down(){ if(g.done || g.ball) return; g.hold = true; g.meter = 0; g.spd = .7 + Math.random() * .3; },
+      up(){ if(!g.hold) return; g.hold = false; shoot(); },
+      draw(now, dt){
+        const t = now / 1000;
+        if(!g.done){ g.t -= dt; if(g.t <= 0){ g.t = 0; end(); } }
+        if(g.hold){ g.meter += dt / (g.spd || .85); if(g.meter >= 1.12){ g.hold = false; g.meter = 1.1; shoot(); } }
+        if(g.ball){ const b = g.ball; b.t += dt / .75; const q = Math.min(1, b.t), tx = HOOP.x + (b.make ? 0 : b.miss), ty = HOOP.y; b.cx = b.x + (tx - b.x) * q; b.cy = b.y + (ty - b.y) * q - Math.sin(q * Math.PI) * 60;
+          if(q >= 1){ if(b.make){ const pts = b.pts + (b.green ? 1 : 0); g.score += pts; g.made++; g.streak++; if(b.green) g.greens++; cheerT = 1; sfx(b.green ? 'win' : 'guard'); g.msg = b.green ? `SPLASH! +${pts}` : `+${pts}`; } else { g.streak = 0; sfx('clang'); }
+            g.msgT = 1; g.ball = null; g.spot++; g.meter = 0; } }
+        // court
+        x.imageSmoothingEnabled = false;
+        const sky = x.createLinearGradient(0, 0, 0, 140); sky.addColorStop(0, '#9CC9E8'); sky.addColorStop(.55, '#D8EEF8'); sky.addColorStop(.56, '#D98A4E'); sky.addColorStop(1, '#C77B42'); x.fillStyle = sky; x.fillRect(0, 0, 200, 140);
+        x.fillStyle = '#FFFFFF'; x.fillRect(0, 77, 200, 1); x.fillRect(120, 77, 1, 63);
+        for(let i = 0; i < 16; i++){ const jx = 2 + i * 12, jy = 70 - (cheerT > 0 ? Math.abs(Math.sin(t * 14 + i)) * 3 : 0); x.fillStyle = ['#3E6E8E','#E07A93','#F2C14E','#4F8761','#7A5BC4','#C9473D'][i % 6]; if(i < 9){ x.fillRect(jx, jy, 8, 6); x.fillStyle = ['#F6D5BC','#C98E68','#7C4F34','#E3B08C'][i % 4]; x.fillRect(jx + 2, jy - 5, 4, 5); } }
+        cheerT = Math.max(0, cheerT - dt);
+        // hoop
+        x.fillStyle = '#5B6B82'; x.fillRect(188, 30, 4, 80); x.fillStyle = '#FFFFFF'; x.fillRect(180, 22, 4, 30); x.fillStyle = '#C9473D'; x.fillRect(184, 34, 2, 10);
+        x.fillStyle = '#E0566B'; x.fillRect(160, 46, 20, 2); x.fillStyle = 'rgba(255,255,255,.8)'; for(let i = 0; i < 4; i++) x.fillRect(162 + i * 5, 48, 1, 9);
+        // shooter
+        const [sx] = SPOTS[g.spot % SPOTS.length];
+        x.drawImage(sheets[me], (g.hold ? 1 : 0) * 16, 2 * 22, 16, 22, sx - 6, 70, 32, 44);
+        if(st.partner === 'alejandro') x.drawImage(SHEETS.alejandro, (Math.floor(t * 4) % 2) * 16, 2 * 14, 16, 14, 6, 98, 24, 21);
+        if(g.ball){ x.fillStyle = '#F28C38'; x.beginPath(); x.arc(g.ball.cx, g.ball.cy, 4, 0, 7); x.fill(); x.strokeStyle = '#7B3B12'; x.lineWidth = 1; x.beginPath(); x.arc(g.ball.cx, g.ball.cy, 4, 0, 7); x.stroke(); }
+        else { x.fillStyle = '#F28C38'; x.beginPath(); x.arc(sx + 18, g.hold ? 68 : 86, 4, 0, 7); x.fill(); }
+        // shot meter
+        const mx = sx + 34, my = 64; x.fillStyle = 'rgba(0,0,0,.45)'; x.fillRect(mx, my - 2, 8, 44); x.fillStyle = '#7FD07A'; x.fillRect(mx + 1, my + 40 * (1 - .945), 6, 40 * .09); x.fillStyle = 'rgba(242,193,78,.5)'; x.fillRect(mx + 1, my + 40 * (1 - .99), 6, 40 * (.99 - .78));
+        x.fillStyle = '#FFFFFF'; const mv = Math.min(1, g.meter); x.fillRect(mx, my + 40 * (1 - mv) - 1, 8, 2);
+        if(SPOTS[g.spot % SPOTS.length][1] === 3){ x.fillStyle = '#FFFFFF'; x.font = 'bold 8px sans-serif'; x.textAlign = 'center'; x.fillText('3PT', sx + 8, 124); }
+        if(g.msgT > 0){ g.msgT -= dt; x.font = 'bold 12px sans-serif'; x.textAlign = 'center'; x.fillStyle = '#2A201C'; x.fillText(g.msg, 101, 21); x.fillStyle = g.msg.startsWith('GREEN') || g.msg.startsWith('SPLASH') ? '#7FD07A' : '#FFFFFF'; x.fillText(g.msg, 100, 20); }
+        if(g.streak >= 3){ x.font = 'bold 9px sans-serif'; x.fillStyle = '#F28C38'; x.textAlign = 'left'; x.fillText(`🔥 ${g.streak} in a row`, 4, 12); }
+        hud();
+      }
+    };
+    let cheerT = 0;
+    const press = e => { e.preventDefault(); e.stopPropagation(); unlock(); BB && BB.down(); };
+    const release = e => { e.preventDefault(); e.stopPropagation(); BB && BB.up(); };
+    btn.onpointerdown = press; btn.onpointerup = release; btn.onpointerleave = release; btn.onpointercancel = release;
+    async function end(){
+      g.done = true; g.hold = false; btn.disabled = true; MUS.play('victory');
+      const best = g.score > st.bb.best; st.bb.games++; if(best) st.bb.best = g.score; const coins = Math.floor(g.score / 4); st.coins += coins; hud(); saveNow();
+      await sleep(900);
+      el.hidden = true; BB = null; btn.disabled = false; MUS.play(HOME ? 'home' : 'bogota'); safeT = 1.5;
+      say('Coach JP', [`Time! ${g.score} points, ${g.made} of ${g.shots} made${g.greens ? `, ${g.greens} green release${g.greens === 1 ? '' : 's'}` : ''}.`, best ? (g.score > 24 ? 'NEW PERSONAL BEST, and you beat Tyler’s 24! Go tell him. 😂🔥' : 'New personal best! 🔥') : g.score >= 15 ? 'Solid run. Keep working on that release.' : 'Hey, everybody starts somewhere. Run it back!', `(+${coins} 🪙)`], null, [['🏀 Run it back', () => basketball()], ['Done for now', null]]);
+    }
+  }
   /* --- live play together --- */
   ch = api.channel && api.channel('rhead-rpg');
   if(ch){ ch.on('broadcast', { event: 'pos' }, ({ payload: q }) => { if(!q || q.who !== other) return; if(!remote.on){ remote.x = q.x; remote.y = q.y; banner(`${api.nameOf(other)} is here! 💕`); } remote.on = true; remote.tx = q.x; remote.ty = q.y; remote.d = q.d; remote.moving = q.m; remote.seen = performance.now(); })
@@ -857,7 +922,7 @@ function start(host, api){
     if(!HOME && !W.b_dogs){ const bx0 = 30 * T - camx, by0 = 22 * T - camy; for(const ox of [1, 6, 11]){ cx.fillStyle = '#F28C38'; cx.fillRect(bx0 + ox, by0 + 6, 4, 8); cx.fillStyle = '#FFFFFF'; cx.fillRect(bx0 + ox, by0 + 9, 4, 2); cx.fillStyle = '#C96A20'; cx.fillRect(bx0 + ox - 1, by0 + 14, 6, 2); } }
     if(HOME && api.raining && api.raining()){ cx.fillStyle = 'rgba(200,220,255,.55)'; for(let i = 0; i < 70; i++){ const rx = (hash(i, 1) * vw + t * 40) % vw, ry = (hash(i, 2) * vh + t * 220 + i * 13) % vh; cx.fillRect(Math.round(rx), Math.round(ry), 1, 4); } }
   }
-  function loop(now){ const dt = Math.min(.05, (now - prev) / 1000); prev = now; if(BT) BT.draw(now); else { update(dt, now); draw(now); } raf = requestAnimationFrame(loop); }
+  function loop(now){ const dt = Math.min(.05, (now - prev) / 1000); prev = now; if(BB) BB.draw(now, dt); else if(BT) BT.draw(now); else { update(dt, now); draw(now); } raf = requestAnimationFrame(loop); }
   raf = requestAnimationFrame(loop);
   if(saved.intro) unstick();
   if(!HOME) setTimeout(() => { MUS.play('bogota'); if(!W.b_in){ say('Bogotá', ['(Whoosh! You tumble out of the portal into a little park… in BOGOTÁ!)', '(Green mountains all around, colorful houses, and the smell of arepas.)', `${ME}: Dayla came through here. I can feel it.`, '(Laura’s friends Alejandra and Samuel are on the plaza. Maybe they can help!)'], () => { setWorld({ b_in: 1 }); }); } else if(!W.b_done) banner('📜 ' + objectiveB(W)); else say('Where’s Dayla?', ['(You finished Chapter 1! 🎉 Chapter 2: New York is still being built. Come back soon!)']); }, 400);

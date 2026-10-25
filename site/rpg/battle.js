@@ -28,6 +28,7 @@ WD.FOES = {
 
 let B = null, cmd = null;
 WD.B = () => B;
+WD.curCmd = () => cmd;
 
 /* ================= start / end ================= */
 WD.battle = function(opts){

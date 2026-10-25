@@ -408,7 +408,7 @@ function wireControls(){
   joy.addEventListener('pointerup', end); joy.addEventListener('pointercancel', end); joy.addEventListener('lostpointercapture', end);
   q('.wd-talk').addEventListener('pointerdown', e => { if(e.target.closest('.choices')) return; e.preventDefault(); press('a'); release('a'); });
   q('.wd-get').addEventListener('pointerdown', e => { e.preventDefault(); if(WD.getOpen) WD.closeGet(); });
-  q('.wd-mute').addEventListener('click', () => { WD.soundOn = !WD.soundOn; q('.wd-mute').textContent = WD.soundOn ? '♪' : '✕'; if(WD.soundOn) audio(); });
+  q('.wd-mute').addEventListener('click', () => { WD.soundOn = !WD.soundOn; q('.wd-mute').textContent = WD.soundOn ? '♪' : '🔇'; if(WD.soundOn) audio(); });
   q('.wd-x').addEventListener('click', () => { WD.saveNow(); api.close(); });
   q('.wd-x2').addEventListener('click', () => { WD.saveNow(); api.close(); });
   q('.wd-bag').addEventListener('click', () => { audio(); if(WD.openBag && !WD.paused && WD.mode === 'explore') WD.openBag(); });
@@ -428,7 +428,8 @@ WD.$ = s => root.querySelector(s);
 /* ================= little UI ================= */
 let toastT = 0;
 WD.toast = function(text){ const el = WD.$('.wd-toast'); el.textContent = text; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 2700); };
-WD.showArea = function(name, sub){ const a = WD.$('.wd-area'); a.querySelector('b').textContent = name; a.querySelector('span').textContent = sub || ''; a.classList.add('show'); setTimeout(() => a.classList.remove('show'), 3000); };
+let areaT = 0;
+WD.showArea = function(name, sub){ const a = WD.$('.wd-area'); const g = WD.$('.wd-goal'); g.style.visibility = 'hidden'; clearTimeout(areaT); areaT = setTimeout(() => { g.style.visibility = ''; }, 3300); a.querySelector('b').textContent = name; a.querySelector('span').textContent = sub || ''; a.classList.add('show'); setTimeout(() => a.classList.remove('show'), 3000); };
 WD.setGoal = function(text){ const g = WD.$('.wd-goal'); if(!text){ g.hidden = true; return; } const was = g.querySelector('span').textContent; g.querySelector('span').textContent = text; g.hidden = false; if(was !== text){ g.classList.remove('new'); void g.offsetWidth; g.classList.add('new'); } };
 WD.showGoal = function(on){ const g = WD.$('.wd-goal'); if(on && g.querySelector('span').textContent) g.hidden = false; else if(!on) g.hidden = true; };
 /* a card (end of chapter, confirmations). buttons: [{label, sub, alt}] → index */
@@ -532,7 +533,7 @@ async function start(host, apiIn){
   if(!document.getElementById('wd-css')){ const st = document.createElement('style'); st.id = 'wd-css'; st.textContent = CSS; document.head.appendChild(st); }
   host.innerHTML = ''; host.style.background = '#000';
   root = document.createElement('div'); root.className = 'wd'; root.innerHTML = HTML; host.appendChild(root); WD.root = root;
-  root.querySelector('.wd-mute').textContent = WD.soundOn ? '♪' : '✕';
+  root.querySelector('.wd-mute').textContent = WD.soundOn ? '♪' : '🔇';
   WD.cv = root.querySelector('.wd-cv'); WD.ctx = WD.cv.getContext('2d');
   resize(); addEventListener('resize', resize); addEventListener('orientationchange', resize);
   addEventListener('keydown', onKey); addEventListener('keyup', onKey);

@@ -53,14 +53,19 @@ WD.gotoArea = function(id, x, y, opts){
     W.npcs.forEach(n => { if(n.name) WD.actors[n.name] = n; });
     WD.light = A.light; WD.cam.lock = false; WD.cam.z = A.camZ; WD.cam.x = camTarget(); WD.cam.y = 66;
     WD.MUS.play(A.music);
-    WD.setScene(EXPLORE, opts.cut ? 'cutscene' : 'explore'); WD.showControls(!opts.cut); WD.showGoal(!opts.cut);
+    // stay in 'cutscene' until the area's own intro (if any) has had its chance to run
+    WD.setScene(EXPLORE, 'cutscene'); WD.showControls(false); WD.showGoal(false);
     if(WD.updateGoal) WD.updateGoal();
     if(!opts.quiet) WD.showArea(A.name, A.sub);
     WD.saveNow();
   };
-  if(opts.instant) { go(); return Promise.resolve().then(() => { if(W.area.enter) return W.area.enter(opts.from); }); }
+  const after = async () => {
+    try{ if(W.area.enter) await W.area.enter(opts.from); }catch(e){ console.error(e); }
+    if(!opts.cut && WD.mode === 'cutscene' && !WD.inCut()){ WD.mode = 'explore'; WD.letter = 0; WD.showControls(true); WD.showGoal(true); }
+  };
+  if(opts.instant){ go(); return after(); }
   WD.mode = 'cutscene'; WD.showControls(false);
-  return WD.pageTurn(go).then(() => { if(W.area.enter) return W.area.enter(opts.from); });
+  return WD.pageTurn(go).then(after);
 };
 function viewHalf(){ return WD.view.w / (2 * WD.view.S * WD.cam.z); }
 function camTarget(){

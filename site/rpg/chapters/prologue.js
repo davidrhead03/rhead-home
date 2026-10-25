@@ -146,7 +146,7 @@ function drawFicus(c, x, base, t){
 /* ================= AREA: home ================= */
 const tryDone = () => F('try_call') && F('try_joke') && F('try_pan');
 WD.defineArea('home', {
-  name: 'Home', sub: 'Tivoli Park · Deerfield Beach', music: 'home', light: 'indoor', minX: 70, maxX: 700, laneTop: 46, laneBot: 92, camMin: -60, camMax: 800, camZ: 1.12, battleBack: 'walk',
+  name: 'Home', sub: 'Tivoli Park · Deerfield Beach', music: 'home', light: 'indoor', minX: 70, maxX: 700, laneTop: 46, laneBot: 92, camMin: -60, camMax: 800, camZ: .92, battleBack: 'walk',
   npcs(){
     const n = [];
     if(!F('taken')){ NPC.dayla = WD.makeEnt({ kind: 'dog', name: 'Dayla', x: 450, y: 62, dir: 1, eat: 1, light: 'indoor', talkTo: talkDayla, label: !F('try_call') ? 'Call her' : !F('try_joke') ? 'Joke' : 'Dayla', faceable: false }); n.push(NPC.dayla); }
@@ -192,8 +192,8 @@ WD.defineArea('home', {
       if(!F('taken')) await me('The little wooden cross on the wall.', 'La crucecita en la pared.', 'happy');
       else await me('Lord, keep her safe wherever she is. Help us bring her home.', { t: 'Lord, take care of her. Help us find her.', es: 'Dios mío, cuídala. Ayúdanos a encontrarla.' }, 'sad');
     }) });
-    L.push({ x: 686, y: 50, label: 'Bible', h: 72, act: () => WD.cut(async () => { await me('My Bible, right where I left it.', { t: 'My Bible, right where I left it.', es: 'Mi Biblia, donde la dejé.' }, 'happy'); }) });
-    L.push({ x: 728, y: 60, label: 'Front door', h: 130, r: 60, act: frontDoor });
+    L.push({ x: 672, y: 46, label: 'Bible', h: 72, r: 30, act: () => WD.cut(async () => { await me('My Bible, right where I left it.', { t: 'My Bible, right where I left it.', es: 'Mi Biblia, donde la dejé.' }, 'happy'); }) });
+    L.push({ x: 712, y: 62, label: 'Front door', h: 130, r: 70, act: frontDoor });
     if(F('taken') && !F('clue_print')) L.push({ x: 128, y: 62, label: 'Footprint', h: 30, act: () => clueGet('print') });
     if(F('taken') && !F('clue_duck')) L.push({ x: 492, y: 74, label: 'Duck', h: 34, act: () => clueGet('duck') });
     if(F('taken') && !F('clue_glove')) L.push({ x: 254, y: 82, label: 'Glove', h: 30, act: () => clueGet('glove') });
@@ -210,7 +210,7 @@ async function opening(){
     const p = W.player; p.x = 330; p.y = 66; p.dir = 1;
     WD.cam.lock = true; WD.cam.x = 470; WD.cam.z = 1.5;
     await WD.wait(500);
-    await WD.camTo(420, 1.15, 2400);
+    await WD.camTo(420, .95, 2400);
     await me('Morning. Coffee’s brewing, the sun’s out, and Dayla is eating like it’s her job.', { t: 'What a beautiful morning. Coffee, sunshine, and Dayla eating like it’s her full-time job.', es: 'Ay, qué mañana tan bonita. Café, sol, y Dayla comiendo como si fuera su trabajo.' }, 'happy');
     await dayla('(Munch munch munch. She has not looked up once.)');
     await me('Watch this. I bet I can get her to look up before that bowl is empty.', { t: 'Dayla, mi amor, look at mami! …Nothing. Okay. Challenge accepted.', es: '¡Dayla, mi amor, mira a mami! …Nada. Okay. Reto aceptado.' }, 'smirk');
@@ -323,7 +323,7 @@ async function kidnapping(){
   W.player.backProp = null; W.player.backArm = 0;
   WD.mode = 'cutscene';
   WD.MUS.play('mystery');
-  WD.cam.lock = true; WD.cam.x = 470; WD.cam.z = 1.12;
+  WD.cam.lock = true; WD.cam.x = 470; WD.cam.z = .95;
   await WD.fade(0, 400);
   await WD.walkTo(W.player, 520, 64, 160);
   await me('Dayla? …DAYLA!', { t: '¿Dayla? ¡DAYLA! ¡Mi amor!', es: '¿Dayla? ¡DAYLA! ¡Mi amor!' }, 'surprised');
@@ -527,7 +527,7 @@ async function dumpsterScene(){
     const G = WD.G; G.partner = 'alejandro'; G.party.alejandro = { hp: 8, mhp: 8 };
     W.npcs = W.npcs.filter(e => e !== al); W.partner = al; al.nervous = false; al.follow = true;
     WD.sfx('level');
-    await WD.card(`<i class="k">New partner</i><h2>Alejandro joined you!</h2><p>Dayla’s friend from around the community. A light brown, long-bodied chihuahua with the best nose in Tivoli Park.</p><ul><li><b>🐾 Sniff</b> near clues and loose dirt to find things.</li><li>In battle: <b>Long-Body Spin</b> and <b>Nervous Yap</b>. <b>Sniff</b> tells you about an enemy.</li></ul>`, [{ label: 'Let’s go!', alt: true }]);
+    await WD.card(`<i class="k">New partner</i><h2>Alejandro joined you!</h2><p>Dayla’s friend from around the community. A black and white, long-bodied chihuahua with the best nose in Tivoli Park.</p><ul><li><b>🐾 Sniff</b> near clues and loose dirt to find things.</li><li>In battle: <b>Long-Body Spin</b> and <b>Nervous Yap</b>. <b>Sniff</b> tells you about an enemy.</li></ul>`, [{ label: 'Let’s go!', alt: true }]);
     S('veci_gone');
     await WD.walkTo(v, WD.cam.x - 400, 74, 120); W.npcs = W.npcs.filter(e => e !== v); NPC.veci = null;
     WD.cam.lock = false;
@@ -575,7 +575,7 @@ async function toyGet(k, name, desc){
 
 /* ================= AREA: Veci's place ================= */
 WD.defineArea('den', {
-  name: 'Veci’s Place', sub: 'Tivoli Park', music: 'den', light: 'indoor', minX: 70, maxX: 640, laneTop: 46, laneBot: 92, camMin: -60, camMax: 700, battleBack: 'walk',
+  name: 'Veci’s Place', sub: 'Tivoli Park', music: 'den', light: 'indoor', minX: 70, maxX: 640, laneTop: 46, laneBot: 92, camMin: -60, camMax: 700, camZ: .92, battleBack: 'walk',
   drawBack(t){ const c = WD.ctx; c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = '#9E8C70'; c.fillRect(0, 0, WD.cv.width, WD.cv.height); WD.setLayer(1); WD.drawDenRoom(c, t); },
   things(){
     const L = [];
@@ -596,7 +596,7 @@ const C_PALMS = [{ x: 60, h: 190 }, { x: 540, h: 200 }, { x: 640, h: 176 }, { x:
 const C_FRONT = Array.from({ length: 12 }, (_, i) => ({ x: -60 + i * 240 + R1() * 80, k: R1() < .5 ? 'frond' : 'bush', s: .8 + R1() * .5 }));
 const C_TRACKS = Array.from({ length: 21 }, (_, i) => ({ x: 70 + i * 56, y: 58 + (i % 2) * 10, r: (i % 2 ? .1 : -.1) })).concat(Array.from({ length: 5 }, (_, i) => ({ x: 1360 + i * 56, y: 58 + (i % 2) * 10, r: (i % 2 ? .1 : -.1) })));
 WD.defineArea('courts', {
-  name: 'Courts & Pool', sub: 'Tivoli Park', music: 'courts', minX: 40, maxX: 1820, battleBack: 'courts',
+  name: 'Courts & Pool', sub: 'Tivoli Park', music: 'courts', minX: 40, maxX: 1820, camZ: 1.0, battleBack: 'courts',
   exits: { left: { to: 'walk', x: 1860 } },
   limit(nx, px){
     if(F('canal')) return nx;

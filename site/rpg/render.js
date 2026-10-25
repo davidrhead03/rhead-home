@@ -17,7 +17,7 @@ const LOOKS = WD.LOOKS = {
   Samuel: { skin: '#E3B48E', hair: '#3A271C', hairStyle: 'curly', top: '#7FA6C9', pants: '#C9BFA9', shoes: '#5A4C42', height: 1.02, eye: '#2A1A14', glasses: true }
 };
 const DOG = { base: '#A65A3A', dark: '#874630', light: '#BE7550', white: '#FBF4EA', pink: '#E8A39A', nose: '#7A4A40', eye: '#3B2116', iris: '#8A5A2B' };
-const CHI = { base: '#D7A267', dark: '#B9824C', light: '#ECC795', cream: '#F6E6C8', pink: '#EDA79C', nose: '#4A302A', eye: '#2A1A14' };
+const CHI = { base: '#2B2729', dark: '#1D1A1C', light: '#4A4447', cream: '#F7F3EC', pink: '#E9A3A0', nose: '#141113', eye: '#1A1414' };
 const CATS = WD.CATS = {
   agent: { fur: '#8E939C', dark: '#6E737C', light: '#D9DCE0', eye: '#9ACD5A', suit: '#24242B', tie: '#C2453A', shades: true, earpiece: true, size: 1 },
   agent2: { fur: '#C99C6E', dark: '#A77B50', light: '#F0DCC0', eye: '#9ACD5A', suit: '#24242B', tie: '#3E6FB5', shades: true, earpiece: true, size: .95, stripes: '#A77B50' },
@@ -175,7 +175,7 @@ function drawChi(c, st){
   [[-5, -.5 + ew], [3, .2 - ew]].forEach(([x, a], i) => { c.save(); c.translate(x, -5); c.rotate(a); c.fillStyle = i ? D.base : D.dark; c.beginPath(); c.moveTo(-5.5, 2); c.quadraticCurveTo(-6.5, -10, 0, -17); c.quadraticCurveTo(6, -10, 5, 2); c.closePath(); c.fill(); c.fillStyle = D.pink; c.beginPath(); c.moveTo(-3, 0); c.quadraticCurveTo(-3.6, -8, 0, -12.5); c.quadraticCurveTo(3, -8, 2.6, 0); c.closePath(); c.fill(); c.restore(); });
   c.fillStyle = D.base; ell(c, 0, 0, 8.6, 8); c.fill();
   c.fillStyle = D.light; ell(c, -1, -4, 5, 2.4); c.fill();
-  c.fillStyle = D.cream; ell(c, 6.6, 3.2, 4.6, 3.4); c.fill();
+  c.fillStyle = D.cream; c.beginPath(); c.moveTo(1.6, -8); c.quadraticCurveTo(4, -8.2, 3.8, -3); c.lineTo(4.4, 2); c.lineTo(1, 2); c.quadraticCurveTo(.4, -3, 1.6, -8); c.fill(); ell(c, 6.6, 3.2, 4.6, 3.4); c.fill();
   c.fillStyle = D.nose; ell(c, 10.4, 2, 1.8, 1.4); c.fill();
   // bulgy eyes
   [[-1, -1, 3.4], [6, -1.6, 3]].forEach(([x, y, r]) => { if(st.blink > 0){ c.strokeStyle = D.eye; c.lineWidth = 1.1; c.beginPath(); c.moveTo(x - r, y); c.lineTo(x + r, y); c.stroke(); return; } c.fillStyle = '#FFFBF2'; ell(c, x, y, r + .7, r + .7); c.fill(); c.fillStyle = D.eye; ell(c, x + .6, y + .2, r * .78, r * .82); c.fill(); c.fillStyle = '#fff'; ell(c, x + 1.6, y - 1, r * .32, r * .32); c.fill(); ell(c, x - .4, y + 1.3, r * .14, r * .14); c.fill(); });
@@ -293,14 +293,14 @@ function drawCoat(c, st){
   const coat = '#B48A57', coatD = '#8E6A40', hat = '#3F2E24';
   // tiny paws peeking out the bottom
   const s = Math.sin(w) * 3 * mv;
-  c.fillStyle = '#D7A267'; ell(c, -5 + s, -1, 3.2, 1.8); c.fill(); ell(c, 6 - s, -1, 3.2, 1.8); c.fill();
+  c.fillStyle = '#F7F3EC'; ell(c, -5 + s, -1, 3.2, 1.8); c.fill(); ell(c, 6 - s, -1, 3.2, 1.8); c.fill();
   // coat
   c.fillStyle = coat; c.beginPath(); c.moveTo(-12, -2); c.quadraticCurveTo(-15, -40, -10, -70); c.lineTo(10, -70); c.quadraticCurveTo(16, -40, 13, -2); c.closePath(); c.fill(); edge(c, coat, 1);
   c.fillStyle = coatD; c.beginPath(); c.moveTo(1, -66); c.lineTo(3, -2); c.lineTo(-1, -2); c.closePath(); c.fill();
   c.fillStyle = '#6E5030'; c.fillRect(-13, -38, 27, 3.4); c.fillStyle = '#D9B04A'; rr(c, -1, -39, 4, 5, 1); c.fill();
   [[-6, -58], [-6, -48], [6, -58], [6, -48]].forEach(([x, y]) => { c.fillStyle = '#5A4028'; c.beginPath(); c.arc(x, y, 1.1, 0, 7); c.fill(); });
   // sleeves + gloved hands
-  const arm = (x, a, glove) => { c.save(); c.translate(x, -66); c.rotate(a + (st.armRaise || 0)); c.fillStyle = coat; rr(c, -3.6, 0, 7.2, 22, 3.4); c.fill(); edge(c, coat, .8); c.fillStyle = glove ? '#5C3B26' : '#D7A267'; ell(c, 0, 23, 3.6, 3.4); c.fill(); c.restore(); };
+  const arm = (x, a, glove) => { c.save(); c.translate(x, -66); c.rotate(a + (st.armRaise || 0)); c.fillStyle = coat; rr(c, -3.6, 0, 7.2, 22, 3.4); c.fill(); edge(c, coat, .8); c.fillStyle = glove ? '#5C3B26' : '#2B2729'; ell(c, 0, 23, 3.6, 3.4); c.fill(); c.restore(); };
   arm(-9, .15 + (st.backArm || 0), true);
   // collar up
   c.fillStyle = coatD; c.beginPath(); c.moveTo(-11, -70); c.lineTo(-7, -84); c.lineTo(0, -74); c.lineTo(7, -84); c.lineTo(11, -70); c.closePath(); c.fill();

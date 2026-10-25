@@ -85,14 +85,14 @@ const CSS = `
 .wd-p{right:calc(env(safe-area-inset-right,0px) + 30px);bottom:calc(env(safe-area-inset-bottom,0px) + 140px);width:56px;height:56px;background:#9BD27A;font-size:22px}
 /* battle */
 .wd-bhud{position:absolute;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 10px);display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding-inline:max(64px,calc(env(safe-area-inset-left,0px) + 64px)) max(118px,calc(env(safe-area-inset-right,0px) + 118px));z-index:14;pointer-events:none}
-.wd-hp{background:var(--paper);border-radius:14px;padding:5px 10px 6px;box-shadow:0 0 0 3px var(--ink),0 4px 0 rgba(43,29,20,.3);min-width:0}
-.wd-hp b{font-family:var(--display);font-weight:800;font-size:14px;display:block;line-height:1.1;white-space:nowrap}
-.wd-hp .bar{width:92px;max-width:22vw;height:9px;border-radius:9px;background:#E7D7BC;box-shadow:inset 0 0 0 2px var(--ink);overflow:hidden;margin-top:4px}
+.wd-hp{background:var(--paper);border-radius:12px;padding:3px 9px 4px;box-shadow:0 0 0 3px var(--ink),0 4px 0 rgba(43,29,20,.3);min-width:0}
+.wd-hp b{font-family:var(--display);font-weight:800;font-size:13px;display:block;line-height:1.1;white-space:nowrap}
+.wd-hp .bar{width:92px;max-width:22vw;height:8px;border-radius:8px;background:#E7D7BC;box-shadow:inset 0 0 0 2px var(--ink);overflow:hidden;margin-top:3px}
 .wd-hp .bar i{display:block;height:100%;background:linear-gradient(#7CD86A,#3FA048);transition:width .35s}
 .wd-hp.foe .bar i{background:linear-gradient(#FF8A6B,#D6452B)}
 .wd-hp.ko{opacity:.5}
-.wd-hp small{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums}
-.wd-hpcol{display:grid;gap:7px;align-content:start}
+.wd-hp small{font-size:11px;font-weight:800;font-variant-numeric:tabular-nums}
+.wd-hpcol{display:grid;gap:5px;align-content:start}
 .wd-hype{background:var(--ink);color:var(--sun);border-radius:99px;padding:4px 11px 5px;font-size:15px;letter-spacing:2px;box-shadow:0 0 0 3px var(--paper);align-self:flex-start;white-space:nowrap;text-align:center}
 .wd-hype small{display:block;font-size:9.5px;letter-spacing:.12em;color:var(--paper);font-weight:800;opacity:.8}
 .wd-bmenu{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);display:flex;flex-wrap:wrap;gap:9px;justify-content:center;padding-inline:max(12px,env(safe-area-inset-left,0px)) max(12px,env(safe-area-inset-right,0px));z-index:16}

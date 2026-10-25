@@ -656,12 +656,27 @@ WD.drawClubhouseBack = function(c, t){
   c.save(); c.translate(0, -16); WD.drawClubhouse(c, -150, t); c.restore();
   [-210, -170, 150, 196].forEach((x, i) => WD.drawPalm(c, x, -14, 150 + i * 8, (i - 1.5) * .06, t, i, WD.PALMCOL, true));
 };
+/* keep battle words and timing bars out from under the HUD boxes at the top */
+let hudRects = [], hudAt = 0, hudK = 1;
+function readHud(){
+  const now = performance.now(); if(now - hudAt < 200) return; hudAt = now;
+  const root = WD.root, h = WD.$('.wd-bhud'); if(!root || !h || h.hidden){ hudRects = []; return; }
+  const r0 = root.getBoundingClientRect();
+  hudRects = [...h.querySelectorAll('.wd-hp, .wd-hype, .wd-lvchip')].map(el => { const r = el.getBoundingClientRect(); return { l: r.left - r0.left, r: r.right - r0.left, b: r.bottom - r0.top }; }).filter(r => r.r > r.l);
+}
+/* lowest world-y a thing centred at world x (half-width hw, in world units) may reach */
+function hudFloor(x, hw){
+  const v = WD.view, k0 = hudK, sx = v.w / 2 + x * k0, sw = (hw || 30) * k0; let b = -1e9;
+  hudRects.forEach(r => { if(sx + sw > r.l - 4 && sx - sw < r.r + 4) b = Math.max(b, r.b + 6); });
+  return b < -1e8 ? -1e9 : (b - v.h * .64) / k0;
+}
+const below = (x, y, hw, h) => Math.max(y, hudFloor(x, hw) + (h || 0));
 const SCENE = { mode: 'battle' };
 SCENE.draw = function(t, dt){
   if(!B) return;
   const v = WD.view, ctx = WD.ctx; B.t += dt;
   [B.p, B.a].concat(B.foes.map(f => f.e)).forEach(e => e && WD.tickEnt(e, dt));
-  const k0 = Math.min(v.h / 300, v.w / 330), k = v.dpr * k0;
+  const k0 = Math.min(v.h / 300, v.w / 330), k = v.dpr * k0; hudK = k0; readHud();
   const shx = B.shake ? (Math.random() - .5) * B.shake * v.dpr : 0; B.shake = Math.max(0, B.shake - dt * 40);
   const fx = v.dpr * v.w / 2 + shx, fy = v.dpr * v.h * .64, W2 = v.w / k0 / 2 + 10;
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#1D1830'; ctx.fillRect(0, 0, WD.cv.width, WD.cv.height);
@@ -689,13 +704,13 @@ SCENE.draw = function(t, dt){
   ctx.setTransform(k, 0, 0, k, fx, fy);
   // dizzy stars
   B.foes.forEach(f => { if(!f.alive || !f.dizzy) return; for(let i = 0; i < 3; i++){ const a = t * 4 + i * 2.1; ctx.fillStyle = '#FFC94A'; star(ctx, f.e.x + Math.cos(a) * 12, -WD.headOf(f.e) * 1.25 - 6 + Math.sin(a) * 4, 3.4); } });
-  if(B.focusT > 0){ ctx.fillStyle = 'rgba(255,201,74,.9)'; ctx.font = '900 10px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.fillText('FOCUS', B.p.x, -152); }
-  [['p', B.p], ['a', B.a]].forEach(([k, e]) => { if(e && B.detain[k] > 0){ ctx.fillStyle = '#B39CE0'; ctx.font = '900 9px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.fillText('DETENTION', e.x, k === 'p' ? -140 : -66); } });
-  B.foes.forEach(f => { if(f.alive && f.brace){ ctx.fillStyle = '#58AEDD'; ctx.font = '900 9px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.fillText('BRACED', f.e.x, -WD.headOf(f.e) * 1.25 - 16); } if(f.alive && f.def.def){ ctx.fillStyle = 'rgba(185,188,194,.95)'; ctx.font = '900 8px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.fillText('ARMOUR ' + f.def.def, f.e.x, 16); } });
-  if(B.streak >= 2){ ctx.fillStyle = 'rgba(255,201,74,.9)'; ctx.font = '900 9px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.fillText('STREAK ×' + B.streak, B.p.x, -160); }
+  if(B.focusT > 0){ ctx.fillStyle = 'rgba(255,201,74,.9)'; ctx.font = '900 10px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.fillText('FOCUS', B.p.x, below(B.p.x, -152, 18, 10)); }
+  [['p', B.p], ['a', B.a]].forEach(([k, e]) => { if(e && B.detain[k] > 0){ ctx.fillStyle = '#B39CE0'; ctx.font = '900 9px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.fillText('DETENTION', e.x, below(e.x, k === 'p' ? -140 : -66, 26, 10)); } });
+  B.foes.forEach(f => { if(f.alive && f.brace){ ctx.fillStyle = '#58AEDD'; ctx.font = '900 9px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.fillText('BRACED', f.e.x, below(f.e.x, -WD.headOf(f.e) * 1.25 - 16, 20, 10)); } if(f.alive && f.def.def){ ctx.fillStyle = 'rgba(185,188,194,.95)'; ctx.font = '900 8px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.fillText('ARMOUR ' + f.def.def, f.e.x, 16); } });
+  if(B.streak >= 2){ ctx.fillStyle = 'rgba(255,201,74,.9)'; ctx.font = '900 9px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.fillText('STREAK ×' + B.streak, B.p.x, below(B.p.x, -160, 26, 22)); }
   if(B.wind > 0){ ctx.strokeStyle = `rgba(230,240,255,${.6 * Math.sin(B.wind * Math.PI)})`; ctx.lineWidth = 2; for(let i = 0; i < 9; i++){ const y = -150 + i * 18, x = W2 - (B.wind * 1.4 + i * .07) % 1 * W2 * 2.2; ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x - 40, y - 8, x - 90, y); ctx.stroke(); } }
   if(B.snatched && B.a){ const cf = B.foes.find(f => f.id === 'condor'); if(cf && cf.alive){ B.a.x = cf.e.x - 6; B.a.z = cf.e.z - 22; B.a.rot = Math.sin(t * 6) * .2; } }
-  if(B.atkUp > 0){ ctx.fillStyle = 'rgba(255,201,74,.85)'; ctx.font = '900 10px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.fillText('ATK ↑', B.p.x, -142); }
+  if(B.atkUp > 0){ ctx.fillStyle = 'rgba(255,201,74,.85)'; ctx.font = '900 10px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.fillText('ATK ↑', B.p.x, below(B.p.x, -142, 16, 34)); }
   // projectiles
   B.proj.forEach(pr => { const u = pr.u, x = lerp(pr.x0, pr.x1, u), y = lerp(pr.y0, pr.y1, u) - Math.sin(u * Math.PI) * 50; ctx.save(); ctx.translate(x, y); if(pr.red){ ctx.fillStyle = 'rgba(255,70,50,.45)'; ell(ctx, 0, 0, 14 + Math.sin(t * 20) * 2, 14); ctx.fill(); } ctx.rotate(u * 14);
     if(WD.PROJ && WD.PROJ[pr.kind]) WD.PROJ[pr.kind](ctx, t);
@@ -708,11 +723,11 @@ SCENE.draw = function(t, dt){
   B.fx = B.fx.filter(p => (p.t -= dt) > 0); B.fx.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 220 * dt; ctx.globalAlpha = Math.min(1, p.t * 2); ctx.fillStyle = p.c; if(p.star) star(ctx, p.x, p.y, p.s * 1.3); else ctx.fillRect(p.x, p.y, p.s, p.s * 1.6); });
   ctx.globalAlpha = 1;
   B.texts = B.texts.filter(s => (s.t += dt) < 1.3); B.texts.forEach(s => { const a = s.t < .15 ? s.t / .15 : 1 - Math.max(0, s.t - .9) / .4, sc = s.big === 'huge' ? 1.6 : s.big ? 1.15 : .9, pop = 1 + Math.max(0, .25 - s.t) * 2;
-    ctx.save(); ctx.translate(s.x, s.y - s.t * 18); ctx.scale(sc * pop, sc * pop); ctx.globalAlpha = Math.max(0, a); ctx.font = '900 16px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round'; ctx.lineWidth = 6; ctx.strokeStyle = '#2B1D14'; ctx.strokeText(s.s, 0, 0); ctx.lineWidth = 3; ctx.strokeStyle = '#FFF8EC'; ctx.strokeText(s.s, 0, 0); ctx.fillStyle = s.col; ctx.fillText(s.s, 0, 0); ctx.restore(); });
+    const tw2 = Math.min(160, s.s.length * 5.4 * sc), th = 11 * sc * pop; ctx.save(); ctx.translate(s.x, below(s.x, s.y - s.t * 18, tw2, th)); ctx.scale(sc * pop, sc * pop); ctx.globalAlpha = Math.max(0, a); ctx.font = '900 16px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round'; ctx.lineWidth = 6; ctx.strokeStyle = '#2B1D14'; ctx.strokeText(s.s, 0, 0); ctx.lineWidth = 3; ctx.strokeStyle = '#FFF8EC'; ctx.strokeText(s.s, 0, 0); ctx.fillStyle = s.col; ctx.fillText(s.s, 0, 0); ctx.restore(); });
   ctx.globalAlpha = 1;
   drawCmd(t, v, k0);
   // phone call card
-  if(B.call){ B.call.t += dt; const u = Math.min(1, B.call.t * 4); ctx.save(); ctx.translate(0, -150 + (1 - u) * -40); ctx.globalAlpha = u; ctx.fillStyle = '#2B1D14'; rr(ctx, -46, -40, 92, 74, 14); ctx.fill(); ctx.fillStyle = '#E6F2FF'; rr(ctx, -42, -36, 84, 66, 11); ctx.fill(); WD.drawIcon(ctx, B.call.icon, 0, -8, 1.3, t); ctx.fillStyle = '#2B1D14'; ctx.font = '900 10px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.fillText(B.call.name, 0, 22); const r = Math.sin(t * 20) * 2; ctx.fillStyle = '#7CD86A'; ell(ctx, 34 + r, -30, 5, 5); ctx.fill(); ctx.restore(); }
+  if(B.call){ B.call.t += dt; const u = Math.min(1, B.call.t * 4); ctx.save(); ctx.translate(0, below(0, -150, 48, 42) + (1 - u) * -40); ctx.globalAlpha = u; ctx.fillStyle = '#2B1D14'; rr(ctx, -46, -40, 92, 74, 14); ctx.fill(); ctx.fillStyle = '#E6F2FF'; rr(ctx, -42, -36, 84, 66, 11); ctx.fill(); WD.drawIcon(ctx, B.call.icon, 0, -8, 1.3, t); ctx.fillStyle = '#2B1D14'; ctx.font = '900 10px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.fillText(B.call.name, 0, 22); const r = Math.sin(t * 20) * 2; ctx.fillStyle = '#7CD86A'; ell(ctx, 34 + r, -30, 5, 5); ctx.fill(); ctx.restore(); }
   // crowd
   B.cheer = Math.max(0, B.cheer - dt * .8);
   ctx.setTransform(k, 0, 0, k, fx, fy);
@@ -733,9 +748,9 @@ function drawCurtain(x, w, right){ const ctx = WD.ctx, v = WD.view; if(w < 1) re
 function drawCmd(t, v, k0){
   const c = cmd, ctx = WD.ctx; if(!c || !c.show) return;
   const leftEdge = -(v.w / k0) / 2 + 26;
-  if(c.kind === 'hold'){ const x = Math.max(B.p.x - 30, leftEdge), y = -138; ctx.fillStyle = '#2B1D14'; rr(ctx, x - 3, y - 3, 66, 14, 7); ctx.fill(); ctx.fillStyle = '#FFF8EC'; rr(ctx, x, y, 60, 8, 4); ctx.fill(); ctx.fillStyle = '#7CD86A'; ctx.fillRect(x + 60 * .66, y, 60 * .29, 8); ctx.fillStyle = '#FFC94A'; ctx.fillRect(x + 60 * .78, y, 60 * .1, 8); ctx.fillStyle = '#E8593C'; ctx.fillRect(x, y, 60 * Math.min(1, c.v), 8);
+  if(c.kind === 'hold'){ const x = Math.max(B.p.x - 30, leftEdge), y = below(x + 30, -138, 50, 20); ctx.fillStyle = '#2B1D14'; rr(ctx, x - 3, y - 3, 66, 14, 7); ctx.fill(); ctx.fillStyle = '#FFF8EC'; rr(ctx, x, y, 60, 8, 4); ctx.fill(); ctx.fillStyle = '#7CD86A'; ctx.fillRect(x + 60 * .66, y, 60 * .29, 8); ctx.fillStyle = '#FFC94A'; ctx.fillRect(x + 60 * .78, y, 60 * .1, 8); ctx.fillStyle = '#E8593C'; ctx.fillRect(x, y, 60 * Math.min(1, c.v), 8);
     ctx.font = '900 11px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.lineWidth = 3; ctx.strokeStyle = '#2B1D14'; const s = c.holding ? 'Let go in the green!' : 'Hold A'; ctx.strokeText(s, x + 30, y - 8); ctx.fillStyle = '#FFF8EC'; ctx.fillText(s, x + 30, y - 8); }
-  if(c.kind === 'ring'){ const x = c.x || 0, y = c.y || -36, rad = 46 * (1 - c.u); ctx.lineWidth = 3; ctx.strokeStyle = '#FFF8EC'; ctx.beginPath(); ctx.arc(x, y, 14, 0, 7); ctx.stroke(); ctx.strokeStyle = '#FFC94A'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(x, y, Math.max(1, rad), 0, 7); ctx.stroke(); ctx.font = '900 11px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.lineWidth = 3; ctx.strokeStyle = '#2B1D14'; ctx.strokeText('Tap A!', x, y - 54); ctx.fillStyle = '#FFF8EC'; ctx.fillText('Tap A!', x, y - 54); }
-  if(c.kind === 'mash'){ const x = Math.max((B.a ? B.a.x : B.p.x) - 30, leftEdge), y = -100; ctx.fillStyle = '#2B1D14'; rr(ctx, x - 3, y - 3, 66, 14, 7); ctx.fill(); ctx.fillStyle = '#FFF8EC'; rr(ctx, x, y, 60, 8, 4); ctx.fill(); ctx.fillStyle = '#58AEDD'; ctx.fillRect(x, y, 60 * Math.min(1, c.n / 18), 8); ctx.font = '900 11px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.lineWidth = 3; ctx.strokeStyle = '#2B1D14'; ctx.strokeText('Mash A!', x + 30, y - 8); ctx.fillStyle = '#FFF8EC'; ctx.fillText('Mash A!', x + 30, y - 8); ctx.fillStyle = '#FFC94A'; ctx.fillText(Math.max(0, Math.ceil((1 - c.u) * c.secs)) + 's', x + 72, y + 7); }
+  if(c.kind === 'ring'){ const x = c.x || 0, y = c.y || -36, rad = 46 * (1 - c.u), ly = hudFloor(x, 24) + 10 > y - 54 ? y + 64 : y - 54; ctx.lineWidth = 3; ctx.strokeStyle = '#FFF8EC'; ctx.beginPath(); ctx.arc(x, y, 14, 0, 7); ctx.stroke(); ctx.strokeStyle = '#FFC94A'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(x, y, Math.max(1, rad), 0, 7); ctx.stroke(); ctx.font = '900 11px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.lineWidth = 3; ctx.strokeStyle = '#2B1D14'; ctx.strokeText('Tap A!', x, ly); ctx.fillStyle = '#FFF8EC'; ctx.fillText('Tap A!', x, ly); }
+  if(c.kind === 'mash'){ const x = Math.max((B.a ? B.a.x : B.p.x) - 30, leftEdge), y = below(x + 30, -100, 50, 20); ctx.fillStyle = '#2B1D14'; rr(ctx, x - 3, y - 3, 66, 14, 7); ctx.fill(); ctx.fillStyle = '#FFF8EC'; rr(ctx, x, y, 60, 8, 4); ctx.fill(); ctx.fillStyle = '#58AEDD'; ctx.fillRect(x, y, 60 * Math.min(1, c.n / 18), 8); ctx.font = '900 11px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.lineWidth = 3; ctx.strokeStyle = '#2B1D14'; ctx.strokeText('Mash A!', x + 30, y - 8); ctx.fillStyle = '#FFF8EC'; ctx.fillText('Mash A!', x + 30, y - 8); ctx.fillStyle = '#FFC94A'; ctx.fillText(Math.max(0, Math.ceil((1 - c.u) * c.secs)) + 's', x + 72, y + 7); }
 }
 })();

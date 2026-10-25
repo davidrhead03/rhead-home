@@ -253,6 +253,28 @@ WD.PINS = {
   honor: { name: 'Honor Roll Pin', pp: 1, desc: 'NICE and PERFECT attacks give 1 extra Hype.' },
   eagle: { name: 'Eagle Ray Pin', pp: 2, desc: 'Your Jump Shot or Heel Stomp hits 1 harder.' }
 };
+/* every pin has its own enamel art: kind 'pin_<id>' */
+const PIN_ART = {
+  pearl(c){ c.fillStyle = '#E9D6E6'; c.beginPath(); c.arc(0, 0, 7.8, 0, 7); c.fill(); c.fillStyle = '#E8B84A'; c.beginPath(); c.moveTo(-3, 4.6); c.lineTo(0, 2); c.lineTo(3, 4.6); c.closePath(); c.fill(); const g = c.createRadialGradient(-1.6, -2.4, .5, 0, -.6, 5.2); g.addColorStop(0, '#FFFFFF'); g.addColorStop(.6, '#F4EEF2'); g.addColorStop(1, '#C9BCC8'); c.fillStyle = g; c.beginPath(); c.arc(0, -.6, 4.6, 0, 7); c.fill(); },
+  honor(c){ c.fillStyle = '#2F4A86'; c.beginPath(); c.arc(0, 0, 7.8, 0, 7); c.fill(); c.fillStyle = '#E8593C'; c.beginPath(); c.moveTo(-4, 3); c.lineTo(-6, 9); c.lineTo(-3.4, 7.6); c.lineTo(-1.6, 9.6); c.lineTo(-.6, 3); c.fill(); c.beginPath(); c.moveTo(4, 3); c.lineTo(6, 9); c.lineTo(3.4, 7.6); c.lineTo(1.6, 9.6); c.lineTo(.6, 3); c.fill(); c.fillStyle = '#FFC94A'; WD.U.star(c, 0, -.6, 5.4); c.fillStyle = '#2F4A86'; c.font = '900 3.4px Grandstander, system-ui'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('A+', 0, .2); },
+  eagle(c){ c.fillStyle = '#7A1F2B'; c.beginPath(); c.arc(0, 0, 7.8, 0, 7); c.fill(); if(WD.drawRay) WD.drawRay(c, 0, -1, .26, '#FFF8EC', 0, false); else { c.fillStyle = '#FFF8EC'; c.beginPath(); c.moveTo(-6, 0); c.quadraticCurveTo(0, -5, 6, 0); c.quadraticCurveTo(0, 2, -6, 0); c.fill(); } },
+  tricolor(c){ c.save(); c.beginPath(); c.arc(0, 0, 7.8, 0, 7); c.clip(); c.fillStyle = '#FCD116'; c.fillRect(-8, -8, 16, 8); c.fillStyle = '#003893'; c.fillRect(-8, 0, 16, 4); c.fillStyle = '#CE1126'; c.fillRect(-8, 4, 16, 4); c.restore(); },
+  ruana(c){ c.fillStyle = '#F2E6CF'; c.beginPath(); c.arc(0, 0, 7.8, 0, 7); c.fill(); c.fillStyle = '#7A4A2E'; c.beginPath(); c.moveTo(-6, -2); c.lineTo(-1.6, -5); c.lineTo(1.6, -5); c.lineTo(6, -2); c.lineTo(5, 5.4); c.lineTo(-5, 5.4); c.closePath(); c.fill(); c.fillStyle = '#FCD116'; c.fillRect(-5.6, 1, 11, 1.2); c.fillStyle = '#CE1126'; c.fillRect(-5.4, 2.8, 10.8, 1.2); c.fillStyle = '#F2E6CF'; c.beginPath(); c.arc(0, -4.6, 1.7, 0, 7); c.fill(); c.strokeStyle = '#5A341E'; c.lineWidth = .5; for(let x = -4; x <= 4; x += 2){ c.beginPath(); c.moveTo(x, 5.4); c.lineTo(x, 6.8); c.stroke(); } },
+  oro(c){ c.fillStyle = '#2E5A44'; c.beginPath(); c.arc(0, 0, 7.8, 0, 7); c.fill(); c.fillStyle = '#E8B84A'; c.beginPath(); c.ellipse(0, 1, 4.6, 3.4, 0, 0, 7); c.fill(); [[-3.2, -2.2], [3.2, -2.2]].forEach(([a, b]) => { c.beginPath(); c.arc(a, b, 1.7, 0, 7); c.fill(); }); [[-4.4, 4], [4.4, 4]].forEach(([a, b]) => { c.beginPath(); c.ellipse(a, b, 1.8, .9, 0, 0, 7); c.fill(); }); c.fillStyle = '#2B1D14'; [[-3.2, -2.4], [3.2, -2.4]].forEach(([a, b]) => { c.beginPath(); c.arc(a, b, .6, 0, 7); c.fill(); }); }
+};
+WD.PIN_ART = PIN_ART;
+const iconBeforePins = WD.drawIcon;
+WD.drawIcon = function(c, kind, x, y, s, t){
+  const art = typeof kind === 'string' && kind.slice(0, 4) === 'pin_' ? PIN_ART[kind.slice(4)] : null;
+  if(!art) return iconBeforePins(c, kind, x, y, s, t);
+  c.save(); c.translate(x, y - s * 1.5); c.scale(s * 1.4, s * 1.4);
+  c.fillStyle = '#9AA0A6'; c.fillRect(-1.2, 8, 2.4, 6);
+  c.fillStyle = '#E8B84A'; c.beginPath(); c.arc(0, 0, 10, 0, 7); c.fill(); c.strokeStyle = '#B88A2A'; c.lineWidth = .8; c.beginPath(); c.arc(0, 0, 9.2, 0, 7); c.stroke();
+  art(c);
+  c.fillStyle = 'rgba(255,255,255,.35)'; c.beginPath(); c.ellipse(-3.4, -4.6, 2.6, 1.2, -.6, 0, 7); c.fill();
+  c.restore();
+};
+WD.pinIcon = id => PIN_ART[id] ? 'pin_' + id : 'pin';
 WD.hasPin = id => !!(WD.G && WD.G.worn && WD.G.worn.includes(id));
 WD.ppUsed = () => ((WD.G && WD.G.worn) || []).reduce((n, id) => n + (WD.PINS[id] ? WD.PINS[id].pp : 0), 0);
 WD.givePin = id => { const G = WD.G; G.pins = G.pins || []; G.worn = G.worn || []; if(!G.pins.includes(id)) G.pins.push(id); if(WD.ppUsed() + WD.PINS[id].pp <= G.mpp && !G.worn.includes(id)) G.worn.push(id); };
@@ -296,11 +318,11 @@ WD.openBag = function(tab){
   } else if(bagTab === 'pins'){
     const pins = (G.pins || []).filter(id => WD.PINS[id]), used = WD.ppUsed();
     if(!pins.includes(bagSel.pins)) bagSel.pins = pins[0] || null;
-    let tiles = head('Your pins', `${used}/${G.mpp} PP worn`) + (pins.length ? pins.map(id => tile(id, 'pin', WD.PINS[id].name, WD.hasPin(id) ? '●' : '', !WD.hasPin(id))).join('') : '');
+    let tiles = head('Your pins', `${used}/${G.mpp} PP worn`) + (pins.length ? pins.map(id => tile(id, WD.pinIcon(id), WD.PINS[id].name, WD.hasPin(id) ? '●' : '', !WD.hasPin(id))).join('') : '');
     let det = '<p class="fine">No pins yet. People around UIC might have some.</p>';
     const id = bagSel.pins;
     if(id){ const P = WD.PINS[id], on = WD.hasPin(id), fits = on || used + P.pp <= G.mpp;
-      det = detail('pin', P.name, `Pin · costs ${P.pp} PP · ${on ? 'wearing' : 'not wearing'}`, P.desc, `<p class="fine">PP free: ${G.mpp - used} of ${G.mpp}. Pick “PP +3” when you level up to wear more.</p><button class="use" data-pin="${id}" ${fits ? '' : 'disabled'}>${on ? 'Take off' : fits ? 'Wear it' : 'Not enough PP'}</button>`); }
+      det = detail(WD.pinIcon(id), P.name, `Pin · costs ${P.pp} PP · ${on ? 'wearing' : 'not wearing'}`, P.desc, `<p class="fine">PP free: ${G.mpp - used} of ${G.mpp}. Pick “PP +3” when you level up to wear more.</p><button class="use" data-pin="${id}" ${fits ? '' : 'disabled'}>${on ? 'Take off' : fits ? 'Wear it' : 'Not enough PP'}</button>`); }
     body += wrap(tiles, det);
   } else if(bagTab === 'party'){
     const D = WD.hero === 'David';

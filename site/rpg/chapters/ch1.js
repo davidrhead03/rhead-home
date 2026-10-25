@@ -310,7 +310,7 @@ async function toyGet(k){
 }
 async function pinGet(id, first){
   WD.givePin(id); const P = WD.PINS[id];
-  await WD.itemGet('pin', P.name, `${P.desc} Costs ${P.pp} PP to wear.`, 'Pin');
+  await WD.itemGet(WD.pinIcon(id), P.name, `${P.desc} Costs ${P.pp} PP to wear.`, 'Pin');
   if(first || !F('pin_tip')){ S('pin_tip'); await WD.card(`<i class="k">Pins</i><h2>Wear pins for perks</h2><p>Pins are little accessories with powers. Each costs PP (pin points) to wear. You have <b>${WD.G.mpp} PP</b>.</p><ul><li>Open the bag → <b>Pins</b> tab to put pins on or take them off.</li><li>New pins are worn automatically if you have the PP for them.</li><li>When you level up, picking <b>PP +3</b> lets you wear more.</li></ul>`, [{ label: 'Got it', alt: true }]); }
   WD.pingBag(); WD.saveNow();
 }
@@ -1137,7 +1137,7 @@ async function chapterEnd1(){
     { partner: 'chunkers', label: 'Chunkers', sub: 'Partner · push & sit on switches' },
     { icon: 'photo2', label: 'Sighting #2', sub: 'Dayla at the old gym' },
     { icon: 'star', label: 'Attack +1', sub: 'Basic attacks hit 1 harder' },
-    { icon: 'pin', label: `Pins ${(G.pins || []).length}/3`, sub: 'Wear them from the bag' },
+    { icon: 'pin_eagle', label: `Pins ${(G.pins || []).length}/3`, sub: 'Wear them from the bag' },
     { icon: 'pig', label: `Toys ${WD.toyCount(1)[0]}/3`, sub: 'Dayla’s lost toys at UIC' }
   ] });
   await startInterlude();

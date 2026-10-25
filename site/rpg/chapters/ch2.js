@@ -618,7 +618,7 @@ async function toyGet(k){
   if(WD.toyCount(2)[0] === 3){ WD.giveItem('empanada', 2); WD.giveItem('tinto', 1); await WD.itemGet('star', 'All 3 Bogotá toys found!', 'Dayla’s toy box is almost full again. Bonus: two empanadas and a tinto.'); }
   WD.pingBag(); WD.saveNow();
 }
-async function pinGet(id){ WD.givePin(id); const P = WD.PINS[id]; await WD.itemGet('pin', P.name, `${P.desc} Costs ${P.pp} PP to wear.`, 'Pin'); WD.pingBag(); WD.saveNow(); }
+async function pinGet(id){ WD.givePin(id); const P = WD.PINS[id]; await WD.itemGet(WD.pinIcon(id), P.name, `${P.desc} Costs ${P.pp} PP to wear.`, 'Pin'); WD.pingBag(); WD.saveNow(); }
 const mkp = (name, x, y, dir, talkTo, o) => Object.assign(WD.makeEnt({ kind: 'human', look: WD.LOOKS[name], name, x, y, dir: dir || -1, light: o && o.light || 'day', talkTo }), o || {});
 const mkFoe = (id, type, x, y, patrol, party, light) => Object.assign(WD.makeEnt({ kind: WD.FOES[type].kind, look: WD.FOES[type].look ? WD.CATS[WD.FOES[type].look] : null, name: WD.FOES[type].name, x, y, dir: -1, light: light || 'day' }), { fid: id, party, patrol });
 const mkDog = (name, kind, x, y, o) => Object.assign(WD.makeEnt({ kind, name, x, y, dir: 1, light: 'indoor' }), o || {});
@@ -1261,7 +1261,7 @@ async function chapterEnd2(){
     { partner: 'lunita', label: 'Lunita', sub: 'Partner · squeeze & pounce (+ Papu & Moka)' },
     { icon: 'photo3', label: 'Sighting #3', sub: 'Dayla at the plaza market' },
     { icon: 'ajiaco', label: 'Ajiaco', sub: 'Mami Elsa’s recipe: full heal + 3 SP' },
-    { icon: 'pin', label: `Pins ${['tricolor', 'ruana', 'oro'].filter(k => (G.pins || []).includes(k)).length}/3`, sub: 'Tricolor, Ruana, Golden Frog' },
+    { icon: 'pin_tricolor', label: `Pins ${['tricolor', 'ruana', 'oro'].filter(k => (G.pins || []).includes(k)).length}/3`, sub: 'Tricolor, Ruana, Golden Frog' },
     { icon: 'arepatoy', label: `Toys ${WD.toyCount(2)[0]}/3`, sub: 'Dayla’s lost toys in Bogotá' }
   ] });
   await startInterlude2();

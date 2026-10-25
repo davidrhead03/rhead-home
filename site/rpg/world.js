@@ -215,17 +215,29 @@ EXPLORE.draw = function(t, dt){
 };
 
 /* ================= bag & poster ================= */
-let bagTab = 'items';
+let bagTab = 'items'; const bagSel = { items: null, collect: null };
 WD.openBag = function(tab){
   if(tab) bagTab = tab;
   const pn = WD.$('.wd-panel'); WD.paused = true; WD.panelOpen = true; WD.$('.wd-bag').classList.remove('ping');
   const G = WD.G;
   const tabs = [['items', 'Items'], ['poster', 'Missing Dog'], ['party', 'Party'], ['collect', 'Collection']];
   let body = '';
+  // tiles on the left, details of the picked tile on the right: no long scrolling lists
+  const tile = (key, icon, name, badge, dim) => `<button class="wd-tile ${bagSel[bagTab] === key ? 'on' : ''} ${dim ? 'dim' : ''}" data-sel="${key}">${icon ? `<canvas data-icon="${icon}" width="80" height="80"></canvas>` : '<span class="q">?</span>'}<b>${esc(name)}</b>${badge ? `<i>${esc(badge)}</i>` : ''}</button>`;
+  const head = (t, sub) => `<div class="wd-th">${esc(t)}${sub ? `<span>${esc(sub)}</span>` : ''}</div>`;
+  const wrap = (tiles, det) => `<div class="wd-bagwrap"><div class="wd-tiles">${tiles}</div><div class="wd-detail">${det}</div></div>`;
+  const detail = (icon, name, kind, text, extra) => `${icon ? `<canvas data-icon="${icon}" width="120" height="120"></canvas>` : ''}<i class="k">${esc(kind)}</i><b>${esc(name)}</b><p>${esc(text)}</p>${extra || ''}`;
   if(bagTab === 'items'){
     const ids = Object.keys(G.items).filter(k => G.items[k] > 0);
-    body += `<h3>Items</h3><div class="wd-list">${ids.length ? ids.map(id => { const it = WD.ITEMS[id]; return `<div class="wd-row"><canvas data-icon="${it.icon}" width="88" height="88"></canvas><div class="grow"><b>${esc(it.name)}</b><span>${esc(it.desc)}</span></div><span class="n">×${G.items[id]}</span><button data-use="${id}">Use</button></div>`; }).join('') : '<p class="fine">No items right now.</p>'}</div>`;
-    body += `<h3>Key items</h3><div class="wd-list">${G.key.length ? G.key.map(k => { const it = WD.KEYS[k]; return it ? `<div class="wd-row"><canvas data-icon="${it.icon}" width="88" height="88"></canvas><div class="grow"><b>${esc(it.name)}</b><span>${esc(it.desc)}</span></div></div>` : ''; }).join('') : '<p class="fine">Nothing yet.</p>'}</div>`;
+    const all = ids.map(id => 'i:' + id).concat(G.key.filter(k => WD.KEYS[k]).map(k => 'k:' + k));
+    if(!all.includes(bagSel.items)) bagSel.items = all[0] || null;
+    let tiles = head('Items', ids.length ? '' : 'none right now') + ids.map(id => tile('i:' + id, WD.ITEMS[id].icon, WD.ITEMS[id].name, '×' + G.items[id])).join('');
+    tiles += head('Key items') + (G.key.length ? G.key.filter(k => WD.KEYS[k]).map(k => tile('k:' + k, WD.KEYS[k].icon, WD.KEYS[k].name)).join('') : '');
+    let det = '<p class="fine">Nothing in your bag yet.</p>';
+    const sel = bagSel.items;
+    if(sel && sel[0] === 'i'){ const id = sel.slice(2), it = WD.ITEMS[id]; det = detail(it.icon, it.name, `Item · ×${G.items[id]}`, it.desc, `<button class="use" data-use="${id}">Use</button>`); }
+    else if(sel){ const it = WD.KEYS[sel.slice(2)]; det = detail(it.icon, it.name, 'Key item', it.desc); }
+    body += wrap(tiles, det);
   } else if(bagTab === 'poster'){
     const slots = Array.from({ length: 9 }, (_, i) => G.photos[i] ? `<div class="slot"><canvas data-photo="${G.photos[i]}" width="160" height="160"></canvas></div>` : `<div class="slot">${i === 0 ? 'P' : i}</div>`).join('');
     const clues = (WD.CLUES ? G.clues.map(c => WD.CLUES[c]).filter(Boolean) : []);
@@ -238,17 +250,25 @@ WD.openBag = function(tab){
       ${G.learned.length ? `<p class="fine">Learned specials: ${G.learned.map(esc).join(', ')}</p>` : ''}
       ${P ? `<h3>Partner · Alejandro</h3><div class="wd-stats"><div class="wd-stat"><b>${Math.max(0, P.hp)}/${P.mhp}</b><span>HP</span></div></div><p class="fine">Long-body chihuahua. Moves: Long-Body Spin, Nervous Yap. Sniff (🐾) reads clues and finds buried things.</p>` : '<p class="fine">No partner yet.</p>'}`;
   } else {
-    const toys = ['ball', 'rope', 'bone'];
-    body += `<h3>Dayla’s Lost Toys · ${G.toys.length}/3 in Tivoli Park</h3><div class="wd-list" style="grid-template-columns:repeat(3,minmax(0,1fr))">${toys.map(k => `<div class="wd-row" style="flex-direction:column;text-align:center">${G.toys.includes(k) ? `<canvas data-icon="${k}" width="88" height="88"></canvas><b>${{ ball: 'Tennis Ball', rope: 'Rope Tug', bone: 'Squeaky Bone' }[k]}</b>` : '<b style="opacity:.35;font-size:28px">?</b><span>Not found</span>'}</div>`).join('')}</div>`;
-    if(WD.hero === 'David') body += `<h3>Spanish Words · ${G.words.length}</h3>${G.words.length ? `<div class="wd-list">${G.words.map(w => `<div class="wd-row"><canvas data-icon="word" width="88" height="88"></canvas><div class="grow"><b>${esc(w[0])}</b><span>${esc(w[1])}</span></div></div>`).join('')}</div>` : '<p class="fine">Listen to Spanish speakers to learn words.</p>'}`;
-    body += `<h3>Verse Stones · ${G.verses.length}</h3>${G.verses.length ? `<div class="wd-list">${G.verses.map(v => { const V = WD.VERSES && WD.VERSES[v]; return V ? `<div class="wd-row"><canvas data-icon="verse" width="88" height="88"></canvas><div class="grow"><b>${esc(V.ref)}</b><span>${esc(WD.hero === 'Laura' ? V.es : V.en)}</span>${WD.hero === 'Laura' ? '' : `<span style="opacity:.55;font-style:italic">${esc(V.es)}</span>`}</div></div>` : ''; }).join('')}</div>` : '<p class="fine">Hidden Bible verses. Each one raises your max SP.</p>'}`;
+    const toys = ['ball', 'rope', 'bone'], TOY = { ball: 'Tennis Ball', rope: 'Rope Tug', bone: 'Squeaky Bone' };
+    const keys = toys.map(k => 't:' + k).concat(G.verses.map(v => 'v:' + v)).concat(WD.hero === 'David' ? G.words.map((w, i) => 'w:' + i) : []);
+    if(!keys.includes(bagSel.collect)) bagSel.collect = keys.find(k => k[0] !== 't' || G.toys.includes(k.slice(2))) || keys[0];
+    let tiles = head('Dayla’s Lost Toys', `${G.toys.length}/3 in Tivoli Park`) + toys.map(k => G.toys.includes(k) ? tile('t:' + k, k, TOY[k]) : tile('t:' + k, null, 'Not found', '', true)).join('');
+    tiles += head('Verse Stones', G.verses.length ? '' : 'none yet') + G.verses.map(v => { const V = WD.VERSES && WD.VERSES[v]; return V ? tile('v:' + v, 'verse', V.ref) : ''; }).join('');
+    if(WD.hero === 'David') tiles += head('Spanish Words', G.words.length ? `${G.words.length} learned` : 'none yet') + G.words.map((w, i) => tile('w:' + i, 'word', w[0])).join('');
+    const sel = bagSel.collect || ''; let det = '';
+    if(sel[0] === 't'){ const k = sel.slice(2); det = G.toys.includes(k) ? detail(k, TOY[k], 'Dayla’s lost toy', 'Back in the bag, safe and slobbery. She’s going to be so happy.') : detail(null, 'Not found yet', 'Dayla’s lost toy', 'Somewhere in Tivoli Park. Try sniffing around with Alejandro, or using your skill in odd spots.'); }
+    else if(sel[0] === 'v'){ const V = WD.VERSES[sel.slice(2)]; det = detail('verse', V.ref, 'Verse Stone · max SP +1', WD.hero === 'Laura' ? V.es : V.en, WD.hero === 'Laura' ? '' : `<p class="alt">${esc(V.es)}</p>`); }
+    else if(sel[0] === 'w'){ const w = G.words[+sel.slice(2)]; det = detail('word', w[0], 'Spanish word', w[1]); }
+    body += wrap(tiles, det);
   }
   pn.innerHTML = `<div class="wd-sheet"><div class="wd-tabs">${tabs.map(([k, l]) => `<button data-tab="${k}" class="${k === bagTab ? 'on' : ''}">${l}</button>`).join('')}<span class="sp"></span><button class="close" aria-label="Close">✕</button></div><div class="wd-pbody">${body}</div></div>`;
   pn.hidden = false;
-  pn.querySelectorAll('canvas[data-icon]').forEach(cv => { const c = cv.getContext('2d'); c.setTransform(cv.width / 44, 0, 0, cv.width / 44, cv.width / 2, cv.height / 2); WD.drawIcon(c, cv.dataset.icon, 0, 0, .62, 1); });
+  pn.querySelectorAll('canvas[data-icon]').forEach(cv => { const c = cv.getContext('2d'); c.setTransform(cv.width / 44, 0, 0, cv.width / 44, cv.width / 2, cv.height / 2); WD.drawIcon(c, cv.dataset.icon, 0, 0, cv.closest('.wd-tile,.wd-detail') ? 1.45 : .62, 1); });
   pn.querySelectorAll('canvas[data-photo]').forEach(cv => { const c = cv.getContext('2d'); if(cv.dataset.photo === 'uic') WD.sightingUIC(c, 0, 0, cv.width); });
   const dc = pn.querySelector('canvas[data-dayla]'); if(dc){ const c = dc.getContext('2d'); c.fillStyle = '#F3E6CF'; c.fillRect(0, 0, 360, 360); c.setTransform(5.4, 0, 0, 5.4, 150, 290); WD.drawPuppet(c, WD.makeEnt({ kind: 'dog', duck: true, happy: true, t: 1 })); }
   pn.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { WD.sfx('tap'); WD.openBag(b.dataset.tab); });
+  pn.querySelectorAll('[data-sel]').forEach(b => b.onclick = () => { WD.sfx('tap'); bagSel[bagTab] = b.dataset.sel; const y = pn.querySelector('.wd-tiles').scrollTop; WD.openBag(); const t = pn.querySelector('.wd-tiles'); if(t) t.scrollTop = y; });
   pn.querySelectorAll('[data-use]').forEach(b => { const id = b.dataset.use, it = WD.ITEMS[id]; const P = G.partner && G.party[G.partner]; const useful = (it.hp && G.hp < G.mhp) || (it.php && P && P.hp < P.mhp) || (it.sp && G.sp < G.msp); b.disabled = !useful; b.onclick = () => { const r = WD.useItem(id); if(r){ WD.sfx('heal'); WD.toast([r.hp ? `+${r.hp} HP` : '', r.php ? `Alejandro +${r.php} HP` : '', r.sp ? `+${r.sp} SP` : ''].filter(Boolean).join(' · ')); } WD.openBag(); }; });
   pn.querySelector('.close').onclick = WD.closePanel;
   pn.onclick = e => { if(e.target === pn) WD.closePanel(); };

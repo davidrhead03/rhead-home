@@ -23,6 +23,7 @@ function learnWord(es, en){ if(!D()) return; const G = WD.G; if(G.words.some(w =
 function clue(k){ const G = WD.G; if(!G.clues.includes(k)) G.clues.push(k); }
 const spouseNPC = () => NPC.spouse;
 const NPC = {};
+WD.ENGLISH_WITH_DAVID = ['Lydia', 'Angelica', 'Leonela', 'Marcela', 'David Lesser'];
 const MAR = '#7A1F2B', MARD = '#5E1621', MARL = '#A33A4A', CREAM = '#F2EADB', GOLD = '#E8B84A';
 const CHUNK = () => W.partner && WD.G.partner === 'chunkers' ? W.partner : null;
 const chunkers = (text, expr) => say('Chunkers', text, { expr });
@@ -310,7 +311,7 @@ async function toyGet(k){
 async function pinGet(id, first){
   WD.givePin(id); const P = WD.PINS[id];
   await WD.itemGet('pin', P.name, `${P.desc} Costs ${P.pp} PP to wear.`, 'Pin');
-  if(first || !F('pin_tip')){ S('pin_tip'); await WD.card(`<i class="k">Pins</i><h2>Wear pins for perks</h2><p>Pins are little accessories with powers. Each costs PP (pin points) to wear. You have <b>${WD.G.mpp} PP</b>.</p><ul><li>Open the bag → <b>Party</b> tab to put pins on or take them off.</li><li>New pins are worn automatically if you have the PP for them.</li><li>When you level up, picking <b>PP +3</b> lets you wear more.</li></ul>`, [{ label: 'Got it', alt: true }]); }
+  if(first || !F('pin_tip')){ S('pin_tip'); await WD.card(`<i class="k">Pins</i><h2>Wear pins for perks</h2><p>Pins are little accessories with powers. Each costs PP (pin points) to wear. You have <b>${WD.G.mpp} PP</b>.</p><ul><li>Open the bag → <b>Pins</b> tab to put pins on or take them off.</li><li>New pins are worn automatically if you have the PP for them.</li><li>When you level up, picking <b>PP +3</b> lets you wear more.</li></ul>`, [{ label: 'Got it', alt: true }]); }
   WD.pingBag(); WD.saveNow();
 }
 /* a small tap-in-order game (the filing puzzle) */
@@ -903,7 +904,7 @@ function talkLydia(){
       S('c1_lydia_met');
       await say('Lydia', D() ? 'David, dear. Come in, come in. Now… why did I come into this office? …Ah. I work here. Of course.' : 'Laura, dear, come in, come in. Now… why did I come into this office? …Ah. I work here. Of course.', { ent: Ly, es: D() ? 'David, mijo. Pasa, pasa. Ahora… ¿a qué entré yo a esta oficina? …Ah. Trabajo aquí. Claro.' : 'Laura, mija, pasa, pasa. Ahora… ¿a qué entré yo a esta oficina? …Ah. Trabajo aquí. Claro.', expr: 'happy' });
       await say('Lydia', 'Angelica told me about your Dayla. Qué tristeza. She came to the front desk once, ¿no? She ate my sandwich.', { ent: Ly, es: 'Angelica me contó de su Dayla. Qué tristeza. Una vez vino a la recepción, ¿no? Se comió mi sándwich.', expr: 'sad' });
-      await say('Lydia', 'Here. A little something. Every good outfit needs a pin.', { ent: Ly, es: 'Toma. Un detallito. Todo buen vestido necesita un prendedor.', expr: 'joy' });
+      await say('Lydia', 'Here. A little something. Every good outfit needs a prendedor. A pin, mijo.', { ent: Ly, es: 'Toma. Un detallito. Todo buen vestido necesita un prendedor.', expr: 'joy' });
       if(D()) learnWord('prendedor', 'pin (the kind you wear)');
       await pinGet('pearl', true);
     }

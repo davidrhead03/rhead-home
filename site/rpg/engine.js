@@ -276,19 +276,20 @@ function audio(){
 }
 WD.audio = audio;
 function tone(type, f, t, d, v, f2){ const o = AC.createOscillator(), g = AC.createGain(); o.type = type; o.frequency.setValueAtTime(f, t); if(f2) o.frequency.exponentialRampToValueAtTime(f2, t + d); g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(v, t + .012); g.gain.exponentialRampToValueAtTime(.0001, t + d); o.connect(g).connect(MASTER); o.start(t); o.stop(t + d + .03); }
-const NOISE = {};
+/* no white noise anywhere: "noise" is now a soft tonal tick/thud, used by the music's drums */
 function noise(t, d, v, hp){
-  const key = Math.round(d * 100); let b = NOISE[key];
-  if(!b){ b = AC.createBuffer(1, Math.max(1, Math.floor(AC.sampleRate * d)), AC.sampleRate); const ch = b.getChannelData(0); for(let i = 0; i < ch.length; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / ch.length); NOISE[key] = b; }
-  const n = AC.createBufferSource(); n.buffer = b; const f = AC.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = hp || 1200; f.Q.value = .7; const g = AC.createGain(); g.gain.value = v; n.connect(f).connect(g).connect(MASTER); n.start(t);
+  hp = hp || 1200; d = Math.max(.02, Math.min(d, .25));
+  if(hp >= 5000){ tone('sine', 4200 + (hp % 900), t, Math.min(d, .04), v * .22); }
+  else if(hp >= 1300){ tone('triangle', 240, t, d, v * .55, 150); tone('sine', 480, t, d * .5, v * .2, 300); }
+  else { tone('sine', 130, t, d * 1.4, v * .8, 60); }
 }
 WD.sfx = function(k){
   if(!WD.soundOn || !audio()) return; const t = AC.currentTime;
   switch(k){
     case 'open': tone('sine', 660, t, .08, .08); tone('sine', 990, t + .05, .1, .06); break;
     case 'tap': tone('sine', 880, t, .05, .05); break;
-    case 'hit': tone('sine', 170, t, .16, .3, 55); tone('triangle', 880, t, .07, .07, 440); tone('sine', 1320, t + .015, .05, .03); noise(t, .04, .05, 2500); break;
-    case 'big': tone('sine', 140, t, .28, .36, 40); tone('triangle', 660, t, .12, .08, 330); [523, 784, 1047].forEach((f, i) => tone('triangle', f, t + .04 + i * .035, .16, .05)); noise(t, .06, .06, 1800); break;
+    case 'hit': tone('sine', 170, t, .16, .3, 55); tone('triangle', 880, t, .07, .07, 440); tone('sine', 1320, t + .015, .05, .03); tone('triangle', 330, t, .06, .06, 160); break;
+    case 'big': tone('sine', 140, t, .28, .36, 40); tone('triangle', 660, t, .12, .08, 330); [523, 784, 1047].forEach((f, i) => tone('triangle', f, t + .04 + i * .035, .16, .05)); tone('sine', 90, t, .3, .2, 45); break;
     case 'nice': [784, 988, 1175].forEach((f, i) => tone('triangle', f, t + i * .06, .14, .09)); break;
     case 'perfect': [784, 988, 1175, 1568].forEach((f, i) => tone('square', f, t + i * .05, .14, .05)); [2093, 2637, 3136].forEach((f, i) => tone('sine', f, t + .22 + i * .06, .3, .035)); break;
     case 'miss': tone('triangle', 300, t, .2, .08, 150); break;
@@ -297,27 +298,26 @@ WD.sfx = function(k){
     case 'bark': tone('sawtooth', 520, t, .07, .06, 380); tone('square', 600, t + .09, .08, .05, 420); break;
     case 'yap': tone('square', 900, t, .05, .05, 700); break;
     case 'meow': tone('sawtooth', 520, t, .32, .05, 760); tone('triangle', 780, t + .12, .25, .04, 520); break;
-    case 'hiss': noise(t, .45, .2, 4200); break;
-    case 'cheer': for(let i = 0; i < 16; i++) noise(t + Math.random() * .6, .02, .035, 2200 + Math.random() * 1600); [523, 659, 784].forEach((f, i) => tone('triangle', f, t + .03 + i * .05, .4, .03)); break;
+    case 'hiss': tone('triangle', 820, t, .3, .06, 420); tone('triangle', 860, t + .02, .28, .04, 460); break;
+    case 'cheer': [523, 659, 784, 1047].forEach((f, i) => tone('triangle', f, t + i * .07, .3, .045)); for(let i = 0; i < 7; i++) tone('sine', 1400 + Math.random() * 900, t + .05 + Math.random() * .45, .05, .025); break;
     case 'heal': [523, 659, 784, 1047].forEach((f, i) => tone('sine', f, t + i * .07, .2, .08)); break;
-    case 'whoosh': noise(t, .35, .25, 700); break;
-    case 'clang': [1250, 1873, 2410, 3100].forEach((f, i) => tone('triangle', f, t + i * .005, 1.1 - i * .2, .07)); noise(t, .15, .3, 3000); break;
-    case 'squeak': tone('square', 1300, t, .07, .05, 1900); tone('square', 1700, t + .08, .09, .04, 1200); break;
-    case 'door': tone('triangle', 180, t, .12, .1, 120); noise(t, .08, .15, 500); break;
-    case 'step': noise(t, .05, .08, 400); break;
+    case 'whoosh': tone('sine', 260, t, .3, .07, 900); tone('triangle', 520, t + .04, .22, .03, 1400); break;
+    case 'clang': [1250, 1873, 2410, 3100].forEach((f, i) => tone('triangle', f, t + i * .005, 1.1 - i * .2, .07)); tone('sine', 160, t, .2, .12, 90); break;
+    case 'door': tone('triangle', 180, t, .12, .1, 120); tone('sine', 95, t, .14, .12, 60); break;
+    case 'step': tone('sine', 150, t, .05, .05, 95); break;
     case 'ring': [0, .32].forEach(o => { tone('sine', 1320, t + o, .12, .06); tone('sine', 1660, t + o + .06, .12, .05); }); break;
     case 'get': [523, 659, 784, 1047, 1319].forEach((f, i) => tone('triangle', f, t + i * .08, .25, .08)); break;
     case 'clue': [659, 880, 1175].forEach((f, i) => tone('sine', f, t + i * .1, .3, .07)); tone('triangle', 330, t, .5, .05); break;
-    case 'sniff': for(let i = 0; i < 4; i++) noise(t + i * .09, .06, .18, 2400); break;
-    case 'light': tone('sine', 1200, t, .3, .05, 2400); noise(t, .2, .05, 6000); break;
-    case 'dash': noise(t, .25, .2, 900); tone('square', 200, t, .2, .05, 500); break;
+    case 'sniff': for(let i = 0; i < 4; i++) tone('sine', 1100 - i * 40, t + i * .09, .05, .05, 850); break;
+    case 'light': tone('sine', 1200, t, .3, .05, 2400); tone('sine', 2400, t + .08, .2, .02, 3000); break;
+    case 'dash': tone('square', 200, t, .2, .05, 500); tone('sine', 300, t, .22, .06, 800); break;
     case 'level': [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => tone('square', f, t + i * .09, .2, .05)); break;
     case 'win': [523, 659, 784, 1047, 784, 1047].forEach((f, i) => tone('square', f, t + i * .11, .18, .06)); break;
     case 'lose': [440, 392, 349, 262].forEach((f, i) => tone('triangle', f, t + i * .2, .3, .08)); break;
     case 'whistle': tone('sine', 2200, t, .5, .06, 2600); tone('sine', 2250, t + .1, .35, .04); break;
     case 'honk': tone('sawtooth', 330, t, .25, .07); tone('sawtooth', 415, t, .25, .05); break;
     case 'gulp': tone('sine', 300, t, .12, .1, 140); break;
-    case 'munch': for(let i = 0; i < 5; i++) noise(t + i * .07, .05, .2, 1400 + (i % 2) * 600); break;
+    case 'munch': for(let i = 0; i < 5; i++) tone('triangle', i % 2 ? 380 : 300, t + i * .07, .05, .07, i % 2 ? 300 : 240); break;
   }
 };
 const VOICE = { David: [190, 'triangle'], Laura: [360, 'triangle'], Veci: [150, 'square'], Dayla: [620, 'square'], Alejandro: [520, 'square'], Kairos: [430, 'sawtooth'], 'Cat Agent': [300, 'sawtooth'], 'Sergeant Hairball': [120, 'sawtooth'], Alejandra: [330, 'triangle'], Samuel: [210, 'triangle'], Iguana: [160, 'sine'],

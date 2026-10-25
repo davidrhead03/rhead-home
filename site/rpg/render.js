@@ -19,7 +19,7 @@ const LOOKS = WD.LOOKS = {
   Angelica: { skin: '#E2B48E', hair: '#3A2418', hairStyle: 'long', top: '#F4EFE6', blazer: '#2F3550', pants: '#2B2B33', shoes: '#2B1D14', height: .98, eye: '#2A1A14', lashes: true, pearl: true },
   'David Lesser': { skin: '#F0CDB0', hair: '#7A5A3E', hairStyle: 'short', top: '#A9C2DD', tie: '#7A1F2B', pants: '#5A5F6E', shoes: '#3A2A22', height: 1.17, eye: '#3A2A22', glasses: true },
   Marcela: { skin: '#D9A882', hair: '#5A3324', hairStyle: 'bun', top: '#E8B04A', scarf: '#3E8FC7', pants: '#2E3A4E', shoes: '#F4F4F2', height: .95, eye: '#2A1A14', lashes: true, hoops: true },
-  Lydia: { skin: '#E6BE9C', hair: '#D3CCC4', hairStyle: 'curly', top: '#7A3E6B', skirt: '#7A3E6B', pants: '#D9B49A', shoes: '#3A2A22', height: .91, eye: '#2A1A14', lashes: true, pearl: true, glasses: true, age: true },
+  Lydia: { skin: '#E6BE9C', hair: '#A9825A', hairStyle: 'long', top: '#7A3E6B', skirt: '#7A3E6B', pants: '#D9B49A', shoes: '#3A2A22', height: .91, eye: '#2A1A14', lashes: true, pearl: true, glasses: true, age: true },
   Leonela: { skin: '#C99272', hair: '#16110F', hairStyle: 'long', streak: '#C2303A', top: '#2A2A33', pants: '#6E85A8', shoes: '#F4F4F2', height: .95, eye: '#2A1A14', lashes: true }
 };
 const DOG = { base: '#A65A3A', dark: '#874630', light: '#BE7550', white: '#FBF4EA', pink: '#E8A39A', nose: '#7A4A40', eye: '#3B2116', iris: '#8A5A2B' };

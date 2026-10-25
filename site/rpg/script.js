@@ -22,6 +22,8 @@ WD.say = function(who, text, opts){
     let main = text, subtitle = opts.sub || '';
     // Laura talks to David in English, with Spanish words mixed in: use the English line
     if(opts.es && who === 'Laura' && (WD.hero === 'David' || opts.toDavid)) opts = Object.assign({}, opts, { es: null });
+    // people at UIC speak English with David (it's the USA, he's an English speaker)
+    if(opts.es && WD.hero === 'David' && WD.ENGLISH_WITH_DAVID && WD.ENGLISH_WITH_DAVID.includes(who)) opts = Object.assign({}, opts, { es: null });
     if(opts.es){ main = opts.es; subtitle = WD.hero === 'David' ? text : ''; }
     Object.values(WD.actors).forEach(e => { if(e) e.talk = false; });
     let ent = opts.ent || WD.actors[who] || null;

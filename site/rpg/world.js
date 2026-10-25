@@ -258,12 +258,12 @@ WD.givePin = id => { const G = WD.G; G.pins = G.pins || []; G.worn = G.worn || [
 WD.toyCount = ch => { const G = WD.G, ids = Object.keys(WD.TOYS).filter(k => ch === undefined || WD.TOYS[k].ch === ch); return [ids.filter(k => G.toys.includes(k)).length, ids.length]; };
 
 /* ================= bag & poster ================= */
-let bagTab = 'items'; const bagSel = { items: null, collect: null, poster: null };
+let bagTab = 'items'; const bagSel = { items: null, collect: null, poster: null, pins: null };
 WD.openBag = function(tab){
   if(tab) bagTab = tab;
   const pn = WD.$('.wd-panel'); WD.paused = true; WD.panelOpen = true; WD.$('.wd-bag').classList.remove('ping');
   const G = WD.G;
-  const tabs = [['items', 'Items'], ['poster', 'Missing Dog'], ['party', 'Party'], ['collect', 'Collection']];
+  const tabs = [['items', 'Items'], ['poster', 'Missing Dog'], ['party', 'Party'], ['pins', 'Pins'], ['collect', 'Collection']];
   let body = '';
   // tiles on the left, details of the picked tile on the right: no long scrolling lists
   const tile = (key, icon, name, badge, dim) => `<button class="wd-tile ${bagSel[bagTab] === key ? 'on' : ''} ${dim ? 'dim' : ''}" data-sel="${key}">${icon ? `<canvas data-icon="${icon}" width="80" height="80"></canvas>` : '<span class="q">?</span>'}<b>${esc(name)}</b>${badge ? `<i>${esc(badge)}</i>` : ''}</button>`;
@@ -292,6 +292,15 @@ WD.openBag = function(tab){
     if(sel[0] === 's'){ const i = +sel.slice(2), ph = G.photos[i], S2 = ph && WD.SIGHTINGS && WD.SIGHTINGS[ph]; det = ph ? `<canvas class="pic" data-photo="${ph}" width="240" height="240"></canvas><i class="k">${esc(SLOT[i])} sighting</i><b>${esc(S2 ? S2.title : 'Sighting')}</b><p>${esc(S2 ? S2.text : '')}</p>` : detail(null, 'Not found yet', SLOT[i] + ' sighting', 'Each chapter, find a photo of where Dayla was seen. It goes on the poster here.'); }
     else if(sel[0] === 'c'){ const c = sel.slice(2); det = detail(CM[c] ? CM[c][0] : null, CM[c] ? CM[c][1] : 'Clue', 'Clue', WD.CLUES[c] || ''); }
     body += `<div class="wd-postwrap"><div class="paper"><h2>MISSING</h2><div class="tag">Have you seen Dayla?</div><canvas data-dayla="1" width="300" height="300"></canvas><p>Boston terrier · brown &amp; white · pearl necklace · loves her yellow duck</p><p class="fine">Call David &amp; Laura · Tivoli Park</p></div><div class="wd-tiles">${tiles}</div><div class="wd-detail">${det}</div></div>`;
+  } else if(bagTab === 'pins'){
+    const pins = (G.pins || []).filter(id => WD.PINS[id]), used = WD.ppUsed();
+    if(!pins.includes(bagSel.pins)) bagSel.pins = pins[0] || null;
+    let tiles = head('Your pins', `${used}/${G.mpp} PP worn`) + (pins.length ? pins.map(id => tile(id, 'pin', WD.PINS[id].name, WD.hasPin(id) ? '●' : '', !WD.hasPin(id))).join('') : '');
+    let det = '<p class="fine">No pins yet. People around UIC might have some.</p>';
+    const id = bagSel.pins;
+    if(id){ const P = WD.PINS[id], on = WD.hasPin(id), fits = on || used + P.pp <= G.mpp;
+      det = detail('pin', P.name, `Pin · costs ${P.pp} PP · ${on ? 'wearing' : 'not wearing'}`, P.desc, `<p class="fine">PP free: ${G.mpp - used} of ${G.mpp}. Pick “PP +3” when you level up to wear more.</p><button class="use" data-pin="${id}" ${fits ? '' : 'disabled'}>${on ? 'Take off' : fits ? 'Wear it' : 'Not enough PP'}</button>`); }
+    body += wrap(tiles, det);
   } else if(bagTab === 'party'){
     const D = WD.hero === 'David';
     const bar = (v, m, col) => `<span class="wd-bar"><i style="width:${Math.max(0, Math.min(100, v / m * 100))}%;background:${col}"></i></span>`;
@@ -307,7 +316,7 @@ WD.openBag = function(tab){
         <span class="row"><em>SP</em><span class="stars">${'★'.repeat(G.sp)}${'☆'.repeat(Math.max(0, G.msp - G.sp))}</span></span>
         <span class="row"><em>XP</em>${bar(G.xp, 100, '#FFC94A')}<small>${G.xp}/100</small></span>
         <span class="row"><em>PP</em>${bar(G.mpp - used, G.mpp, '#58AEDD')}<small>${G.mpp - used}/${G.mpp} free</small></span></div></div>
-        <div class="lbl">Moves</div>${chips(moves)}<div class="lbl">Specials</div>${chips(specials)}<div class="lbl">Pins · tap to wear or take off</div>${pinHtml}<div class="lbl">Family Call · once per battle</div>${chips(calls)}<div class="lbl">Field skill</div>${chips([[D ? '🏀 Dribble-dash' : '🔦 Flashlight', D ? 'B · sprint, jump gaps' : 'B · light up secrets']])}</div>
+        <div class="lbl">Moves</div>${chips(moves)}<div class="lbl">Specials</div>${chips(specials)}<div class="lbl">Pins</div><p class="fine">${(G.worn || []).length ? 'Wearing: ' + esc((G.worn || []).map(id => WD.PINS[id] ? WD.PINS[id].name : '').filter(Boolean).join(', ')) + '. ' : ''}See the Pins tab.</p><div class="lbl">Family Call · once per battle</div>${chips(calls)}<div class="lbl">Field skill</div>${chips([[D ? '🏀 Dribble-dash' : '🔦 Flashlight', D ? 'B · sprint, jump gaps' : 'B · light up secrets']])}</div>
       ${Object.keys(G.party).length ? Object.keys(G.party).map(id => { const P = G.party[id], d = WD.PARTNERS[id]; if(!d) return ''; const cur = G.partner === id;
         return `<div class="wd-pcard ${cur ? '' : 'off'}"><div class="top"><canvas data-portrait="p:${id}" width="168" height="168"></canvas><div class="st"><b>${esc(d.name)} <small>${cur ? 'with you now' : 'partner'}</small></b>
         <span class="row"><em>HP</em>${bar(Math.max(0, P.hp), P.mhp, '#5BC25A')}<small>${Math.max(0, P.hp)}/${P.mhp}</small></span><span class="note">${esc(d.note)}</span></div></div>

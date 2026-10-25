@@ -604,12 +604,17 @@ WD.loadSave = function(){
   const pick = ok(a) && ok(b) ? ((b.at || 0) > (a.at || 0) ? b : a) : ok(a) ? a : ok(b) ? b : null;
   return pick ? JSON.parse(JSON.stringify(pick)) : null;
 };
-let lastSave = 0;
+let lastSave = 0, lastSafe = null;
+WD.resetSafe = () => { lastSafe = null; };
 WD.saveNow = function(){
   const G = WD.G; if(!G || !G.started || !api) return;
-  if(WD.beforeSave) try{ WD.beforeSave(G); }catch(e){}
+  /* Never write a half-finished scene or battle. While one is running, keep the last calm moment instead;
+     closing the app mid-scene then simply replays that scene next time. */
+  const busy = (WD.inCut && WD.inCut()) || WD.mode === 'battle' || WD.mode === 'race' || WD.mode === 'clear' || (WD.B && WD.B());
+  if(!busy && WD.beforeSave) try{ WD.beforeSave(G); }catch(e){}
   G.at = Date.now(); lastSave = performance.now();
-  const copy = JSON.parse(JSON.stringify(G));
+  const copy = busy && lastSafe ? Object.assign(JSON.parse(lastSafe), { at: G.at }) : JSON.parse(JSON.stringify(G));
+  if(!busy) lastSafe = JSON.stringify(copy);
   try{ localStorage.setItem(LS(), JSON.stringify(copy)); }catch(e){}
   try{ api.save(copy); }catch(e){}
   try{ api.saveWorld({ v: 2, p_start: 1, p_done: G.flags.p_done ? 1 : 0, c1_start: G.flags.c1_arrived ? 1 : 0, c1_done: G.flags.c1_done ? 1 : 0, c2_start: G.flags.c2_arrived ? 1 : 0, c2_done: G.flags.c2_done ? 1 : 0, ch: G.chapter || 0, lv: G.lv, hero: WD.hero }); }catch(e){}
@@ -667,6 +672,10 @@ async function start(host, apiIn){
   resize(); addEventListener('resize', resize); addEventListener('orientationchange', resize);
   addEventListener('keydown', onKey); addEventListener('keyup', onKey); document.addEventListener('visibilitychange', onHide);
   wireControls(); WD.pausedByUser = false;
+  // no pinch / double-tap zoom while playing (iOS ignores touch-action on its own)
+  vpOld = vpMeta() ? vpMeta().getAttribute('content') : null;
+  if(vpMeta()) vpMeta().setAttribute('content', 'width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover');
+  document.addEventListener('gesturestart', noZoom, { passive: false }); document.addEventListener('dblclick', noZoom, { passive: false }); document.addEventListener('touchend', noDoubleTap, { passive: false });
   WD.time = 0; WD.paused = false; WD.letter = 0; letterT = 0; fadeA = 0; timers.length = 0; tweens.length = 0; WD.scene = null; WD.mode = 'load';
   prevT = performance.now(); raf = requestAnimationFrame(frame);
   try{
@@ -681,10 +690,16 @@ async function start(host, apiIn){
     const l = root.querySelector('.wd-load'); l.hidden = false; l.innerHTML = '<span>Couldn’t load the game.<small>Check your connection, then close and try again.</small></span>';
   }
 }
+const vpMeta = () => document.querySelector('meta[name=viewport]');
+let vpOld = null, lastTouch = 0;
+function noZoom(e){ if(!dead) e.preventDefault(); }
+function noDoubleTap(e){ if(dead) return; const now = Date.now(); if(now - lastTouch < 350 && e.touches.length === 0 && !(e.target && e.target.closest && e.target.closest('input,textarea'))){ e.preventDefault(); } lastTouch = now; }
 function stop(){
   if(dead && !root) return;
   try{ if(WD.G && WD.G.started) WD.saveNow(); }catch(e){}
   dead = true; cancelAnimationFrame(raf); MUS.stop();
+  document.removeEventListener('gesturestart', noZoom); document.removeEventListener('dblclick', noZoom); document.removeEventListener('touchend', noDoubleTap);
+  if(vpMeta() && vpOld) vpMeta().setAttribute('content', vpOld);
   removeEventListener('resize', resize); removeEventListener('orientationchange', resize);
   removeEventListener('keydown', onKey); removeEventListener('keyup', onKey); document.removeEventListener('visibilitychange', onHide);
   WD.pausedByUser = false;

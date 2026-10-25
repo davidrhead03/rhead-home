@@ -147,6 +147,7 @@ WD.cut = async function(fn){
   finally{
     cutDepth--;
     if(cutDepth === 0 && WD.mode === 'cutscene'){ WD.mode = 'explore'; WD.letter = 0; WD.cam.lock = false; WD.showControls(true); WD.showGoal(true); }
+    if(cutDepth === 0 && WD.saveNow) WD.saveNow();
   }
 };
 WD.inCut = () => cutDepth > 0;

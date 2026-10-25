@@ -896,13 +896,13 @@ async function showTitle(){
 }
 function makeHero(){ WD.asDayla = false; W.player = WD.makeEnt({ kind: 'human', look: WD.LOOKS[WD.hero], name: WD.hero, x: 330, y: 66 }); W.partner = WD.G.partner ? WD.makePartner() : null; if(W.partner) W.partner.follow = true; }
 async function newGame(){
-  const G = WD.newSave(); G.items = {}; G.started = 1; WD.G = G;
+  const G = WD.newSave(); G.items = {}; G.started = 1; WD.G = G; if(WD.resetSafe) WD.resetSafe();
   makeHero();
   await WD.card(`<i class="k">Prologue</i><h2>Where’s Dayla?</h2><p>Tivoli Park, Deerfield Beach. A sunny morning. Dayla is eating breakfast, and nothing in the world can distract her.</p>`, [{ label: 'Begin', alt: true }]);
   await WD.gotoArea('home', 330, 66, { dir: 1, cut: true, quiet: false });
 }
 async function resume(G0){
-  G0.started = 1; WD.G = G0;
+  G0.started = 1; WD.G = G0; if(WD.resetSafe) WD.resetSafe();
   // repair saves that were closed in the middle of a scene
   if(F('agents_scene') && !F('agents')) S('agents_scene', 0);
   if(F('boss_scene') && !F('boss')) S('boss_scene', 0);

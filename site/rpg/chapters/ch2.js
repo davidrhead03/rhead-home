@@ -978,6 +978,29 @@ async function phoneSpouse1(){
 }
 
 /* ================= AREA: Monserrate trail ================= */
+/* an iron gate standing right across the pilgrim path (the walkway runs from y≈40 at the back to y≈100 at the front) */
+function drawTrailGate(c, x, open, t, part, cutY){
+  const yb = 38, yf = 102, H = 70, skew = .85;   // the gate leans a little with the path's depth
+  const px = y => x + (y - yb) * skew;
+  const post = y => { c.fillStyle = '#4A4A52'; rr(c, px(y) - 4, y - H - 8, 8, H + 10, 2); c.fill(); c.fillStyle = '#E8B84A'; ell(c, px(y), y - H - 10, 4.4, 4.4); c.fill(); c.fillStyle = 'rgba(40,28,60,.25)'; ell(c, px(y), y + 2, 9, 3); c.fill(); };
+  // part 'back' = everything behind cutY (drawn before the characters), 'front' = in front of it (drawn after)
+  const inPart = y => part === 'back' ? y <= cutY : y > cutY;
+  if(inPart(yb)) post(yb);
+  if(!open){
+    c.strokeStyle = '#2E2E36'; c.lineWidth = 3; c.lineCap = 'round';
+    for(let y = yb + 5; y < yf - 3; y += 5.5){ if(!inPart(y)) continue; c.beginPath(); c.moveTo(px(y), y); c.lineTo(px(y), y - H + 6); c.stroke(); }
+    const ya = part === 'back' ? yb : Math.max(yb, cutY), yz = part === 'back' ? Math.min(yf, cutY) : yf;
+    if(yz > ya){ c.lineWidth = 4; [8, H - 14, H - 2].forEach(h => { c.beginPath(); c.moveTo(px(ya), ya - h); c.lineTo(px(yz), yz - h); c.stroke(); }); }
+    const my = (yb + yf) / 2; if(inPart(my)){ c.fillStyle = '#E8B84A'; rr(c, px(my) - 6, my - 44, 12, 14, 3); c.fill(); c.strokeStyle = '#E8B84A'; c.lineWidth = 2.4; c.beginPath(); c.arc(px(my), my - 44, 4.4, Math.PI, 0); c.stroke();
+    c.fillStyle = '#FFFDF6'; rr(c, px(my) - 26, my - H - 2, 52, 13, 2); c.fill(); c.fillStyle = '#C2453A'; c.font = '900 7px Grandstander, system-ui'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('CERRADO', px(my), my - H + 4.6); }
+  } else if(part === 'back') {
+    // swung open against the back post
+    c.strokeStyle = '#2E2E36'; c.lineWidth = 3; c.lineCap = 'round';
+    for(let i = 0; i < 10; i++){ const gx = px(yb) - 6 - i * 5.5; c.beginPath(); c.moveTo(gx, yb - 2); c.lineTo(gx, yb - H + 8); c.stroke(); }
+    c.lineWidth = 4; [8, H - 14].forEach(h => { c.beginPath(); c.moveTo(px(yb), yb - h); c.lineTo(px(yb) - 58, yb - h); c.stroke(); });
+  }
+  if(inPart(yf)) post(yf);
+}
 WD.defineArea('bog_trail', {
   ch: 2, name: 'Monserrate · Pilgrim Path', sub: 'Up the mountain, at dusk', music: 'mountain', minX: 80, maxX: 2200, battleBack: 'trail', camZ: 1.0,
   sniffNothing: 'Alejandro sniffs… eucalyptus, cold air, and condor. A LOT of condor.',
@@ -991,28 +1014,28 @@ WD.defineArea('bog_trail', {
     c.fillStyle = '#FFFDF6'; rr(c, 140, -112, 140, 18, 3); c.fill(); c.fillStyle = BLU; c.font = '900 10px Grandstander, system-ui'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('TELEFÉRICO', 210, -103);
     if(!F('c2_trail_seen') || true){ c.fillStyle = '#E8593C'; rr(c, 160, -80, 100, 16, 3); c.fill(); c.fillStyle = '#FFFDF6'; c.font = '900 8px Grandstander, system-ui'; c.fillText('CERRADO', 210, -72); }
     c.strokeStyle = 'rgba(30,30,40,.6)'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(370, -100); c.lineTo(2400, -600); c.stroke();
-    // gates
-    [[900, F('c2_gate1')], [1600, F('c2_gate2')]].forEach(([x, open]) => { c.fillStyle = '#5A5A62'; c.fillRect(x - 40, -70, 8, 74); c.fillRect(x + 32, -70, 8, 74); if(!open){ c.fillStyle = '#3A3A44'; for(let bx = x - 30; bx < x + 32; bx += 7) c.fillRect(bx, -64, 2.6, 68); c.fillRect(x - 32, -66, 64, 4); c.fillRect(x - 32, -24, 64, 4); c.fillStyle = GOLD; rr(c, x - 4, -40, 8, 10, 2); c.fill(); } else { c.fillStyle = '#3A3A44'; c.save(); c.translate(x - 32, -66); c.transform(.3, 0, 0, 1, 0, 0); for(let bx = 0; bx < 64; bx += 7) c.fillRect(bx, 2, 2.6, 68); c.restore(); } });
     drawFlag(c, 420, -150, 36, t, { poleH: 154 });
     [520, 1100, 1500, 2000].forEach(x => WD.drawLamp(c, x, 30));
   },
+  drawGround(t){ const c = WD.ctx, py = W.player ? W.player.y : 70; drawTrailGate(c, 900, F('c2_gate1'), t, 'back', py); drawTrailGate(c, 1600, F('c2_gate2'), t, 'back', py); },
+  drawMid(t){ const c = WD.ctx, py = W.player ? W.player.y : 70; drawTrailGate(c, 900, F('c2_gate1'), t, 'front', py); drawTrailGate(c, 1600, F('c2_gate2'), t, 'front', py); },
   drawFront(t){ drawFog(t, .18); },
   things(){
     const L = [];
     L.push({ x: 200, y: 66, label: 'Taxi', h: 70, act: () => WD.cut(async () => { const i = await WD.choose(WD.hero, D() ? 'Ride back down to the barrio with Titin?' : '¿Bajamos al barrio con Titin?', ['Back to the barrio', 'Keep climbing']); if(i === 0) await WD.gotoArea('bog_street', 1000, 66, { dir: -1, from: 'bog_trail' }); }) });
     L.push({ x: 330, y: 56, label: 'Cable car', h: 100, act: () => WD.cut(async () => { await me('The last cable car already went up. With the crate on it. We’re walking.', { t: 'El último teleférico ya subió. Con la caja. Toca a pie.', es: 'El último teleférico ya subió. Con la caja. Toca a pie.' }, 'determined'); }) });
-    if(!F('c2_gate1')) L.push({ x: 880, y: 64, skill: 'p', who: 'lunita', label: 'Squeeze', h: 60, act: () => gateOpen('c2_gate1', 900) });
-    if(!F('c2_gate2')) L.push({ x: 1580, y: 64, skill: 'p', who: 'lunita', label: 'Squeeze', h: 60, act: () => gateOpen('c2_gate2', 1600) });
-    [[900, 'c2_gate1'], [1600, 'c2_gate2']].forEach(([x, fl]) => { if(!F(fl)) L.push({ x: x - 20, y: 60, label: 'Gate', h: 80, act: () => WD.cut(async () => { await me('Padlocked from the other side. The bars are too narrow for me… but not for somebody small.', { t: 'Con candado del otro lado. Por estos barrotes solo cabe alguien chiquitito…', es: 'Con candado del otro lado. Por estos barrotes solo cabe alguien chiquitito…' }, 'think'); if(WD.G.partner !== 'lunita') WD.toast('Switch to Lunita in the bag’s Party tab.'); }) }); });
+    if(!F('c2_gate1')) L.push({ x: 900, y: 64, r: 70, skill: 'p', who: 'lunita', label: 'Squeeze', h: 60, act: () => gateOpen('c2_gate1', 900) });
+    if(!F('c2_gate2')) L.push({ x: 1600, y: 64, r: 70, skill: 'p', who: 'lunita', label: 'Squeeze', h: 60, act: () => gateOpen('c2_gate2', 1600) });
+    [[900, 'c2_gate1'], [1600, 'c2_gate2']].forEach(([x, fl]) => { if(!F(fl)) L.push({ x: x - 10, y: 50, r: 70, label: 'Gate', h: 100, act: () => WD.cut(async () => { await me('Padlocked from the other side. The bars are too narrow for me… but not for somebody small.', { t: 'Con candado del otro lado. Por estos barrotes solo cabe alguien chiquitito…', es: 'Con candado del otro lado. Por estos barrotes solo cabe alguien chiquitito…' }, 'think'); if(WD.G.partner !== 'lunita') WD.toast('Switch to Lunita in the bag’s Party tab.'); }) }); });
     return L;
   },
-  limit(nx){ if(!F('c2_gate1') && nx > 860) return 860; if(!F('c2_gate2') && nx > 1560) return 1560; return nx; },
+  limit(nx, px, ny){ const g = (gx, y) => gx + ((y || 70) - 38) * .85 - 28; if(!F('c2_gate1') && nx > g(900, ny)) return Math.min(nx, Math.max(px, g(900, ny))); if(!F('c2_gate2') && nx > g(1600, ny)) return Math.min(nx, Math.max(px, g(1600, ny))); return nx; },
   async enter(from){ if(!F('c2_trail_seen')){ S('c2_trail_seen'); await WD.cut(async () => { WD.cam.lock = true; await WD.camTo(600, .9, 1500); await me('Monserrate. The city lights are coming on down there. The crate’s somewhere up there.', { t: 'Monserrate. Ya se prenden las luces de la ciudad. La caja está allá arriba.', es: 'Monserrate. Ya se prenden las luces de la ciudad. La caja está allá arriba.' }, 'determined'); if(LUNI()) await lunita('Arf! (She points her nose straight up the mountain and starts climbing.)', 'determined'); WD.cam.lock = false; WD.updateGoal(); }); } }
 });
 async function gateOpen(flag, x){
   await WD.cut(async () => {
-    const a = W.partner; await WD.walkTo(a, x - 6, 62, 100); a.vis = false; WD.sfx('yap'); await WD.wait(600);
-    a.x = x + 20; a.vis = true; WD.emote(a, '!'); await WD.wait(300); WD.sfx('clang'); S(flag); WD.shake(2);
+    const a = W.partner; await WD.walkTo(a, x + 4, 66, 100); a.vis = false; WD.sfx('yap'); await WD.wait(600);
+    a.x = x + 50; a.vis = true; WD.emote(a, '!'); await WD.wait(300); WD.sfx('clang'); S(flag); WD.shake(2);
     await lunita('(Lunita squeezes between the bars, jumps up and nudges the latch open with her nose.)', 'joy');
     await WD.walkTo(a, W.player.x - 30, W.player.y + 6, 120); WD.updateGoal(); WD.saveNow();
   });
@@ -1659,11 +1682,21 @@ WD.repairSave = function(G0){
   if(fl.c2_lunita && !G0.party.lunita){ const keep = G0.partner; WD.G = WD.G || G0; G0.party.lunita = { hp: 10 + Math.max(0, G0.lv - 1) * 2, mhp: 10 + Math.max(0, G0.lv - 1) * 2 }; if(!keep) G0.partner = 'lunita'; }
   if(G0.area === 'cargo' || (fl.c2_photo && !fl.int2_done)){ G0.area = 'bog_summit'; G0.x = 1100; G0.y = 66; ['j_start', 'j_sacks', 'j_kairos', 'j_love', 'j_cookies', 'j_paw', 'j_mail'].forEach(k => { delete fl[k]; }); }
   if(G0.area === 'bog_trail' && !fl.c2_race) G0.area = 'bog_street';
+  // scenes that were cut off by closing the app: finish what they hand out, or let them replay
+  const key = k => { if(!G0.key.includes(k)) G0.key.push(k); }, clu = k => { if(!G0.clues.includes(k)) G0.clues.push(k); };
+  if(fl.c2_lunch){ key('bogtag'); clu('taxi'); }
+  if(fl.c2_mall_in){ fl.list_get = 1; key('list'); }
+  if(fl.c2_boss_m && !fl.c2_lunita){ fl.c2_lunita = 1; key('ticket'); clu('cablecar'); if(!G0.party.lunita) G0.party.lunita = { hp: 10 + Math.max(0, G0.lv - 1) * 2, mhp: 10 + Math.max(0, G0.lv - 1) * 2 }; G0.partner = 'lunita'; }
+  if(fl.c2_cards){ key('card'); clu('condor'); G0.pins = G0.pins || []; if(!G0.pins.includes('oro')) G0.pins.push('oro'); }
+  if(fl.c2_crate && !fl.c2_boss) delete fl.c2_crate;
+  if(fl.c2_race && !fl.c2_boss && G0.area === 'bog_street'){ G0.area = 'bog_trail'; G0.x = 260; G0.y = 66; }
 };
 const prevAfter2 = WD.afterResume;
 WD.afterResume = function(){
   if(prevAfter2) prevAfter2();
-  if(F('c2_photo') && !F('int2_done')) setTimeout(() => { WD.cut(async () => { await startInterlude2(); }); }, 900);
+  if(F('c2_photo') && !F('c2_done')) setTimeout(() => { WD.cut(async () => { await chapterEnd2(); }); }, 900);
+  else if(F('c2_photo') && !F('int2_done')) setTimeout(() => { WD.cut(async () => { await startInterlude2(); }); }, 900);
+  else if(F('int2_done') && !F('c2_bye') && WD.W.area && WD.W.area.id === 'bog_home') setTimeout(() => { goodbyeScene(); }, 900);
 };
 WD.debugCh2 = { introArrival, lunchScene, churchScene, homecoming, cardsScene, raceStart, condorScene, nestScene, chapterEnd2, startInterlude2, endInterlude2, goodbyeScene, cookGame, cardGame, penaltyGame, taxiRace, managerFight };
 })();

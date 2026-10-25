@@ -188,7 +188,7 @@ WD.defineArea('home', {
       if(!F('taken')) await me('Dayla’s blanket is bunched up in the corner. Her favourite place to burrow.', { t: 'Su cobijita. Her favourite place to burrow.', es: 'Su cobijita. Su lugar favorito para esconderse.' }, 'happy');
       else { const G = WD.G; const P = G.partner && G.party[G.partner]; G.hp = G.mhp; G.sp = G.msp; if(P) P.hp = P.mhp; WD.sfx('heal'); await me('Sit for a second. Breathe. …Okay. Back to it.', { t: 'Respira. …Okay. Back to it.', es: 'Respira. …Okay. Sigamos.' }, 'determined'); WD.toast('HP and SP refilled'); WD.saveNow(); }
     }) });
-    L.push({ x: 550, y: 46, label: 'Cross', h: 150, act: () => WD.cut(async () => {
+    L.push({ x: 547, y: 46, label: 'Cross', h: 62, act: () => WD.cut(async () => {
       if(!F('taken')) await me('The little wooden cross on the wall.', 'La crucecita en la pared.', 'happy');
       else await me('Lord, keep her safe wherever she is. Help us bring her home.', { t: 'Lord, take care of her. Help us find her.', es: 'Dios mío, cuídala. Ayúdanos a encontrarla.' }, 'sad');
     }) });

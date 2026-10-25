@@ -718,8 +718,12 @@ WD.drawHomeRoom = function(c, t, st){
   // light rays onto the floor
   c.save(); c.globalCompositeOperation = 'lighter'; c.fillStyle = 'rgba(255,224,160,.10)'; c.beginPath(); c.moveTo(wx, wy); c.lineTo(wx + 100, wy); c.lineTo(wx + 170, 120); c.lineTo(wx + 40, 120); c.fill(); c.fillStyle = 'rgba(255,224,160,.08)'; c.beginPath(); c.moveTo(pdx, -160); c.lineTo(pdx + 110, -160); c.lineTo(pdx + 200, 120); c.lineTo(pdx + 60, 120); c.fill(); c.restore();
   // wall decor: a small wooden cross, a palm print, leash hook
-  c.fillStyle = '#8A5A36'; c.fillRect(548, -186, 4, 26); c.fillRect(541, -178, 18, 4);
-  c.fillStyle = '#5B4A3A'; c.fillRect(578, -192, 46, 36); c.fillStyle = '#FCE3BC'; c.fillRect(581, -189, 40, 30); WD.drawPalm(c, 600, -159, 22, 0, t, 1, { trunk: '#8D8A86', leaf: '#3E8A44', leaf2: '#4FA04F' }, false);
+  // wooden cross above the couch: soft shadow, wood grain, little highlight
+  c.fillStyle = 'rgba(90,58,30,.18)'; rr(c, 545, -128, 10, 62, 2); c.fill(); rr(c, 529, -111, 42, 10, 2); c.fill();
+  c.fillStyle = '#9A6436'; rr(c, 542, -131, 10, 62, 2); c.fill(); rr(c, 526, -114, 42, 10, 2); c.fill();
+  c.fillStyle = '#B57A45'; c.fillRect(544, -129, 3, 58); c.fillRect(528, -112, 38, 3);
+  c.strokeStyle = 'rgba(90,50,24,.35)'; c.lineWidth = .8; c.beginPath(); c.moveTo(549, -126); c.lineTo(549, -74); c.moveTo(531, -106); c.lineTo(564, -106); c.stroke();
+  c.fillStyle = '#5B4A3A'; c.fillRect(598, -130, 46, 36); c.fillStyle = '#FCE3BC'; c.fillRect(601, -127, 40, 30); WD.drawPalm(c, 620, -97, 22, 0, t, 1, { trunk: '#8D8A86', leaf: '#3E8A44', leaf2: '#4FA04F' }, false);
   c.fillStyle = '#5B4A3A'; c.fillRect(688, -110, 10, 3); c.strokeStyle = '#E8593C'; c.lineWidth = 2; c.beginPath(); c.moveTo(693, -108); c.quadraticCurveTo(686, -70, 696, -62); c.stroke();
   // couch with blanket
   c.fillStyle = '#7A8FA6'; rr(c, 520, -46, 140, 44, 10); c.fill();

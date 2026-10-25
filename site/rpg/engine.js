@@ -38,10 +38,16 @@ const CSS = `
 .wd-load{position:absolute;inset:0;display:grid;place-items:center;background:var(--dusk);color:var(--paper);font-family:var(--display);font-weight:800;font-size:22px;z-index:70;text-align:center;line-height:1.5}
 .wd-load small{display:block;font-family:var(--body);font-size:14px;opacity:.75}
 /* top bar */
-.wd-x,.wd-bag,.wd-mute{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);width:44px;height:44px;border-radius:50%;border:0;background:var(--paper);box-shadow:0 0 0 3px var(--ink);font-size:18px;z-index:45;display:grid;place-items:center;padding:0}
+.wd-x,.wd-bag,.wd-mute,.wd-pause{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);width:44px;height:44px;border-radius:50%;border:0;background:var(--paper);box-shadow:0 0 0 3px var(--ink);font-size:18px;z-index:45;display:grid;place-items:center;padding:0}
 .wd-x{left:calc(env(safe-area-inset-left,0px) + 12px);font-weight:900}
 .wd-mute{right:calc(env(safe-area-inset-right,0px) + 12px)}
-.wd-bag{right:calc(env(safe-area-inset-right,0px) + 66px)}
+.wd-pause{right:calc(env(safe-area-inset-right,0px) + 66px);font-size:15px;font-weight:900;letter-spacing:-1px}
+.wd-bag{right:calc(env(safe-area-inset-right,0px) + 120px)}
+.wd-pausebox{position:absolute;inset:0;z-index:58;display:grid;place-items:center;background:rgba(42,35,70,.62);padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px))}
+.wd-pausebox .sheet{background:var(--paper);border-radius:24px;padding:18px 22px 20px;box-shadow:0 0 0 3px var(--ink),0 9px 0 var(--ink);display:grid;gap:12px;justify-items:center;text-align:center;animation:wdPop .3s cubic-bezier(.3,1.6,.5,1);max-width:420px}
+.wd-pausebox h2{margin:0;font-family:var(--display);font-weight:900;font-size:32px;color:var(--coral);line-height:1}
+.wd-pausebox p{margin:0;font-weight:700;font-size:13.5px;opacity:.7}
+.wd-pausebox .wd-pick{justify-content:center}
 .wd-bag.ping::after{content:'';position:absolute;top:2px;right:2px;width:11px;height:11px;border-radius:50%;background:var(--coral);box-shadow:0 0 0 2px var(--ink)}
 /* area card + goal */
 .wd-area{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 16px);transform:translateX(-50%) rotate(-1.5deg);background:var(--paper);padding:8px 18px 9px;border-radius:14px;box-shadow:0 0 0 3px var(--ink),0 5px 0 rgba(43,29,20,.35);text-align:center;z-index:12;pointer-events:none;opacity:0;transition:opacity .6s,transform .6s;white-space:nowrap}
@@ -78,7 +84,7 @@ const CSS = `
 .wd-b{right:calc(env(safe-area-inset-right,0px) + 114px);bottom:calc(env(safe-area-inset-bottom,0px) + 26px);width:60px;height:60px;background:var(--sun);font-size:24px}
 .wd-p{right:calc(env(safe-area-inset-right,0px) + 30px);bottom:calc(env(safe-area-inset-bottom,0px) + 140px);width:56px;height:56px;background:#9BD27A;font-size:22px}
 /* battle */
-.wd-bhud{position:absolute;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 10px);display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding-inline:max(64px,calc(env(safe-area-inset-left,0px) + 64px)) max(64px,calc(env(safe-area-inset-right,0px) + 64px));z-index:14;pointer-events:none}
+.wd-bhud{position:absolute;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 10px);display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding-inline:max(64px,calc(env(safe-area-inset-left,0px) + 64px)) max(118px,calc(env(safe-area-inset-right,0px) + 118px));z-index:14;pointer-events:none}
 .wd-hp{background:var(--paper);border-radius:14px;padding:5px 10px 6px;box-shadow:0 0 0 3px var(--ink),0 4px 0 rgba(43,29,20,.3);min-width:0}
 .wd-hp b{font-family:var(--display);font-weight:800;font-size:14px;display:block;line-height:1.1;white-space:nowrap}
 .wd-hp .bar{width:92px;max-width:22vw;height:9px;border-radius:9px;background:#E7D7BC;box-shadow:inset 0 0 0 2px var(--ink);overflow:hidden;margin-top:4px}
@@ -193,6 +199,8 @@ const HTML = `
 <div class="wd-panel" hidden></div>
 <button class="wd-x" aria-label="Close the game">✕</button>
 <button class="wd-bag" hidden aria-label="Bag and Missing Dog poster">🎒</button>
+<button class="wd-pause" hidden aria-label="Pause">❚❚</button>
+<div class="wd-pausebox" hidden><div class="sheet"><h2>Paused</h2><p></p><div class="wd-pick"></div></div></div>
 <button class="wd-mute" aria-label="Sound on or off">♪</button>
 <div class="wd-rotate"><div><i>📱</i><b>Turn your phone sideways</b><p>Where's Dayla? plays in landscape, like a handheld console.</p><button class="wd-x2">Close game</button></div></div>
 <div class="wd-load">🐾<span>Loading Where's Dayla?<small>Tivoli Park is waking up…</small></span></div>`;
@@ -357,6 +365,7 @@ let handlers = {};
 WD.onButton = (k, fn) => { handlers[k] = fn; };
 function press(k){
   audio();
+  if(WD.pausedByUser) return;
   if(k === 'a'){ if(input.a) return; input.a = true; btn('a', true); }
   if(WD.cmdPress && k === 'a'){ WD.cmdPress(); return; }
   if(WD.getOpen){ if(k === 'a') WD.closeGet(); return; }
@@ -373,17 +382,18 @@ function onKey(e){
   if(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '].includes(k)) e.preventDefault();
   if(down && e.repeat) return;
   // keyboard menus: arrows move between buttons, A/Enter picks the focused one
-  const ae = document.activeElement, menuBtn = ae && root && root.contains(ae) && ae.tagName === 'BUTTON' && !ae.classList.contains('wd-btn') && ae.closest('.wd-bmenu,.choices,.wd-card,.wd-panel,.wd-title');
+  const ae = document.activeElement, menuBtn = ae && root && root.contains(ae) && ae.tagName === 'BUTTON' && !ae.classList.contains('wd-btn') && ae.closest('.wd-bmenu,.choices,.wd-card,.wd-panel,.wd-title,.wd-pausebox');
   if(down && menuBtn && [' ', 'Enter', 'z', 'Z'].includes(k)){ e.preventDefault(); ae.click(); return; }
   if(down && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(k)){
-    const box = ['.wd-panel', '.wd-card', '.wd-bmenu', '.wd-talk .choices', '.wd-title'].map(s => root.querySelector(s)).find(el => el && !el.hidden && el.offsetParent !== null && el.querySelector('button:not([disabled])'));
+    const box = ['.wd-pausebox', '.wd-panel', '.wd-card', '.wd-bmenu', '.wd-talk .choices', '.wd-title'].map(s => root.querySelector(s)).find(el => el && !el.hidden && el.offsetParent !== null && el.querySelector('button:not([disabled])'));
     if(box){ const bs = [...box.querySelectorAll('button:not([disabled])')]; const i = bs.indexOf(ae); const d = (k === 'ArrowLeft' || k === 'ArrowUp') ? -1 : 1; bs[(i < 0 ? 0 : (i + d + bs.length) % bs.length)].focus({ preventScroll: true }); return; }
   }
   input.keys[k] = down;
   if([' ', 'Enter', 'z', 'Z'].includes(k)){ e.preventDefault(); down ? press('a') : release('a'); }
   else if(down && (k === 'x' || k === 'X')) press('b');
   else if(down && (k === 'c' || k === 'C')) press('p');
-  else if(down && (k === 'Escape' || k === 'm' || k === 'M')){ if(WD.panelOpen) WD.closePanel(); else if(WD.scene && WD.scene.onMenu) WD.scene.onMenu(); }
+  else if(down && k === 'Escape'){ if(WD.pausedByUser) WD.resume(); else if(WD.panelOpen) WD.closePanel(); else WD.pause(); }
+  else if(down && (k === 'm' || k === 'M')){ if(WD.panelOpen) WD.closePanel(); else if(WD.scene && WD.scene.onMenu) WD.scene.onMenu(); }
 }
 WD.stick = function(){
   let x = input.jx, y = input.jy; const K = input.keys;
@@ -411,6 +421,7 @@ function wireControls(){
   q('.wd-mute').addEventListener('click', () => { WD.soundOn = !WD.soundOn; q('.wd-mute').textContent = WD.soundOn ? '♪' : '🔇'; if(WD.soundOn) audio(); });
   q('.wd-x').addEventListener('click', () => { WD.saveNow(); api.close(); });
   q('.wd-x2').addEventListener('click', () => { WD.saveNow(); api.close(); });
+  q('.wd-pause').addEventListener('click', () => { audio(); WD.pause(); });
   q('.wd-bag').addEventListener('click', () => { audio(); if(WD.openBag && !WD.paused && WD.mode === 'explore') WD.openBag(); });
 }
 WD.showControls = function(on){
@@ -441,6 +452,34 @@ WD.card = function(html, buttons){
     sh.querySelectorAll('button[data-i]').forEach(b => b.onclick = () => { WD.sfx('tap'); c.hidden = true; r(+b.dataset.i); });
   });
 };
+
+/* ================= pause ================= */
+WD.pausedByUser = false; let pausedSong = null;
+WD.pause = function(){
+  if(dead || WD.pausedByUser || WD.panelOpen || WD.getOpen || !WD.G || !WD.G.started) return;
+  const card = root.querySelector('.wd-card'); if(card && !card.hidden) return;
+  WD.pausedByUser = true; WD.paused = true; pausedSong = MUS.cur; MUS.stop(); WD.sfx('tap');
+  const box = root.querySelector('.wd-pausebox'), explore = WD.mode === 'explore';
+  box.querySelector('p').textContent = WD.mode === 'battle' ? 'The battle is frozen. Timing picks up right where you left off.' : 'Everything is frozen until you come back.';
+  const btns = [['resume', 'Resume', 'alt'], explore ? ['bag', 'Bag & poster', ''] : null, ['sound', WD.soundOn ? 'Sound: on' : 'Sound: off', ''], explore ? ['save', 'Save', ''] : null, ['quit', 'Save & close game', '']].filter(Boolean);
+  const pick = box.querySelector('.wd-pick'); pick.innerHTML = btns.map(([k, l, c]) => `<button class="wd-cb ${c}" data-p="${k}">${l}</button>`).join('');
+  pick.querySelectorAll('button').forEach(b => b.onclick = () => {
+    const k = b.dataset.p;
+    if(k === 'resume') WD.resume();
+    else if(k === 'bag'){ WD.resume(); if(WD.openBag) WD.openBag(); }
+    else if(k === 'sound'){ WD.soundOn = !WD.soundOn; root.querySelector('.wd-mute').textContent = WD.soundOn ? '♪' : '🔇'; b.textContent = WD.soundOn ? 'Sound: on' : 'Sound: off'; if(WD.soundOn) audio(); WD.sfx('tap'); }
+    else if(k === 'save'){ WD.saveNow(); b.textContent = 'Saved ✓'; WD.sfx('get'); }
+    else if(k === 'quit'){ WD.saveNow(); api.close(); }
+  });
+  box.hidden = false; const f = pick.querySelector('button'); if(f) f.focus({ preventScroll: true });
+};
+WD.resume = function(){
+  if(!WD.pausedByUser) return;
+  WD.pausedByUser = false; WD.paused = !!(WD.panelOpen || WD.getOpen);
+  root.querySelector('.wd-pausebox').hidden = true; prevT = performance.now();
+  if(pausedSong) MUS.play(pausedSong); pausedSong = null; WD.sfx('tap');
+};
+function onHide(){ if(document.hidden && WD.G && WD.G.started && !dead){ WD.saveNow(); WD.pause(); } }
 
 /* ================= page-turn transition ================= */
 let turnU = -1;
@@ -513,6 +552,7 @@ function frame(now){
   if(fadeA > .002){ ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = Math.min(1, fadeA); ctx.fillStyle = fadeCol; ctx.fillRect(0, 0, WD.cv.width, WD.cv.height); ctx.globalAlpha = 1; }
   drawPageTurn();
   if(WD.drawTalkPortrait) WD.drawTalkPortrait();
+  const pb = root.querySelector('.wd-pause'), want = !!(WD.G && WD.G.started && ['explore', 'cutscene', 'battle'].includes(WD.mode)); if(pb.hidden === want) pb.hidden = !want;
   if(WD.G && WD.G.started && WD.mode === 'explore' && performance.now() - lastSave > 45000) WD.saveNow();
 }
 WD.setScene = function(s, mode){ WD.scene = s; WD.mode = mode || (s && s.mode) || 'explore'; if(s && s.enter) s.enter(); };
@@ -536,8 +576,8 @@ async function start(host, apiIn){
   root.querySelector('.wd-mute').textContent = WD.soundOn ? '♪' : '🔇';
   WD.cv = root.querySelector('.wd-cv'); WD.ctx = WD.cv.getContext('2d');
   resize(); addEventListener('resize', resize); addEventListener('orientationchange', resize);
-  addEventListener('keydown', onKey); addEventListener('keyup', onKey);
-  wireControls();
+  addEventListener('keydown', onKey); addEventListener('keyup', onKey); document.addEventListener('visibilitychange', onHide);
+  wireControls(); WD.pausedByUser = false;
   WD.time = 0; WD.paused = false; WD.letter = 0; letterT = 0; fadeA = 0; timers.length = 0; tweens.length = 0; WD.scene = null; WD.mode = 'load';
   prevT = performance.now(); raf = requestAnimationFrame(frame);
   try{
@@ -557,7 +597,8 @@ function stop(){
   try{ if(WD.G && WD.G.started) WD.saveNow(); }catch(e){}
   dead = true; cancelAnimationFrame(raf); MUS.stop();
   removeEventListener('resize', resize); removeEventListener('orientationchange', resize);
-  removeEventListener('keydown', onKey); removeEventListener('keyup', onKey);
+  removeEventListener('keydown', onKey); removeEventListener('keyup', onKey); document.removeEventListener('visibilitychange', onHide);
+  WD.pausedByUser = false;
   WD.scene = null; WD.G = null; WD.cmdPress = null; WD.talkPress = null; WD.getOpen = false; WD.panelOpen = false;
   if(root && root.parentNode) root.parentNode.removeChild(root); root = null;
 }

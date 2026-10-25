@@ -28,6 +28,7 @@ function clue(k){ const G = WD.G; if(!G.clues.includes(k)) G.clues.push(k); }
 
 /* ================= goal line ================= */
 WD.updateGoal = function(){
+  if(WD.chapterGoal && WD.W.area && WD.W.area.ch) return WD.chapterGoal(WD.W.area.ch);
   const n = ['duck', 'print', 'glove'].filter(k => F('clue_' + k)).length;
   const tries = ['try_call', 'try_joke', 'try_pan'].filter(F).length;
   let g = '';
@@ -50,8 +51,6 @@ function mkVeci(){ return WD.makeEnt({ kind: 'human', look: WD.LOOKS.Veci, name:
 function phoneProp(c){ c.save(); c.translate(1, 16); c.rotate(-.3); c.fillStyle = '#1E1E24'; rr(c, -3, -5, 6, 10, 1.4); c.fill(); c.fillStyle = '#9FD3FF'; rr(c, -2.2, -4, 4.4, 8, 1); c.fill(); c.restore(); }
 function trashProp(c){ c.save(); c.translate(0, 22); c.fillStyle = '#2E2E33'; c.beginPath(); c.moveTo(-6, -4); c.quadraticCurveTo(-9, 10, 0, 12); c.quadraticCurveTo(9, 10, 6, -4); c.closePath(); c.fill(); c.fillStyle = '#4A4A52'; c.fillRect(-2, -7, 4, 4); c.restore(); }
 function panProp(c){ c.save(); c.translate(2, 17); c.rotate(-1.2); c.fillStyle = '#2E2E33'; c.fillRect(-1.2, -2, 2.4, 10); ell(c, 0, 13, 7, 2.6); c.fill(); c.restore(); }
-function makePartner(){ const P = WD.makeEnt({ kind: 'chi', name: 'Alejandro', dir: 1 }); return P; }
-WD.makePartner = makePartner;
 
 /* ================= extra set pieces for Tivoli Park ================= */
 WD.drawFitness = function(c, x, t){
@@ -535,7 +534,7 @@ async function dumpsterScene(){
     await say('Veci', 'That’s how it’s done! Cats in suits, working for somebody. This is bigger than one dog.', { ent: v, es: '¡Así se hace! Gatos en traje, trabajando para alguien. Esto es más grande que una perrita.', expr: 'joy' });
     learnWord('¡Así se hace!', 'That’s how it’s done!');
     // Alejandro
-    const al = makePartner(); al.x = 1480; al.y = 92; al.dir = -1; al.nervous = true; W.npcs.push(al); WD.actors.Alejandro = al;
+    const al = WD.makePartner('alejandro'); al.x = 1480; al.y = 92; al.dir = -1; al.nervous = true; W.npcs.push(al); WD.actors.Alejandro = al;
     await say('Alejandro', 'Psst! Psst! Over here! By the golf cart!', { ent: al, expr: 'happy' });
     p.dir = -1; v.dir = 1;
     await WD.walkTo(al, p.x - 40, 84, 90); al.dir = 1;
@@ -594,8 +593,8 @@ async function toyGet(k, name, desc){
     if(k === 'ball') await say('Alejandro', 'Dig dig dig… Found something! It’s slobbery. Definitely Dayla’s.', { expr: 'happy' });
     if(k === 'bone') await say('Alejandro', 'Under the couch! It squeaks! …Why is Dayla’s toy in Veci’s apartment?', { expr: 'happy' });
     G.toys.push(k); S('toy_' + k); WD.sfx('squeak');
-    await WD.itemGet(k, name, desc + ` (Dayla’s Lost Toys ${G.toys.length}/3)`);
-    if(G.toys.length === 3){ WD.giveItem('cafe', 1); WD.giveItem('arepa', 1); await WD.itemGet('star', 'All 3 toys found!', 'Dayla is going to lose her mind. Bonus: Café con Leche and an arepa.'); }
+    await WD.itemGet(k, name, desc + ` (Tivoli Park toys ${WD.toyCount(0)[0]}/3)`);
+    if(WD.toyCount(0)[0] === 3){ WD.giveItem('cafe', 1); WD.giveItem('arepa', 1); await WD.itemGet('star', 'All 3 toys found!', 'Dayla is going to lose her mind. Bonus: Café con Leche and an arepa.'); }
     WD.pingBag(); WD.saveNow();
   });
 }
@@ -712,16 +711,16 @@ async function dunkToy(){
     await WD.tween(520, u => { p.z = Math.sin(u * Math.PI) * 48; p.x = lerp(452, 494, u); p.armRaise = -2.6 * Math.sin(u * Math.PI); });
     p.armRaise = 0; WD.shake(6); WD.sfx('cheer');
     S('toy_rope'); WD.G.toys.push('rope'); WD.sfx('squeak');
-    await WD.itemGet('rope', 'Rope Tug', `Knocked it right off the rim. Still got it. (Dayla’s Lost Toys ${WD.G.toys.length}/3)`);
+    await WD.itemGet('rope', 'Rope Tug', `Knocked it right off the rim. Still got it. (Tivoli Park toys ${WD.toyCount(0)[0]}/3)`);
     await me('And the crowd goes wild. (Alejandro. Alejandro is the crowd.)', '', 'joy');
-    if(WD.G.toys.length === 3){ WD.giveItem('cafe', 1); WD.giveItem('arepa', 1); await WD.itemGet('star', 'All 3 toys found!', 'Dayla is going to lose her mind. Bonus: Café con Leche and an arepa.'); }
+    if(WD.toyCount(0)[0] === 3){ WD.giveItem('cafe', 1); WD.giveItem('arepa', 1); await WD.itemGet('star', 'All 3 toys found!', 'Dayla is going to lose her mind. Bonus: Café con Leche and an arepa.'); }
     WD.pingBag(); WD.saveNow();
   });
 }
 async function laraRope(){
   S('toy_rope'); WD.G.toys.push('rope'); WD.sfx('squeak');
-  await WD.itemGet('rope', 'Rope Tug', `Fished out of the pump room grate. (Dayla’s Lost Toys ${WD.G.toys.length}/3)`);
-  if(WD.G.toys.length === 3){ WD.giveItem('cafe', 1); WD.giveItem('arepa', 1); await WD.itemGet('star', 'All 3 toys found!', 'Dayla is going to lose her mind. Bonus: Café con Leche and an arepa.'); }
+  await WD.itemGet('rope', 'Rope Tug', `Fished out of the pump room grate. (Tivoli Park toys ${WD.toyCount(0)[0]}/3)`);
+  if(WD.toyCount(0)[0] === 3){ WD.giveItem('cafe', 1); WD.giveItem('arepa', 1); await WD.itemGet('star', 'All 3 toys found!', 'Dayla is going to lose her mind. Bonus: Café con Leche and an arepa.'); }
   WD.pingBag(); WD.saveNow();
 }
 async function decoySniff(){
@@ -847,15 +846,21 @@ async function prologueEnd(){
   WD.MUS.play('end');
   if(!G.learned.includes('Love Attack')) G.learned.push('Love Attack');
   S('p_done'); G.chapter = 1; WD.saveNow();
-  await WD.card(`<i class="k">Prologue complete</i><h2>Where’s Dayla?</h2><p>Dayla was taken by a stranger in a long coat, cats in suits are calling her “the package,” and a very rich “client” wants her. The first sighting points to United International College.</p><ul><li>Special move learned: <b>Love Attack</b> (2 SP)</li><li>Sighting #1 added to your Missing Dog poster</li><li>Dayla’s Lost Toys: ${G.toys.length}/3</li></ul>`, [{ label: 'Continue', alt: true }]);
-  await WD.card(`<i class="k">Next</i><h2>Chapter 1: The Registrar’s Riddle</h2><p>United International College, Dania Beach. Somebody is forging Dayla’s transfer papers.</p><p>Chapter 1 arrives in the next update. Until then, Tivoli Park is yours: find any of Dayla’s lost toys you missed, and see who’s hanging around.</p>`, [{ label: 'Keep exploring', alt: true }]);
+  await WD.card(`<i class="k">Prologue complete</i><h2>Where’s Dayla?</h2><p>Dayla was taken by a stranger in a long coat, cats in suits are calling her “the package,” and a very rich “client” wants her. The first sighting points to United International College.</p><ul><li>Special move learned: <b>Love Attack</b> (2 SP)</li><li>Sighting #1 added to your Missing Dog poster</li><li>Dayla’s Lost Toys: ${WD.toyCount(0)[0]}/3</li></ul>`, [{ label: 'Continue', alt: true }]);
+  const go = await WD.card(`<i class="k">Next</i><h2>Chapter 1: The Registrar’s Riddle</h2><p>United International College, Dania Beach. Somebody is forging Dayla’s transfer papers.</p><p>Drive there now, or look around Tivoli Park first. The car is parked right here in the back lot.</p>`, [{ label: 'Drive to UIC', alt: true }, { label: 'Stay a bit' }]);
+  if(go === 0){ await WD.cut(async () => {}); return WD.startChapter(1); }
   WD.MUS.play('courts'); WD.updateGoal();
 }
+/* load a chapter's file and go there */
+WD.startChapter = async function(n){
+  try{ await WD.require('chapters/ch' + n); }catch(e){ console.error(e); WD.toast('Couldn’t load the next chapter. Check your connection.'); return; }
+  if(WD.chapterStart && WD.chapterStart[n]) return WD.chapterStart[n]();
+};
 async function carChapter1(){
   await WD.cut(async () => {
     if(!F('p_done')){ await me('Our car. Not yet. I still have to look around.', 'Nuestro carro. Todavía no.', 'think'); return; }
-    await me('Next stop: UIC. As soon as the road opens.', { t: 'Próxima parada: UIC.', es: 'Próxima parada: UIC.' }, 'determined');
-    await WD.card(`<i class="k">Coming soon</i><h2>Chapter 1: The Registrar’s Riddle</h2><p>The drive to United International College opens in the next update.</p>`, [{ label: 'OK', alt: true }]);
+    const i = await WD.choose(WD.hero, D() ? 'Our car. Head to UIC?' : 'Nuestro carro. ¿Vamos a UIC?', ['Drive to UIC', 'Not yet']);
+    if(i === 0) await WD.startChapter(1);
   });
 }
 
@@ -863,13 +868,15 @@ async function carChapter1(){
 const TITLE = { mode: 'title' };
 TITLE.update = function(dt, t){ WD.cam.x = 900 + Math.sin(t * .08) * 600; WD.cam.z = .9; WD.cam.y = 66; };
 TITLE.draw = function(t, dt){ const A = WD.areas.walk; A.drawBack(t, dt); WD.setLayer(1); A.drawFront(t); WD.drawVignette(true); };
-function showTitle(){
+async function showTitle(){
   const G0 = WD.loadSave();
+  if(G0 && G0.flags && G0.flags.p_done){ try{ await WD.require('chapters/ch1'); }catch(e){ console.error(e); } }
   const el = WD.$('.wd-title'); WD.setScene(TITLE, 'title'); WD.light = 'day'; WD.MUS.play('title');
   WD.showControls(false); WD.$('.wd-goal').hidden = true;
   const areaName = G0 ? (WD.areas[G0.area] || {}).name || 'Tivoli Park' : '';
-  el.innerHTML = `<div class="wd-logo"><h1>Where’s <span>Dayla?</span></h1><p class="chip">Prologue · Tivoli Park</p>
-    <div class="wd-pick">${G0 ? `<button class="wd-cb alt" data-go="continue">Continue<small>Lv ${G0.lv} · ${esc(areaName)}${G0.flags.p_done ? ' · Prologue ✓' : ''}</small></button><button class="wd-cb" data-go="new">New game<small>Start over</small></button>` : `<button class="wd-cb alt" data-go="new">Start<small>Play as ${esc(WD.hero)}</small></button>`}</div>
+  const chip = !G0 || !G0.flags.p_done ? 'Prologue · Tivoli Park' : G0.flags.c1_done ? 'Chapter 1 ✓ · Next: Bogotá' : 'Chapter 1 · The Registrar’s Riddle';
+  el.innerHTML = `<div class="wd-logo"><h1>Where’s <span>Dayla?</span></h1><p class="chip">${esc(chip)}</p>
+    <div class="wd-pick">${G0 ? `<button class="wd-cb alt" data-go="continue">Continue<small>Lv ${G0.lv} · ${esc(areaName)}${G0.flags.c1_done ? ' · Chapter 1 ✓' : G0.flags.p_done ? ' · Prologue ✓' : ''}</small></button><button class="wd-cb" data-go="new">New game<small>Start over</small></button>` : `<button class="wd-cb alt" data-go="new">Start<small>Play as ${esc(WD.hero)}</small></button>`}</div>
     <div class="wd-hint">Playing as ${esc(WD.hero)}. ${esc(WD.spouse)} has a separate save.<br>Move with the stick or arrow keys. A (or Space) to talk and act, B (X key) for your skill. Sound on for music.</div></div>`;
   el.hidden = false;
   const tap = () => { WD.audio(); WD.MUS.play('title'); };
@@ -882,7 +889,7 @@ function showTitle(){
   });
   const f = el.querySelector('[data-go]'); if(f) f.focus({ preventScroll: true });
 }
-function makeHero(){ W.player = WD.makeEnt({ kind: 'human', look: WD.LOOKS[WD.hero], name: WD.hero, x: 330, y: 66 }); W.partner = WD.G.partner ? makePartner() : null; if(W.partner) W.partner.follow = true; }
+function makeHero(){ WD.asDayla = false; W.player = WD.makeEnt({ kind: 'human', look: WD.LOOKS[WD.hero], name: WD.hero, x: 330, y: 66 }); W.partner = WD.G.partner ? WD.makePartner() : null; if(W.partner) W.partner.follow = true; }
 async function newGame(){
   const G = WD.newSave(); G.items = {}; G.started = 1; WD.G = G;
   makeHero();
@@ -896,10 +903,14 @@ async function resume(G0){
   if(F('boss_scene') && !F('boss')) S('boss_scene', 0);
   if(F('agents') && !G0.partner){ G0.partner = 'alejandro'; G0.party.alejandro = { hp: 8, mhp: 8 }; S('veci_gone'); }
   if(F('boss') && !F('photo') && G0.area !== 'courts'){ G0.area = 'courts'; G0.x = 1600; G0.y = 66; }
+  G0.pins = G0.pins || []; G0.worn = G0.worn || [];
+  if(F('p_done')){ try{ await WD.require('chapters/ch1'); }catch(e){ console.error(e); } }
+  if(WD.repairSave) WD.repairSave(G0);
   makeHero();
   const A = WD.areas[G0.area] ? G0.area : 'home';
   await WD.gotoArea(A, G0.x || 330, G0.y || 66, { dir: 1 });
+  if(WD.afterResume) WD.afterResume();
 }
-WD.beforeSave = G => { if(W.player && W.area){ G.area = W.area.id; G.x = Math.round(W.player.x); G.y = Math.round(W.player.y); } };
+WD.beforeSave = G => { if(WD.asDayla) return; if(W.player && W.area && !W.area.noSave){ G.area = W.area.id; G.x = Math.round(W.player.x); G.y = Math.round(W.player.y); } };
 WD.boot = showTitle;
 })();

@@ -154,7 +154,20 @@ const CSS = `
 .wd-postwrap .paper p{font-size:11.5px;line-height:1.3}
 .wd-tile.photo canvas{width:48px;height:48px;border-radius:3px;box-shadow:0 0 0 1.5px var(--ink)}
 .wd-detail canvas.pic{width:120px;height:120px;border-radius:4px;box-shadow:0 0 0 2px var(--ink);justify-self:center}
-.wd-partywrap{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+.wd-partywrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;align-items:start}
+.wd-pcard.off{background:#EFE6D4}
+.wd-swap{border:0;justify-self:start;background:var(--leaf);color:#fff;font-weight:800;border-radius:99px;padding:7px 14px;box-shadow:0 0 0 2px var(--ink);margin-top:2px}
+.wd-pins{display:grid;gap:5px}
+.wd-pin{border:0;text-align:left;background:var(--paper);border-radius:12px;padding:6px 10px 7px;box-shadow:0 0 0 1.5px rgba(43,29,20,.3);display:grid;gap:1px}
+.wd-pin.on{background:#FFE7A6;box-shadow:0 0 0 2px var(--ink)}
+.wd-pin b{font-family:var(--display);font-weight:800;font-size:14px}.wd-pin b em{font-style:normal;font-family:var(--body);font-size:11px;opacity:.6;margin-left:4px}
+.wd-pin small{font-size:11.5px;font-weight:700;opacity:.7;line-height:1.25}
+/* little card games (filing, quiz) */
+.wd-mini{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.wd-mini button{border:0;background:#F7EEDD;border-radius:12px;padding:8px 12px 9px;font-family:var(--display);font-weight:800;font-size:16px;box-shadow:0 0 0 2.5px var(--ink),0 4px 0 var(--ink);min-width:92px}
+.wd-mini button.done{background:#BFE3B0;opacity:.6}
+.wd-mini button:active{transform:translateY(3px);box-shadow:0 0 0 2.5px var(--ink),0 1px 0 var(--ink)}
+.wd-card .score{font-family:var(--display);font-weight:900;font-size:15px;color:var(--coral)}
 .wd-pcard{background:#F7EEDD;border-radius:16px;padding:10px 12px 12px;box-shadow:inset 0 0 0 2px rgba(43,29,20,.12);display:grid;gap:6px}
 .wd-pcard.empty{place-items:center;min-height:120px;text-align:center}
 .wd-pcard .top{display:flex;gap:10px;align-items:center}
@@ -277,7 +290,7 @@ WD.sfx = function(k){
     case 'hit': tone('sine', 170, t, .16, .3, 55); tone('triangle', 880, t, .07, .07, 440); tone('sine', 1320, t + .015, .05, .03); noise(t, .04, .05, 2500); break;
     case 'big': tone('sine', 140, t, .28, .36, 40); tone('triangle', 660, t, .12, .08, 330); [523, 784, 1047].forEach((f, i) => tone('triangle', f, t + .04 + i * .035, .16, .05)); noise(t, .06, .06, 1800); break;
     case 'nice': [784, 988, 1175].forEach((f, i) => tone('triangle', f, t + i * .06, .14, .09)); break;
-    case 'perfect': [784, 988, 1175, 1568].forEach((f, i) => tone('square', f, t + i * .05, .14, .05)); noise(t + .1, .5, .12, 2600); break;
+    case 'perfect': [784, 988, 1175, 1568].forEach((f, i) => tone('square', f, t + i * .05, .14, .05)); [2093, 2637, 3136].forEach((f, i) => tone('sine', f, t + .22 + i * .06, .3, .035)); break;
     case 'miss': tone('triangle', 300, t, .2, .08, 150); break;
     case 'guard': tone('square', 1200, t, .06, .06); tone('triangle', 600, t, .12, .08); break;
     case 'jump': tone('square', 300, t, .16, .05, 700); break;
@@ -285,7 +298,7 @@ WD.sfx = function(k){
     case 'yap': tone('square', 900, t, .05, .05, 700); break;
     case 'meow': tone('sawtooth', 520, t, .32, .05, 760); tone('triangle', 780, t + .12, .25, .04, 520); break;
     case 'hiss': noise(t, .45, .2, 4200); break;
-    case 'cheer': noise(t, 1.2, .22, 1800); noise(t + .1, 1, .12, 3200); break;
+    case 'cheer': for(let i = 0; i < 16; i++) noise(t + Math.random() * .6, .02, .035, 2200 + Math.random() * 1600); [523, 659, 784].forEach((f, i) => tone('triangle', f, t + .03 + i * .05, .4, .03)); break;
     case 'heal': [523, 659, 784, 1047].forEach((f, i) => tone('sine', f, t + i * .07, .2, .08)); break;
     case 'whoosh': noise(t, .35, .25, 700); break;
     case 'clang': [1250, 1873, 2410, 3100].forEach((f, i) => tone('triangle', f, t + i * .005, 1.1 - i * .2, .07)); noise(t, .15, .3, 3000); break;
@@ -307,7 +320,8 @@ WD.sfx = function(k){
     case 'munch': for(let i = 0; i < 5; i++) noise(t + i * .07, .05, .2, 1400 + (i % 2) * 600); break;
   }
 };
-const VOICE = { David: [190, 'triangle'], Laura: [360, 'triangle'], Veci: [150, 'square'], Dayla: [620, 'square'], Alejandro: [520, 'square'], Kairos: [430, 'sawtooth'], 'Cat Agent': [300, 'sawtooth'], 'Sergeant Hairball': [120, 'sawtooth'], Alejandra: [330, 'triangle'], Samuel: [210, 'triangle'], Iguana: [160, 'sine'] };
+const VOICE = { David: [190, 'triangle'], Laura: [360, 'triangle'], Veci: [150, 'square'], Dayla: [620, 'square'], Alejandro: [520, 'square'], Kairos: [430, 'sawtooth'], 'Cat Agent': [300, 'sawtooth'], 'Sergeant Hairball': [120, 'sawtooth'], Alejandra: [330, 'triangle'], Samuel: [210, 'triangle'], Iguana: [160, 'sine'],
+  Chunkers: [110, 'square'], Angelica: [300, 'sine'], 'David Lesser': [150, 'triangle'], Marcela: [380, 'sine'], Lydia: [280, 'sine'], Leonela: [340, 'triangle'], 'The Dean of Detention': [105, 'sawtooth'], 'Paper-Clip Cat': [320, 'sawtooth'], 'Hall-Monitor Cat': [260, 'sawtooth'], 'The Collector': [80, 'sine'] };
 let lastBlip = 0;
 WD.blip = function(name){ if(!WD.soundOn || !AC) return; const now = AC.currentTime; if(now - lastBlip < .055) return; lastBlip = now; const [f, ty] = VOICE[name] || [300, 'sine']; tone(ty, f * (.92 + Math.random() * .18), now, .05, .045); };
 
@@ -332,6 +346,20 @@ const SONGS = WD.SONGS = {
     mel: [74, 0, 74, 77, 0, 74, 72, 0, 70, 0, 69, 0, 70, 72, 0, 0, 74, 0, 74, 77, 0, 79, 81, 0, 79, 0, 77, 0, 76, 0, 0, 0, 77, 0, 77, 79, 0, 77, 76, 0, 74, 0, 72, 0, 70, 72, 0, 0, 69, 0, 73, 76, 0, 79, 81, 0, 85, 0, 81, 0, 76, 0, 73, 0] },
   boss: { bpm: 132, lead: 'square', groove: 'march', chords: [[46, 58, 62, 65], [39, 58, 63, 67], [41, 57, 60, 65], [46, 58, 62, 65]],
     mel: [70, 0, 70, 70, 74, 0, 70, 0, 77, 0, 0, 0, 74, 0, 0, 0, 75, 0, 75, 75, 79, 0, 75, 0, 82, 0, 0, 0, 79, 0, 0, 0, 77, 0, 79, 0, 81, 0, 77, 0, 72, 0, 74, 0, 75, 0, 72, 0, 70, 0, 74, 0, 77, 0, 82, 0, 81, 0, 0, 0, 82, 0, 0, 0] },
+  campus: { bpm: 108, lead: 'pluck', groove: 'calypso', chords: [[43, 55, 59, 62], [48, 52, 55, 60], [50, 54, 57, 62], [43, 55, 59, 62]],
+    mel: [67, 0, 71, 0, 74, 0, 0, 79, 0, 78, 76, 0, 74, 0, 0, 0, 72, 0, 76, 0, 79, 0, 0, 84, 0, 83, 81, 0, 79, 0, 0, 0, 81, 0, 0, 79, 78, 0, 76, 0, 74, 0, 76, 0, 78, 0, 0, 0, 79, 0, 74, 0, 71, 0, 74, 0, 67, 0, 0, 0, 0, 0, 0, 0] },
+  office: { bpm: 96, lead: 'bell', groove: 'cozy', chords: [[41, 52, 57, 60], [38, 53, 57, 60], [43, 53, 58, 62], [36, 52, 58, 64]],
+    mel: [72, 0, 0, 69, 0, 0, 72, 0, 74, 0, 72, 0, 0, 0, 0, 0, 69, 0, 0, 65, 0, 0, 69, 0, 70, 0, 69, 0, 0, 0, 0, 0, 67, 0, 0, 70, 0, 0, 74, 0, 72, 0, 70, 0, 69, 0, 0, 0, 67, 0, 69, 0, 70, 0, 72, 0, 65, 0, 0, 0, 0, 0, 0, 0] },
+  quiz: { bpm: 132, lead: 'square', groove: 'drive', chords: [[48, 52, 55, 60], [45, 52, 57, 60], [41, 53, 57, 60], [43, 55, 59, 62]],
+    mel: [72, 74, 76, 0, 79, 0, 76, 0, 77, 0, 76, 0, 74, 0, 72, 0, 74, 76, 77, 0, 81, 0, 77, 0, 79, 0, 0, 0, 0, 0, 0, 0, 72, 74, 76, 0, 79, 0, 84, 0, 83, 0, 81, 0, 79, 0, 77, 0, 76, 0, 74, 0, 72, 0, 71, 0, 72, 0, 0, 0, 79, 0, 72, 0] },
+  gym: { bpm: 100, lead: 'bell', groove: 'sneak', chords: [[45, 57, 60, 64], [41, 57, 60, 65], [43, 55, 59, 62], [40, 56, 59, 64]],
+    mel: [69, 0, 0, 0, 72, 0, 0, 0, 71, 0, 0, 0, 69, 0, 0, 0, 65, 0, 0, 0, 69, 0, 0, 0, 67, 0, 0, 0, 0, 0, 0, 0, 69, 0, 0, 72, 76, 0, 0, 0, 74, 0, 72, 0, 71, 0, 0, 0, 68, 0, 0, 0, 71, 0, 0, 0, 69, 0, 0, 0, 0, 0, 0, 0] },
+  memory: { bpm: 66, lead: 'bell', groove: 'none', chords: [[39, 51, 55, 58], [44, 51, 56, 60], [46, 53, 58, 62], [39, 51, 55, 58]],
+    mel: [75, 0, 0, 79, 0, 0, 82, 0, 80, 0, 0, 0, 79, 0, 0, 0, 77, 0, 0, 80, 0, 0, 84, 0, 82, 0, 0, 0, 0, 0, 0, 0, 79, 0, 0, 82, 0, 0, 87, 0, 86, 0, 84, 0, 82, 0, 0, 0, 80, 0, 79, 0, 77, 0, 79, 0, 75, 0, 0, 0, 0, 0, 0, 0] },
+  kennel: { bpm: 88, lead: 'pluck', groove: 'sneak', chords: [[38, 50, 53, 57], [43, 50, 55, 58], [45, 49, 52, 57], [38, 50, 53, 57]],
+    mel: [62, 0, 65, 0, 69, 0, 0, 68, 69, 0, 0, 0, 65, 0, 0, 0, 67, 0, 70, 0, 74, 0, 0, 73, 74, 0, 0, 0, 0, 0, 0, 0, 72, 0, 0, 70, 69, 0, 67, 0, 65, 0, 0, 64, 62, 0, 0, 0, 61, 0, 64, 0, 67, 0, 70, 0, 69, 0, 0, 0, 0, 0, 0, 0] },
+  dean: { bpm: 140, lead: 'square', groove: 'march', chords: [[43, 55, 58, 62], [39, 55, 58, 63], [38, 54, 57, 62], [43, 55, 58, 62]],
+    mel: [67, 0, 67, 70, 74, 0, 70, 0, 79, 0, 0, 0, 74, 0, 0, 0, 75, 0, 75, 74, 72, 0, 70, 0, 69, 0, 0, 0, 66, 0, 0, 0, 67, 0, 70, 0, 74, 0, 79, 0, 82, 0, 79, 0, 75, 0, 72, 0, 74, 0, 72, 0, 70, 0, 69, 0, 67, 0, 0, 0, 62, 0, 0, 0] },
   end: { bpm: 72, lead: 'bell', groove: 'cozy', chords: [[48, 52, 55, 60], [45, 52, 57, 60], [41, 53, 57, 60], [43, 55, 59, 62]],
     mel: [76, 0, 0, 79, 0, 0, 84, 0, 83, 0, 0, 0, 79, 0, 0, 0, 81, 0, 0, 76, 0, 0, 72, 0, 74, 0, 0, 0, 0, 0, 0, 0, 77, 0, 0, 76, 0, 0, 74, 0, 72, 0, 0, 0, 69, 0, 0, 0, 71, 0, 72, 0, 74, 0, 79, 0, 76, 0, 0, 0, 0, 0, 0, 0] }
 };
@@ -556,7 +584,7 @@ WD.fade = (to, ms, col) => { if(col) fadeCol = col; const a0 = fadeA; return WD.
 WD.G = null;
 const LS = () => 'wd-save-' + (api ? api.me : 'x');
 WD.newSave = function(){
-  return { v: 2, area: 'home', x: 0, y: 0, flags: {}, lv: 1, xp: 0, hp: 10, mhp: 10, sp: 3, msp: 5, pp: 3, mpp: 3, partner: null, party: {}, items: { arepa: 1 }, key: [], toys: [], words: [], verses: [], photos: [], clues: [], learned: [], chapter: 0, at: 0 };
+  return { v: 2, area: 'home', x: 0, y: 0, flags: {}, lv: 1, xp: 0, hp: 10, mhp: 10, sp: 3, msp: 5, pp: 3, mpp: 3, partner: null, party: {}, items: { arepa: 1 }, key: [], toys: [], words: [], verses: [], photos: [], clues: [], learned: [], pins: [], worn: [], chapter: 0, at: 0 };
 };
 WD.loadSave = function(){
   let a = null, b = null;
@@ -574,7 +602,7 @@ WD.saveNow = function(){
   const copy = JSON.parse(JSON.stringify(G));
   try{ localStorage.setItem(LS(), JSON.stringify(copy)); }catch(e){}
   try{ api.save(copy); }catch(e){}
-  try{ api.saveWorld({ v: 2, p_start: 1, p_done: G.flags.p_done ? 1 : 0, ch: G.chapter || 0, lv: G.lv, hero: WD.hero }); }catch(e){}
+  try{ api.saveWorld({ v: 2, p_start: 1, p_done: G.flags.p_done ? 1 : 0, c1_start: G.flags.c1_arrived ? 1 : 0, c1_done: G.flags.c1_done ? 1 : 0, ch: G.chapter || 0, lv: G.lv, hero: WD.hero }); }catch(e){}
 };
 WD.flag = k => !!(WD.G && WD.G.flags[k]);
 WD.set = (k, v) => { WD.G.flags[k] = v === undefined ? 1 : v; };

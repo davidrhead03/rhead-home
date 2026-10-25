@@ -6059,14 +6059,14 @@ function rpgPoster(){
     <g transform="translate(59 68) scale(.55)"><ellipse cx="0" cy="0" rx="13" ry="8" fill="#F7D23E"/><ellipse cx="9" cy="-6" rx="7" ry="6.5" fill="#F7D23E"/><ellipse cx="16" cy="-4" rx="5.5" ry="3" fill="#F28A2E"/><circle cx="11" cy="-8" r="1.4" fill="#1A1414"/></g>
     <text x="40" y="88" text-anchor="middle" font-family="Fredoka,Nunito,system-ui,sans-serif" font-weight="700" font-size="11" fill="#2B1D14" letter-spacing="1.5">DAYLA</text></svg>`;
 }
-function rpgProgress(){ const w = gdoc('rpg_world_' + (S.me || 'david')) || {}; if(w.v !== 2) return { done: 0, now: -1 }; return { done: w.p_done ? 1 : 0, now: w.p_done ? -1 : w.p_start ? 0 : -1 }; }
+function rpgProgress(){ const w = gdoc('rpg_world_' + (S.me || 'david')) || {}; if(w.v !== 2) return { done: 0, now: -1 }; const done = (w.p_done ? 1 : 0) + (w.p_done && w.c1_done ? 1 : 0); return { done, now: done === 1 ? 1 : done === 0 && w.p_start ? 0 : -1 }; }
 function rpgCard(){
   const pr = rpgProgress(), labels = ['Prologue', 'Ch 1', 'Ch 2', 'Ch 3', 'Ch 4', 'Ch 5', 'Ch 6', 'Ch 7', 'Ch 8', 'Finale'];
   const pips = labels.map((l, i) => `<i class="${i < pr.done ? 'on' : i === pr.now ? 'now' : ''}" title="${l}"></i>`).join('');
   const started = pr.done > 0 || pr.now >= 0;
   return `<button class="rpg-feature" data-act="rpg-open" aria-label="Play Where’s Dayla?"><span class="rpg-scene">${rpgScene()}</span><span class="rpg-poster">${rpgPoster()}</span><span class="rpg-txt"><span class="rpg-chip">${esc(rpgStatus())}</span><b class="rpg-logo">Where’s <i>Dayla?</i></b><span class="rpg-sub">Someone took Dayla mid-breakfast. Follow the trail!</span></span><span class="rpg-pips" aria-hidden="true">${pips}</span><span class="rpg-play">${started ? 'Continue ▶' : 'Play ▶'}</span></button>`;
 }
-function rpgStatus(){ const w = gdoc('rpg_world_' + (S.me || 'david')) || {}; if(w.v !== 2) return 'New story adventure'; return w.p_done ? 'Prologue ✓ · Chapter 1 soon' : w.p_start ? `Prologue · Lv ${w.lv || 1}` : 'New story adventure'; }
+function rpgStatus(){ const w = gdoc('rpg_world_' + (S.me || 'david')) || {}; if(w.v !== 2) return 'New story adventure'; return w.c1_done ? 'Chapter 1 ✓ · Chapter 2 soon' : w.p_done ? `Chapter 1 · Lv ${w.lv || 1}` : w.p_start ? `Prologue · Lv ${w.lv || 1}` : 'New story adventure'; }
 function rpgRaining(){ try{ const w = meta('weather'), d = w && Array.isArray(w.days) ? w.days.find(x => x.date === ymd(new Date())) : null; return !!d && /rain|shower|storm|thunder|drizzle/i.test(String(d.cond || '')); }catch(e){ return false; } }
 function closeRPG(){ try{ window.RheadRPG && window.RheadRPG.stop(); }catch(e){} const h = document.getElementById('rpg-host'); if(h) h.remove(); document.documentElement.classList.remove('rpg-open'); }
 function openRPG(){
@@ -6083,7 +6083,7 @@ function openRPG(){
     raining: rpgRaining, soundOn: () => SET.sound !== false, close: closeRPG };
   const go2 = () => { try{ window.RheadRPG.start(host, api); }catch(e){ console.error(e); host.innerHTML = '<div class="rpg-load">The game couldn’t load. Close and try again.<br><br><button class="btn" onclick="this.closest(\'.rpg-host\').remove();document.documentElement.classList.remove(\'rpg-open\')">Close</button></div>'; } };
   if(window.RheadRPG) return go2();
-  const sc = document.createElement('script'); sc.src = '/rpg/engine.js?v=7'; sc.onload = go2; sc.onerror = () => { host.innerHTML = '<div class="rpg-load">No connection right now.</div>'; setTimeout(closeRPG, 1800); }; document.head.appendChild(sc);
+  const sc = document.createElement('script'); sc.src = '/rpg/engine.js?v=9'; sc.onload = go2; sc.onerror = () => { host.innerHTML = '<div class="rpg-load">No connection right now.</div>'; setTimeout(closeRPG, 1800); }; document.head.appendChild(sc);
 }
 /* ---------- Guess Who? ---------- */
 const GW_NAMES = ['Bruno','Coco','Pepe','Maple','Rosa','Theo','Lulu','Rafa','Nina','Otis','Pía','Gus','Mila','Dante','Juno','Tito','Lola','Ezra','Bea','Iggy','Sol','Kiko','Vera','Moe','Paz','Rex','Ivy','Nico','Wren','Fito','Gigi','Hank','Luz','Abe','Tula','Remy'];

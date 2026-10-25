@@ -43,10 +43,11 @@ function setup(opts, resolve){
   const k0 = Math.min(v.h / 300, v.w / 330), Wb = Math.min(175, v.w / k0 / 2 - 34);
   const p = WD.makeEnt({ kind: 'human', look: WD.LOOKS[WD.hero], name: WD.hero, y: 0, dir: 1, flip: 1, light: 'day' });
   const P = G.partner ? G.party[G.partner] : null;
-  const a = P ? WD.makeEnt({ kind: 'chi', name: 'Alejandro', y: 7, dir: 1, flip: 1, light: 'day' }) : null;
+  const PD = P ? WD.partnerDef() : null;
+  const a = P ? WD.makeEnt({ kind: PD.kind, name: PD.name, y: 7, dir: 1, flip: 1, light: 'day' }) : null;
   const home = { p: a ? -Wb * .7 : -Wb * .55, a: -Wb * .34 };
   p.x = home.p; if(a){ a.x = home.a; if(P.hp <= 0){ a.rot = -1.4; a.nervous = true; } }
-  B = { opts, resolve, home, Wb, p, a, foes: [], fx: [], texts: [], crowd: [], cheer: 0, curtain: 0, t: 0, shake: 0, over: false, fam: false, atkUp: 0, proj: [], call: null, tipped: {} };
+  B = { opts, resolve, home, Wb, p, a, foes: [], fx: [], texts: [], crowd: [], cheer: 0, curtain: 0, t: 0, shake: 0, over: false, fam: false, atkUp: 0, proj: [], call: null, tipped: {}, detain: { p: 0, a: 0 }, goodBoy: 0, focusT: 0 };
   opts.foes.forEach(id => addFoe(id));
   B.foes.forEach(f => { f.e.x = f.home; });
   const R4 = rng(5); for(let i = 0; i < 22; i++) B.crowd.push({ x: -1 + i / 21 * 2, c: ['#3E4A6B', '#7A3E52', '#4F6B3E', '#6B4A2E', '#2F4F5E', '#5E3E6B', '#8A5A3A'][i % 7], h: .8 + R4() * .4, p: R4() * 6, cap: opts.crowdCap && i === 4 ? opts.crowdCap : null });
@@ -70,7 +71,7 @@ function layoutFoes(){
 }
 function buildHud(){
   const h = WD.$('.wd-bhud'), G = WD.G, P = G.partner ? G.party[G.partner] : null;
-  h.innerHTML = `<div class="wd-hpcol"><div class="wd-hp" data-hp="p"><b>${esc(WD.hero)}</b><div class="bar"><i></i></div><small></small></div>${P ? `<div class="wd-hp" data-hp="a"><b>Alejandro</b><div class="bar"><i></i></div><small></small></div>` : ''}</div><div class="wd-hype"></div><div class="wd-hpcol foes"></div>`;
+  h.innerHTML = `<div class="wd-hpcol"><div class="wd-hp" data-hp="p"><b>${esc(WD.hero)}</b><div class="bar"><i></i></div><small></small></div>${P ? `<div class="wd-hp" data-hp="a"><b>${esc(WD.partnerDef().name)}</b><div class="bar"><i></i></div><small></small></div>` : ''}</div><div class="wd-hype"></div><div class="wd-hpcol foes"></div>`;
   h.hidden = false; updHud();
 }
 function updHud(){
@@ -89,7 +90,7 @@ function burst(x, y, n, cols){ for(let i = 0; i < n; i++){ const a = Math.random
 function cheer(n){ B.cheer = Math.max(B.cheer, n); WD.sfx('cheer'); }
 function hype(n){ const G = WD.G; G.sp = clamp(G.sp + n, 0, G.msp); updHud(); }
 const tw = (e, props, ms, arc) => { const from = {}; Object.keys(props).forEach(k => from[k] = e[k]); return WD.tween(ms, u => { const q = ease(u); Object.keys(props).forEach(k => e[k] = lerp(from[k], props[k], q)); if(arc) e.z = Math.sin(u * Math.PI) * arc; }).then(() => { if(arc) e.z = 0; }); };
-function rating(q, x){ x = x === undefined ? -40 : x; if(q === 2){ addText(x, -120, 'PERFECT!', '#FFC94A', 'huge'); WD.sfx('perfect'); cheer(2); hype(2); } else if(q === 1){ addText(x, -120, 'NICE!', '#7CD86A', 'huge'); WD.sfx('nice'); cheer(1); hype(1); } else { WD.sfx('miss'); addText(x, -120, 'Oops', '#B9BCC2', 'huge'); } }
+function rating(q, x){ x = x === undefined ? -40 : x; const bonus = q && WD.hasPin('honor') ? 1 : 0; if(q === 2){ addText(x, -120, 'PERFECT!', '#FFC94A', 'huge'); WD.sfx('perfect'); cheer(2); hype(2 + bonus); } else if(q === 1){ addText(x, -120, 'NICE!', '#7CD86A', 'huge'); WD.sfx('nice'); cheer(1); hype(1 + bonus); } else { WD.sfx('miss'); addText(x, -120, 'Oops', '#B9BCC2', 'huge'); } }
 async function hitFoe(f, n, opts){
   opts = opts || {};
   if(!f || !f.alive) return;
@@ -108,7 +109,7 @@ async function foeDown(f){
 }
 async function hurtAlly(who, n){
   const G = WD.G, P = G.partner ? G.party[G.partner] : null;
-  if(who === 'a' && P){ P.hp = Math.max(0, P.hp - n); B.a.hurt = .35; addText(B.a.x, -60, n ? '-' + n : 'Blocked!', n ? '#E8593C' : '#3E6FB5', true); if(P.hp <= 0){ B.a.nervous = true; await WD.wait(250); await tw(B.a, { rot: -1.4 }, 300); addText(B.a.x, -40, 'Too scared to fight!', '#B39CE0'); } }
+  if(who === 'a' && P){ P.hp = Math.max(0, P.hp - n); B.a.hurt = .35; addText(B.a.x, -60, n ? '-' + n : 'Blocked!', n ? '#E8593C' : '#3E6FB5', true); if(P.hp <= 0){ B.a.nervous = true; B.a.zzz = WD.G.partner === 'chunkers'; await WD.wait(250); await tw(B.a, { rot: -1.4 }, 300); addText(B.a.x, -40, WD.partnerDef().ko, '#B39CE0'); } }
   else { G.hp = Math.max(0, G.hp - n); B.p.hurt = .35; addText(B.p.x, -100, n ? '-' + n : 'Blocked!', n ? '#E8593C' : '#3E6FB5', true); }
   if(n){ WD.sfx('hit'); B.shake = 6; }
   updHud(); await WD.wait(300);
@@ -180,10 +181,13 @@ async function run(){
 }
 async function heroTurn(){
   const G = WD.G, D = WD.hero === 'David';
+  if(B.detain.p > 0){ B.detain.p--; B.p.expr = 'sad'; await bSay(`Detention! ${WD.hero} has to sit this turn out.`, 1500); B.p.expr = 'determined'; return; }
+  if(B.focusT > 0){ B.focusT--; if(!B.focusT) addText(B.p.x, -130, 'Focus wore off', '#B9BCC2'); }
   while(true){
     const specials = [];
-    specials.push(D ? { label: 'Alley-Oop', sub: '3 SP · launch Alejandro, then dunk', cost: 3, id: 'oop', need: 'partner' } : { label: 'Group FaceTime', sub: '3 SP · the whole family yells “¡Vamos!”', cost: 3, id: 'ft' });
+    specials.push(D ? { label: 'Alley-Oop', sub: `3 SP · launch ${G.partner ? WD.partnerDef().name : 'your partner'}, then dunk`, cost: 3, id: 'oop', need: 'partner' } : { label: 'Group FaceTime', sub: '3 SP · the whole family yells “¡Vamos!”', cost: 3, id: 'ft' });
     if(G.learned.includes('Love Attack')) specials.push({ label: 'Love Attack', sub: '2 SP · Dayla’s tackle, in her honour', cost: 2, id: 'love' });
+    if(G.learned.includes('Breakfast Focus')) specials.push({ label: 'Breakfast Focus', sub: '3 SP · 3 turns: no Detention or dizzy, take 1 less damage', cost: 3, id: 'focus' });
     const itemIds = Object.keys(G.items).filter(k => G.items[k] > 0);
     const main = [
       { label: D ? 'Jump Shot' : 'Heel Stomp', sub: 'Hold A, let go in the green' },
@@ -201,6 +205,7 @@ async function heroTurn(){
       if(s.id === 'oop'){ const f = await pickTarget(); if(!f){ G.sp += s.cost; updHud(); continue; } await alleyOop(f); }
       else if(s.id === 'ft') await groupFaceTime();
       else if(s.id === 'love'){ const f = await pickTarget(); if(!f){ G.sp += s.cost; updHud(); continue; } await loveAttack(f); }
+      else if(s.id === 'focus'){ await bSay('Breakfast Focus! Like Dayla at her bowl: nothing can distract you now.', 1700); B.focusT = 4; B.detain.p = 0; B.p.expr = 'determined'; addText(B.p.x, -120, 'FOCUSED', '#FFC94A', 'huge'); WD.sfx('heal'); cheer(1); await WD.wait(500); }
       return;
     }
     if(i === 3){
@@ -218,7 +223,7 @@ async function heroTurn(){
 async function jumpShot(f){
   const p = B.p; B.focus = 'hold'; const q = await holdRelease(); B.focus = null;
   await tw(p, { x: f.e.x - 42 }, 360); WD.sfx('jump'); await tw(p, { x: f.e.x - 8 }, 420, 70);
-  rating(q); await hitFoe(f, [1, 2, 3][q]);
+  rating(q); await hitFoe(f, [1, 2, 3][q] + (WD.hasPin('eagle') ? 1 : 0));
   if(q && f.alive){ await tw(p, { x: f.e.x - 10 }, 300, 40); await hitFoe(f, q === 2 ? 2 : 1); }
   await tw(p, { x: B.home.p }, 480, 30);
 }
@@ -230,7 +235,7 @@ async function crossover(f){
 }
 async function alleyOop(f){
   const p = B.p, a = B.a;
-  await bSay(WD.hero === 'David' ? 'Alley-Oop! Toss Alejandro up, then finish at the rim!' : 'Alley-Oop!', 1200);
+  await bSay(`Alley-Oop! Toss ${WD.partnerDef().name} up, then finish at the rim!`, 1200);
   await tw(a, { x: p.x + 18 }, 260); WD.sfx('jump'); a.nervous = true; await tw(a, { x: f.e.x - 6 }, 650, 130); a.rot = 0; a.nervous = false; cheer(2); await hitFoe(f, 2);
   await tw(a, { x: B.home.a }, 420, 30);
   if(!f.alive){ await tw(p, { x: B.home.p }, 200); return; }
@@ -303,13 +308,32 @@ async function familyCall(){
   B.call = null; return true;
 }
 async function partnerTurn(){
-  const a = B.a;
+  const G = WD.G;
+  if(B.detain.a > 0){ B.detain.a--; await bSay(`Detention! ${WD.partnerDef().name} has to sit this turn out.`, 1400); return; }
   while(true){
-    const i = await menu([
+    const a = B.a, id = G.partner, others = Object.keys(G.party).filter(k => k !== id && WD.PARTNERS[k] && G.party[k].hp > 0);
+    const opts = id === 'chunkers' ? [
+      { label: 'Bulldog Bash', sub: 'Hold A, let go in the green. Big hit' },
+      { label: 'Good Boy Guard', sub: 'Chunkers takes the next hit for you, and blocks some' }
+    ] : [
       { label: 'Long-Body Spin', sub: 'Tap A on each ring. Up to 4 hits' },
       { label: 'Nervous Yap', sub: 'Mash A! Loud enough and they get dizzy' },
       { label: 'Sniff', sub: 'Learn about an enemy' }
-    ], 'Alejandro’s turn');
+    ];
+    if(others.length) opts.push({ label: 'Swap partner', sub: `Switch to ${others.map(k => WD.PARTNERS[k].name).join(' / ')}. Free`, cls: 'call' });
+    const i = await menu(opts, `${WD.partnerDef().name}’s turn`);
+    if(others.length && i === opts.length - 1){ await swapIn(others[0]); continue; }
+    if(id === 'chunkers'){
+      if(i === 1){ B.goodBoy = 1; a.sit = true; await bSay('Chunkers sits in front of you. Very obedient. Very solid.', 1500); addText(a.x, -70, 'Good boy!', '#FFC94A', true); cheer(1); return; }
+      const f = await pickTarget(); if(!f) continue;
+      await tip('bash', 'Hold A to let Chunkers wind up, then let go in the green!');
+      a.sit = false; B.focus = 'hold'; const q = await holdRelease(); B.focus = null;
+      await tw(a, { x: f.e.x - 70 }, 300); WD.sfx('dash'); await tw(a, { x: f.e.x - 14 }, 260, 12);
+      rating(q, a.x); await hitFoe(f, [1, 3, 4][q]);
+      if(q === 2 && f.alive){ f.dizzy = Math.max(f.dizzy, 1); f.e.expr = 'dizzy'; addText(f.e.x, -110, 'Bonk!', '#B39CE0'); }
+      await tw(a, { x: B.home.a }, 420, 16);
+      return;
+    }
     if(i === 2){ const f = await pickTarget(); if(!f) continue; a.sniff = true; WD.sfx('sniff'); await WD.wait(700); a.sniff = false; await bSay(f.def.tattle, 3600); f.sniffed = true; return; }
     const f = await pickTarget(); if(!f) continue;
     if(i === 0){
@@ -331,6 +355,14 @@ async function partnerTurn(){
     return;
   }
 }
+async function swapIn(id){
+  const G = WD.G, old = B.a; WD.sfx('whoosh');
+  await tw(old, { x: -B.Wb - 80 }, 320);
+  G.partner = id; const d = WD.partnerDef(id);
+  const n = WD.makeEnt({ kind: d.kind, name: d.name, y: 7, dir: 1, flip: 1, light: 'day', x: -B.Wb - 80 }); B.a = n; B.goodBoy = 0;
+  buildHud(); await tw(n, { x: B.home.a }, 380); addText(n.x, -70, d.name + '!', '#FFF8EC', true);
+  if(WD.W.partner && WD.W.partner.name !== d.name){ const e = WD.makePartner(id); e.follow = true; Object.assign(e, { x: WD.W.partner.x, y: WD.W.partner.y }); WD.W.partner = e; }
+}
 async function foeTurn(f){
   const e = f.e;
   if(f.dizzy > 0){ f.dizzy--; addText(e.x, -96, 'Too dizzy to move', '#B39CE0'); await WD.wait(800); if(!f.dizzy) e.expr = 'happy'; return; }
@@ -338,48 +370,53 @@ async function foeTurn(f){
   if(f.def.rage && f.hp <= f.max / 2 && !f.raged){ f.raged = true; await bSay(`${f.def.name} is getting serious!`, 1300); e.expr = 'angry'; B.shake = 8; WD.sfx('hiss'); }
   let pool = moves.filter(m => !(m.type === 'summon' && live().length >= 2)).filter(m => !(m.type === 'heal' && f.hp >= f.max));
   const tot = pool.reduce((s, m) => s + m.w, 0); let r = Math.random() * tot; let mv = pool[0]; for(const m of pool){ r -= m.w; if(r <= 0){ mv = m; break; } }
-  const target = partnerUp() && Math.random() < .35 ? 'a' : 'p'; const tgt = target === 'p' ? B.p : B.a;
+  let target = partnerUp() && Math.random() < .35 ? 'a' : 'p';
+  if(B.goodBoy && partnerUp()){ target = 'a'; }
+  const tgt = target === 'p' ? B.p : B.a;
   if(!WD.flag('tip_guard') && B.opts.tips && (mv.type === 'melee' || mv.type === 'lob')){ await tip('guard', 'Here it comes! Tap A right before the hit to Guard. Perfect timing = Superguard!'); }
   const extra = f.pow ? 1 : 0;
   if(mv.type === 'heal'){ await bSay(`${f.def.name} soaks up the sun…`, 1100); f.hp = Math.min(f.max, f.hp + mv.amt); addText(e.x, -70, '+' + mv.amt, '#7CD86A', true); WD.sfx('heal'); updHud(); await WD.wait(400); return; }
   if(mv.type === 'buff'){ await bSay(`${f.def.name} hisses! Its next hit will be stronger.`, 1200); WD.sfx('hiss'); f.pow = 1; e.expr = 'angry'; return; }
-  if(mv.type === 'summon'){ await bSay('“FALL IN!” The Sergeant blows his whistle!', 1200); WD.sfx('whistle'); e.armRaise = -1; await WD.wait(400); e.armRaise = 0; const nf = addFoe(mv.summon, true); updHud(); await tw(nf.e, { x: nf.home }, 700); await bSay('A Cat Agent reports for duty!', 1000); return; }
+  if(mv.type === 'summon'){ await bSay(mv.say || '“FALL IN!” The Sergeant blows his whistle!', 1200); WD.sfx('whistle'); e.armRaise = -1; await WD.wait(400); e.armRaise = 0; const nf = addFoe(mv.summon, true); updHud(); await tw(nf.e, { x: nf.home }, 700); await bSay(mv.after || 'A Cat Agent reports for duty!', 1000); return; }
   await bSay(`${f.def.name}: ${mv.name}!`, 1000);
   const shots = mv.type === 'barrage' ? mv.n : 1;
-  if(mv.type === 'lob' || mv.type === 'barrage'){
+  if(mv.type === 'lob' || mv.type === 'barrage' || mv.type === 'detain'){
     for(let s = 0; s < shots; s++){
-      const tg = s === 0 ? tgt : (partnerUp() && Math.random() < .35 ? B.a : B.p), tk = tg === B.p ? 'p' : 'a';
+      const tg = s === 0 || B.goodBoy ? tgt : (partnerUp() && Math.random() < .35 ? B.a : B.p), tk = tg === B.p ? 'p' : 'a';
       e.armRaise = -1.4; WD.sfx('whoosh'); if(mv.proj === 'hairball') WD.sfx('gulp');
       const arrive = mv.type === 'barrage' ? 520 : 640;
       const pr = { x0: e.x - 10, y0: -40 * (e.look ? e.look.size || 1 : 1), x1: tg.x + 10, y1: tk === 'p' ? -46 : -22, u: 0, kind: mv.proj };
       B.proj.push(pr); const g = guardWindow(arrive);
       await WD.tween(arrive, u => { pr.u = u; });
-      const res = await g; B.proj = B.proj.filter(x => x !== pr); e.armRaise = 0;
+      let res = await g; B.proj = B.proj.filter(x => x !== pr); e.armRaise = 0;
+      if(B.goodBoy && tk === 'a') res = Math.max(res, 1);
       await resolveHit(res, tk, mv.dmg + extra, f);
+      if(mv.type === 'detain' && res < 2){ if(tk === 'p' && B.focusT > 0) addText(tg.x, -140, 'Too focused!', '#FFC94A', true); else { B.detain[tk] = 1; addText(tg.x, -140, 'DETENTION!', '#B39CE0', true); WD.sfx('whistle'); } }
       if(WD.G.hp <= 0) break;
     }
   } else {
     const x0 = e.x; await tw(e, { x: tg2(tgt) + 60 }, 420);
-    const g = guardWindow(540); await tw(e, { x: tgt.x + 18 }, 540, mv.id === 'slam' ? 80 : 30); const res = await g;
+    const g = guardWindow(540); await tw(e, { x: tgt.x + 18 }, 540, mv.id === 'slam' ? 80 : 30); let res = await g;
+    if(B.goodBoy && target === 'a') res = Math.max(res, 1);
     if(mv.id === 'slam') B.shake = 10;
     await resolveHit(res, target, mv.dmg + extra, f);
     await tw(e, { x: x0 }, 480, 30);
   }
   f.pow = 0; if(e.expr === 'angry' && !f.raged) e.expr = 'happy';
+  if(B.goodBoy){ B.goodBoy = 0; if(B.a) B.a.sit = false; }
 }
 const tg2 = t => t.x;
 async function resolveHit(res, who, dmg, f){
   const tg = who === 'p' ? B.p : B.a;
   if(res === 2){ addText(tg.x, -120, 'SUPERGUARD!', '#FFC94A', 'huge'); WD.sfx('perfect'); cheer(2); hype(1); await hurtAlly(who, 0); if(f.alive) await hitFoe(f, 1, { noBuff: true }); }
-  else if(res === 1){ addText(tg.x, -120, 'Guard!', '#58AEDD', true); hype(1); await hurtAlly(who, Math.max(0, dmg - 1)); }
-  else await hurtAlly(who, dmg);
+  else { const off = (who === 'p' && B.focusT > 0 ? 1 : 0); if(res === 1){ addText(tg.x, -120, 'Guard!', '#58AEDD', true); hype(1); await hurtAlly(who, Math.max(0, dmg - 1 - (WD.hasPin('pearl') ? 1 : 0) - off)); } else await hurtAlly(who, Math.max(0, dmg - off)); }
 }
 async function defeat(){
   WD.sfx('lose'); B.p.expr = 'sad'; B.p.rot = -.2;
   await bSay(`${WD.hero} is out of breath…`, 1400);
   WD.$('.wd-bmenu').hidden = true; showA(false);
   const i = await WD.card(`<i class="k">Out of breath</i><h2>Don’t give up!</h2><p>Dayla is still out there. Catch your breath and try again, or back off and rest first. Nothing is lost either way.</p>`, [{ label: 'Try again', sub: 'Same fight, full HP', alt: true }, { label: 'Back off and rest', sub: 'Full HP, return to the map' }]);
-  const G = WD.G, P = G.partner && G.party[G.partner]; G.hp = G.mhp; if(P) P.hp = P.mhp;
+  const G = WD.G; G.hp = G.mhp; Object.keys(G.party).forEach(k => { G.party[k].hp = G.party[k].mhp; });
   if(i === 0){ const opts = B.opts, res = B.resolve; WD.pageTurn(() => setup(opts, res)).then(run); B.over = true; return 'retry'; }
   B.over = true; await endBattle('retreat'); return 'retreat';
 }
@@ -388,19 +425,20 @@ async function victory(){
   const G = WD.G; WD.sfx('win'); cheer(3);
   const xp = B.foes.reduce((s, f) => s + (f.def.xp || 0), 0) + (B.opts.xpBonus || 0);
   burst(0, -60, 40, ['#FFC94A', '#E8593C', '#7CD86A', '#58AEDD', '#FFF8EC']);
-  addText(0, -140, 'You win!', '#FFC94A', 'huge'); B.p.expr = 'joy'; if(B.a) { B.a.happy = true; B.a.nervous = false; }
+  addText(0, -140, 'You win!', '#FFC94A', 'huge'); B.p.expr = 'joy'; if(B.a) { B.a.happy = true; B.a.nervous = false; B.a.sit = false; B.a.zzz = false; }
   await WD.tween(500, u => { B.p.z = Math.sin(u * Math.PI) * 30; if(B.a) B.a.z = Math.sin(u * Math.PI) * 24; });
   await WD.wait(500); addText(0, -110, `+${xp} Star Points`, '#FFF8EC', true); await WD.wait(1300);
   G.xp += xp;
   const P = G.partner && G.party[G.partner]; if(P && P.hp <= 0) P.hp = 1;
   while(G.xp >= 100){ G.xp -= 100; await levelUp(); }
+  Object.keys(G.party).forEach(k => { if(G.party[k].hp <= 0) G.party[k].hp = 1; });
   await endBattle('win');
 }
 async function levelUp(){
   const G = WD.G; G.lv++; WD.sfx('level');
-  const i = await WD.card(`<i class="k">Level up!</i><h2>${esc(WD.hero)} is Level ${G.lv}</h2><p>Pick what grows. Everything gets refilled either way.</p>`, [{ label: 'HP +5', sub: `${G.mhp} → ${G.mhp + 5}`, alt: true }, { label: 'SP +1', sub: `${G.msp} → ${G.msp + 1} stars` }, { label: 'PP +3', sub: `For pins (coming in Chapter 1)` }]);
+  const i = await WD.card(`<i class="k">Level up!</i><h2>${esc(WD.hero)} is Level ${G.lv}</h2><p>Pick what grows. Everything gets refilled either way.</p>`, [{ label: 'HP +5', sub: `${G.mhp} → ${G.mhp + 5}`, alt: true }, { label: 'SP +1', sub: `${G.msp} → ${G.msp + 1} stars` }, { label: 'PP +3', sub: `${G.mpp} → ${G.mpp + 3} · for wearing pins` }]);
   if(i === 0) G.mhp += 5; else if(i === 1) G.msp += 1; else { G.mpp += 3; G.pp = G.mpp; }
-  G.hp = G.mhp; G.sp = G.msp; const P = G.partner && G.party[G.partner]; if(P){ P.mhp += 2; P.hp = P.mhp; }
+  G.hp = G.mhp; G.sp = G.msp; Object.keys(G.party).forEach(k => { const P = G.party[k]; P.mhp += 2; P.hp = P.mhp; });
 }
 function endBattle(res){
   return WD.pageTurn(() => {
@@ -414,20 +452,20 @@ function endBattle(res){
 }
 
 /* ================= drawing ================= */
-const BACKS = {
-  walk(t){ const c = WD.ctx; WD.drawClubhouseBack(c, t); },
-  courts(t){
+const BACKS = WD.BATTLE_BACKS = {
+  walk: { draw(t){ const c = WD.ctx; WD.drawClubhouseBack(c, t); } },
+  courts: { draw(t){
     const c = WD.ctx;
     c.save(); c.translate(-40, -16); WD.drawFitness(c, -150, t); c.restore();
     [-230, 200].forEach((x, i) => WD.drawPalm(c, x, -14, 160 + i * 10, (i - .5) * .1, t, i, WD.PALMCOL, true));
     WD.drawHoop(c, 150, -14, .9);
-  },
-  lot(t){
+  } },
+  lot: { lot: true, ground: '#8A8A86', draw(t){
     const c = WD.ctx;
     c.save(); c.translate(0, -16); WD.drawShed(c, -110, t); c.restore();
     WD.drawFence(c, -400, 400, -14, 60);
     [-240, 230].forEach((x, i) => WD.drawPalm(c, x, -14, 150 + i * 12, (i - .5) * .12, t, i + 3, WD.PALMCOL, true));
-  }
+  } }
 };
 WD.drawClubhouseBack = function(c, t){
   c.save(); c.translate(0, -16); WD.drawClubhouse(c, -150, t); c.restore();
@@ -443,14 +481,14 @@ SCENE.draw = function(t, dt){
   const fx = v.dpr * v.w / 2 + shx, fy = v.dpr * v.h * .64, W2 = v.w / k0 / 2 + 10;
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#1D1830'; ctx.fillRect(0, 0, WD.cv.width, WD.cv.height);
   ctx.setTransform(k, 0, 0, k, fx, fy);
-  const lot = B.opts.back === 'lot';
+  const BK = BACKS[B.opts.back] || BACKS.walk, lot = !!BK.lot;
   const g = ctx.createLinearGradient(0, -260, 0, -20); g.addColorStop(0, '#4F84D8'); g.addColorStop(.7, lot ? '#B9CDE6' : '#A9CDEF'); g.addColorStop(1, lot ? '#FFCF9A' : '#FFD9A8'); ctx.fillStyle = g; ctx.fillRect(-W2, -1200, W2 * 2, 1190);
   ctx.fillStyle = 'rgba(255,246,214,.9)'; ell(ctx, 130, -170, 22, 22); ctx.fill();
   WD.cloud(ctx, -150, -190, .7); WD.cloud(ctx, 60, -215, .5);
-  (BACKS[B.opts.back] || BACKS.walk)(t);
+  BK.draw(t, W2);
   ctx.setTransform(k, 0, 0, k, fx, fy);
-  ctx.fillStyle = lot ? '#8A8A86' : '#6DB24E'; ctx.fillRect(-W2, -20, W2 * 2, 20);
-  const fg = ctx.createLinearGradient(0, -14, 0, 70); fg.addColorStop(0, '#B07A48'); fg.addColorStop(1, '#7A4D2B'); ctx.fillStyle = fg; ctx.beginPath(); ctx.moveTo(-W2 + 30, -14); ctx.lineTo(W2 - 30, -14); ctx.lineTo(W2 + 40, 900); ctx.lineTo(-W2 - 40, 900); ctx.fill();
+  ctx.fillStyle = BK.ground || '#6DB24E'; ctx.fillRect(-W2, -20, W2 * 2, 20);
+  const fg = ctx.createLinearGradient(0, -14, 0, 70); fg.addColorStop(0, BK.stage ? BK.stage[0] : '#B07A48'); fg.addColorStop(1, BK.stage ? BK.stage[1] : '#7A4D2B'); ctx.fillStyle = fg; ctx.beginPath(); ctx.moveTo(-W2 + 30, -14); ctx.lineTo(W2 - 30, -14); ctx.lineTo(W2 + 40, 900); ctx.lineTo(-W2 - 40, 900); ctx.fill();
   ctx.strokeStyle = 'rgba(60,34,18,.35)'; ctx.lineWidth = 1; for(let y = -6; y < 900; y += 9 + Math.max(0, y) * .08){ ctx.beginPath(); ctx.moveTo(-W2 - 40, y); ctx.lineTo(W2 + 40, y); ctx.stroke(); }
   for(let x = -W2 * 1.4; x < W2 * 1.4; x += 40){ ctx.beginPath(); ctx.moveTo(x * .82, -14); ctx.lineTo(x * 4, 900); ctx.stroke(); }
   ctx.save(); ctx.globalCompositeOperation = 'lighter';
@@ -462,10 +500,13 @@ SCENE.draw = function(t, dt){
   ctx.setTransform(k, 0, 0, k, fx, fy);
   // dizzy stars
   B.foes.forEach(f => { if(!f.alive || !f.dizzy) return; for(let i = 0; i < 3; i++){ const a = t * 4 + i * 2.1; ctx.fillStyle = '#FFC94A'; star(ctx, f.e.x + Math.cos(a) * 12, -WD.headOf(f.e) * 1.25 - 6 + Math.sin(a) * 4, 3.4); } });
+  if(B.focusT > 0){ ctx.fillStyle = 'rgba(255,201,74,.9)'; ctx.font = '900 10px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.fillText('FOCUS', B.p.x, -152); }
+  [['p', B.p], ['a', B.a]].forEach(([k, e]) => { if(e && B.detain[k] > 0){ ctx.fillStyle = '#B39CE0'; ctx.font = '900 9px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.fillText('DETENTION', e.x, k === 'p' ? -140 : -66); } });
   if(B.atkUp > 0){ ctx.fillStyle = 'rgba(255,201,74,.85)'; ctx.font = '900 10px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.fillText('ATK ↑', B.p.x, -142); }
   // projectiles
   B.proj.forEach(pr => { const u = pr.u, x = lerp(pr.x0, pr.x1, u), y = lerp(pr.y0, pr.y1, u) - Math.sin(u * Math.PI) * 50; ctx.save(); ctx.translate(x, y); ctx.rotate(u * 14);
-    if(pr.kind === 'hairball'){ ctx.fillStyle = '#C06A22'; ell(ctx, 0, 0, 7, 6); ctx.fill(); ctx.strokeStyle = '#E58E3A'; ctx.lineWidth = 1.2; for(let i = 0; i < 6; i++){ const a = i; ctx.beginPath(); ctx.moveTo(Math.cos(a) * 4, Math.sin(a) * 4); ctx.lineTo(Math.cos(a) * 9, Math.sin(a) * 8); ctx.stroke(); } }
+    if(WD.PROJ && WD.PROJ[pr.kind]) WD.PROJ[pr.kind](ctx, t);
+    else if(pr.kind === 'hairball'){ ctx.fillStyle = '#C06A22'; ell(ctx, 0, 0, 7, 6); ctx.fill(); ctx.strokeStyle = '#E58E3A'; ctx.lineWidth = 1.2; for(let i = 0; i < 6; i++){ const a = i; ctx.beginPath(); ctx.moveTo(Math.cos(a) * 4, Math.sin(a) * 4); ctx.lineTo(Math.cos(a) * 9, Math.sin(a) * 8); ctx.stroke(); } }
     else { ctx.fillStyle = '#121114'; rr(ctx, -9, -3, 8, 5.6, 2); ctx.fill(); rr(ctx, 1, -3, 8, 5.6, 2); ctx.fill(); ctx.fillRect(-2, -2, 4, 1.2); }
     ctx.restore(); });
   // taxi

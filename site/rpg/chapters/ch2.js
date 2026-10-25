@@ -1236,7 +1236,7 @@ async function homecoming(){
 }
 async function cardsScene(){
   const j = NPC.juandi;
-  await say('Juandi', D() ? 'This is “Criaturas de Colombia.” I made the game myself. Jaguar beats Frog. Frog beats Hummingbird. Hummingbird beats Jaguar. Best of five. Win and I give you my best card.' : 'Mira: “Criaturas de Colombia.” Lo inventé yo. Jaguar le gana a Rana, Rana a Colibrí, Colibrí a Jaguar. Al mejor de cinco. Si me ganas, te doy mi mejor carta.', { es: D() ? null : 'Mira: “Criaturas de Colombia.” Lo inventé yo. Jaguar le gana a Rana, Rana a Colibrí, Colibrí a Jaguar. Al mejor de cinco. Si me ganas, te doy mi mejor carta.', ent: j, expr: 'smirk' });
+  await say('Juandi', D() ? 'Bro, play me at “Criaturas de Colombia.” I invented it. Win three rounds before I do and you get my best card.' : 'Juguemos “Criaturas de Colombia.” Lo inventé yo. Si ganas tres rondas antes que yo, te doy mi mejor carta.', { es: D() ? null : 'Juguemos “Criaturas de Colombia.” Lo inventé yo. Si ganas tres rondas antes que yo, te doy mi mejor carta.', ent: j, expr: 'smirk' });
   const won = await cardGame();
   if(!won){ await say('Juandi', D() ? 'Ha! Undefeated! Again? Come on, again.' : '¡Ja! ¡Invicto! ¿Otra? Dale, otra.', { es: D() ? null : '¡Ja! ¡Invicto! ¿Otra? Dale, otra.', ent: j, expr: 'joy' }); return; }
   S('c2_cards'); WD.giveKey('card'); clue('condor');
@@ -1348,6 +1348,13 @@ const mgCSS = `.wd-mg{display:grid;gap:10px}.wd-mg .row{display:flex;gap:8px;fle
 .wd-mg .bar{position:relative;height:22px;border-radius:11px;background:#E9DCC4;box-shadow:0 0 0 3px var(--ink);overflow:hidden}.wd-mg .bar i{position:absolute;top:0;bottom:0;background:#7CD86A}.wd-mg .bar b{position:absolute;top:-2px;bottom:-2px;width:6px;margin-left:-3px;background:var(--coral);border-radius:3px}
 .wd-mg .goal{position:relative;height:110px;border-radius:12px;background:linear-gradient(#5A9E58,#3F8A4A);box-shadow:0 0 0 3px var(--ink);overflow:hidden}.wd-mg .net{position:absolute;left:8%;right:8%;top:10px;height:76px;border:4px solid #FFF;border-bottom:0;background-image:linear-gradient(rgba(255,255,255,.35) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.35) 1px,transparent 1px);background-size:10px 10px}.wd-mg .keeper{position:absolute;top:30px;width:30px;height:52px;margin-left:-15px;border-radius:10px 10px 4px 4px;background:#C2453A;box-shadow:0 0 0 2px var(--ink)}.wd-mg .keeper::before{content:'';position:absolute;left:5px;top:-16px;width:20px;height:20px;border-radius:50%;background:#D3A07A;box-shadow:0 0 0 2px var(--ink)}.wd-mg .aim{position:absolute;top:44px;width:18px;height:18px;margin-left:-9px;border-radius:50%;border:3px solid #FFC94A;box-shadow:0 0 0 2px var(--ink)}
 .wd-mg .cards{display:flex;gap:10px;justify-content:center}.wd-mg .cc{width:92px;border:0;border-radius:12px;padding:8px 4px;background:#FFF8EC;box-shadow:0 0 0 3px var(--ink),0 5px 0 var(--ink);font-family:var(--display);font-weight:900;font-size:13px;display:grid;gap:4px;justify-items:center}.wd-mg .cc i{font-style:normal;font-size:30px}.wd-mg .vs{display:flex;justify-content:space-around;align-items:center;font-family:var(--display);font-weight:900;font-size:18px;min-height:56px}.wd-mg .vs span{font-size:34px}.wd-mg .score{font-family:var(--display);font-weight:900;color:var(--coral)}`;
+const mgCSS2 = `.wd-mg.cg{gap:8px}.wd-mg .sb{display:flex;justify-content:space-between;font-family:var(--display);font-weight:900;font-size:15px}.wd-mg .sb b{color:var(--coral);letter-spacing:2px;margin-left:4px}
+.wd-mg .loop{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;font-family:var(--display);font-weight:900;font-size:15px}.wd-mg .loop span{background:var(--paper-2);border-radius:10px;padding:4px 8px;box-shadow:0 0 0 2px var(--ink)}.wd-mg .loop em{font-style:normal;font-size:12px;color:var(--coral)}
+.wd-mg .brag{background:#EAF2FB;border-radius:12px;padding:6px 10px;box-shadow:0 0 0 2px var(--ink)}.wd-mg .pick{font-weight:900;margin-bottom:-2px}
+.wd-mg .table{display:flex;justify-content:center;align-items:center;gap:14px}.wd-mg .side{display:grid;justify-items:center;gap:3px}.wd-mg .side>small{font-weight:900;font-size:11px;letter-spacing:.1em;text-transform:uppercase;opacity:.7}.wd-mg .vs2{font-family:var(--display);font-weight:900;font-size:20px;color:var(--coral)}
+.wd-mg .cc small{font-family:var(--body);font-weight:800;font-size:10px;opacity:.7}.wd-mg .cc b{font-size:13px}.wd-mg .cc.back{background:#3E6FB5;color:#FFF8EC}.wd-mg .cc.won{box-shadow:0 0 0 3px var(--ink),0 0 0 7px #7CD86A}.wd-mg .cc.lost{opacity:.55}.wd-mg .cc:disabled{color:inherit}
+.wd-mg h2.res{font-size:22px;margin:2px 0 0}.wd-mg h2.res.win{color:#2F8F3A}.wd-mg h2.res.lose{color:var(--coral)}`;
+if(!document.getElementById('wd-css-mg3')){ const st3 = document.createElement('style'); st3.id = 'wd-css-mg3'; st3.textContent = mgCSS2; document.head.appendChild(st3); }
 if(!document.getElementById('wd-css-mg2')){ const st = document.createElement('style'); st.id = 'wd-css-mg2'; st.textContent = mgCSS; document.head.appendChild(st); }
 const MG_AUTO = () => !!WD.mgAuto;
 
@@ -1393,22 +1400,47 @@ function cookGame(){
 function cardGame(){
   if(MG_AUTO()) return Promise.resolve(true);
   return new Promise(res => {
-    const m = mgSheet(); const C = { jaguar: ['🐆', 'Jaguar'], rana: ['🐸', 'Rana Dorada'], colibri: ['🐦', 'Colibrí'] };
-    const beats = { jaguar: 'rana', rana: 'colibri', colibri: 'jaguar' };
-    let me2 = 0, him = 0, round = 0, last = null, hint = null, lastRes = '';
-    const hints = { jaguar: D() ? 'I’m feeling strong today.' : 'Hoy me siento fuerte.', rana: D() ? 'Something small and golden…' : 'Algo chiquito y dorado…', colibri: D() ? 'I’m fast. Super fast.' : 'Soy rápido. Rapidísimo.' };
-    const pickHim = () => { const ks = Object.keys(C); let k = ks[Math.floor(Math.random() * 3)]; if(last && Math.random() < .45) k = beats[beats[last]]; return k; };
-    const draw = () => {
-      const plan = pickHim(); const honest = Math.random() < .7; hint = honest ? plan : Object.keys(C).filter(k => k !== plan)[Math.floor(Math.random() * 2)]; m.plan = plan;
-      m.sh.innerHTML = `<div class="wd-mg"><i class="k">Juandi’s Criaturas de Colombia · first to 3</i><h2>${me2} – ${him}</h2><p>🐆 beats 🐸 · 🐸 beats 🐦 · 🐦 beats 🐆</p><p><b>Juandi:</b> “${esc(hints[hint])}”${D() ? '' : ''}</p>${lastRes ? `<p class="score">${esc(lastRes)}</p>` : ''}<div class="cards">${Object.keys(C).map(k => `<button class="cc" data-c="${k}"><i>${C[k][0]}</i>${C[k][1]}</button>`).join('')}</div></div>`;
-      m.sh.querySelectorAll('[data-c]').forEach(b => b.onclick = () => play(b.dataset.c));
-      const f = m.sh.querySelector('button'); if(f) f.focus({ preventScroll: true });
+    const m = mgSheet();
+    const C = {
+      jaguar: { e: '🐆', n: 'Jaguar', beats: 'rana', why: 'The Jaguar pounces on the Frog!' },
+      rana: { e: '🐸', n: 'Golden Frog', beats: 'colibri', why: 'The Frog’s sticky tongue catches the Hummingbird!' },
+      colibri: { e: '🐦', n: 'Hummingbird', beats: 'jaguar', why: 'The Hummingbird is too fast. The Jaguar gets dizzy chasing it!' }
     };
-    const play = k => { const h = m.plan; round++; last = k;
-      if(beats[k] === h){ me2++; WD.sfx('nice'); lastRes = `${C[k][1]} beats ${C[h][1]}! Point for you.`; } else if(beats[h] === k){ him++; WD.sfx('miss'); lastRes = `${C[h][1]} beats ${C[k][1]}. Point for Juandi.`; } else { WD.sfx('tap'); lastRes = `Both ${C[k][1]}. Tie!`; }
-      if(me2 >= 3 || him >= 3){ m.sh.innerHTML = `<div class="wd-mg"><i class="k">Criaturas de Colombia</i><h2>${me2 >= 3 ? 'You win!' : 'Juandi wins!'}</h2><p>${esc(lastRes)}</p><p class="score">${me2} – ${him}</p><div class="row"><button class="b go" data-ok>OK</button></div></div>`; WD.sfx(me2 >= 3 ? 'win' : 'lose'); const ok = m.sh.querySelector('[data-ok]'); ok.focus({ preventScroll: true }); ok.onclick = () => { m.close(); res(me2 >= 3); }; return; }
-      draw(); };
-    draw();
+    const K = Object.keys(C);
+    let me2 = 0, him = 0, last = null, plan = null, honest = true;
+    const brag = { jaguar: D() ? '“I’m playing my JAGUAR next. Nothing beats it.”' : '“Ahora juego mi JAGUAR. Nada le gana.”', rana: D() ? '“My Golden Frog is coming. Ribbit.”' : '“Ahí viene mi Rana Dorada. Croac.”', colibri: D() ? '“Hummingbird time. Zoom zoom.”' : '“Le toca al Colibrí. Zum zum.”' };
+    const pips = n => '●'.repeat(n) + '○'.repeat(3 - n);
+    const card = (k, o) => `<button class="cc ${o && o.cls || ''}" ${o && o.btn ? `data-c="${k}"` : 'disabled'}><i>${C[k].e}</i><b>${C[k].n}</b><small>beats ${C[C[k].beats].e} ${C[C[k].beats].n}</small></button>`;
+    const back = () => `<div class="cc back" aria-label="Juandi’s card, face down"><i>❓</i><b>Juandi</b><small>face down</small></div>`;
+    const head = () => `<i class="k">Criaturas de Colombia · first to 3 wins</i><div class="sb"><span>You <b>${pips(me2)}</b></span><span>Juandi <b>${pips(him)}</b></span></div>`;
+    const rules = () => {
+      m.sh.innerHTML = `<div class="wd-mg cg">${head()}<h2>How to play</h2><p>You and Juandi each play one card at the same time. Each animal beats one other animal:</p>
+        <div class="loop"><span>🐆 Jaguar</span><em>beats</em><span>🐸 Frog</span><em>beats</em><span>🐦 Hummingbird</span><em>beats</em><span>🐆 Jaguar</span></div>
+        <p>Same card = tie. Juandi likes to brag about what he’ll play next. <b>He tells the truth most of the time…</b> but not always.</p><div class="row"><button class="b go" data-go>Let’s play!</button></div></div>`;
+      const b = m.sh.querySelector('[data-go]'); b.focus({ preventScroll: true }); b.onclick = () => { WD.sfx('tap'); round(); };
+    };
+    const round = () => {
+      plan = K[Math.floor(Math.random() * 3)]; if(last && Math.random() < .4) plan = Object.keys(C).find(k => C[k].beats === last);
+      honest = Math.random() < .7; const said = honest ? plan : K.filter(k => k !== plan)[Math.floor(Math.random() * 2)];
+      m.sh.innerHTML = `<div class="wd-mg cg">${head()}<p class="brag"><b>Juandi:</b> ${esc(brag[said])}</p><div class="table"><div class="side"><small>Juandi’s card</small>${back()}</div></div><p class="pick">Pick your card:</p><div class="cards">${K.map(k => card(k, { btn: true })).join('')}</div></div>`;
+      m.sh.querySelectorAll('[data-c]').forEach(b => b.onclick = () => reveal(b.dataset.c, said));
+      const f = m.sh.querySelector('[data-c]'); if(f) f.focus({ preventScroll: true });
+    };
+    const reveal = (k, said) => {
+      last = k; const h = plan; let res, why;
+      if(C[k].beats === h){ me2++; res = 'win'; why = C[k].why; WD.sfx('nice'); }
+      else if(C[h].beats === k){ him++; res = 'lose'; why = C[h].why; WD.sfx('miss'); }
+      else { res = 'tie'; why = 'Same animal. Nobody gets a point.'; WD.sfx('tap'); }
+      const over = me2 >= 3 || him >= 3;
+      const lie = said !== h ? `<p class="fine">(Juandi said ${C[said].e} but played ${C[h].e}. Sneaky!)</p>` : '';
+      m.sh.innerHTML = `<div class="wd-mg cg">${head()}<div class="table"><div class="side"><small>You</small>${card(k, { cls: res === 'win' ? 'won' : res === 'lose' ? 'lost' : '' })}</div><div class="vs2">VS</div><div class="side"><small>Juandi</small>${card(h, { cls: res === 'lose' ? 'won' : res === 'win' ? 'lost' : '' })}</div></div>
+        <h2 class="res ${res}">${res === 'win' ? 'You win this round!' : res === 'lose' ? 'Juandi wins this round' : 'Tie!'}</h2><p>${esc(why)}</p>${lie}
+        <div class="row"><button class="b go" data-n>${over ? (me2 >= 3 ? 'You won the match!' : 'Juandi won the match') : 'Next round'}</button></div></div>`;
+      const b = m.sh.querySelector('[data-n]'); b.focus({ preventScroll: true });
+      b.onclick = () => { WD.sfx('tap'); if(!over) return round(); WD.sfx(me2 >= 3 ? 'win' : 'lose'); m.close(); res2(me2 >= 3); };
+    };
+    const res2 = res;
+    rules();
   });
 }
 /* Diego's penalties: the aim swings, Diego dives. Shoot where he isn’t. */

@@ -127,7 +127,7 @@ async function firstStrike(f, how){
 async function startFoeBattle(f, first){
   WD.mode = 'cutscene'; WD.showControls(false);
   const res = await WD.battle({ foes: f.party, first: first || null, back: W.area.battleBack, music: f.music, xpBonus: f.xp });
-  if(res === 'win'){ f.dead = true; f.vis = false; if(f.onWin) await f.onWin(); }
+  if(res === 'win'){ f.dead = true; f.vis = false; if(f.fid){ WD.set('beat_' + f.fid); WD.saveNow(); } if(f.onWin) await f.onWin(); }
   else if(res === 'retreat'){ const p = W.player; p.x = clamp(p.x - Math.sign(f.x - p.x || 1) * 90, W.area.minX, W.area.maxX); f.cool = 2.5; }
 }
 WD.startFoeBattle = startFoeBattle;
@@ -215,7 +215,7 @@ EXPLORE.draw = function(t, dt){
 };
 
 /* ================= bag & poster ================= */
-let bagTab = 'items'; const bagSel = { items: null, collect: null };
+let bagTab = 'items'; const bagSel = { items: null, collect: null, poster: null };
 WD.openBag = function(tab){
   if(tab) bagTab = tab;
   const pn = WD.$('.wd-panel'); WD.paused = true; WD.panelOpen = true; WD.$('.wd-bag').classList.remove('ping');
@@ -239,16 +239,34 @@ WD.openBag = function(tab){
     else if(sel){ const it = WD.KEYS[sel.slice(2)]; det = detail(it.icon, it.name, 'Key item', it.desc); }
     body += wrap(tiles, det);
   } else if(bagTab === 'poster'){
-    const slots = Array.from({ length: 9 }, (_, i) => G.photos[i] ? `<div class="slot"><canvas data-photo="${G.photos[i]}" width="160" height="160"></canvas></div>` : `<div class="slot">${i === 0 ? 'P' : i}</div>`).join('');
-    const clues = (WD.CLUES ? G.clues.map(c => WD.CLUES[c]).filter(Boolean) : []);
-    body += `<div class="wd-poster"><div class="paper"><h2>MISSING DOG</h2><div class="tag">Have you seen Dayla?</div><div class="main"><canvas data-dayla="1" width="360" height="360"></canvas></div><p style="margin-top:8px">Brown and white Boston terrier. Big eyes, pearl necklace. Loves food, love attacks and her yellow duck.</p><p class="fine" style="margin-top:6px">If found, call David &amp; Laura · Tivoli Park</p></div>
-      <div style="display:grid;gap:10px"><h3>Sightings</h3><div class="grid">${slots}</div><p class="fine">Each chapter, find a photo of where Dayla was seen. They fill this poster.</p><h3>Clues</h3>${clues.length ? `<ul style="margin:0;padding-left:18px;font-weight:700;line-height:1.5;font-size:14px">${clues.map(c => `<li>${esc(c)}</li>`).join('')}</ul>` : '<p class="fine">No clues yet.</p>'}</div></div>`;
+    const SLOT = ['Prologue', 'Ch 1', 'Ch 2', 'Ch 3', 'Ch 4', 'Ch 5', 'Ch 6', 'Ch 7', 'Ch 8'];
+    const CM = { duck: ['duck', 'Yellow duck'], print: ['print', 'Boot print'], glove: ['glove', 'Small glove'], cats: ['shades', 'Cat Agents'], sergeant: ['van', 'The van'], photo: ['photo', 'UIC photo'] };
+    const keys = SLOT.map((_, i) => 's:' + i).concat(G.clues.map(c => 'c:' + c));
+    if(!keys.includes(bagSel.poster)) bagSel.poster = G.photos[0] ? 's:0' : (G.clues.length ? 'c:' + G.clues[0] : 's:0');
+    let tiles = head('Sightings', `${G.photos.filter(Boolean).length}/9`) + SLOT.map((l, i) => { const ph = G.photos[i]; const S2 = ph && WD.SIGHTINGS && WD.SIGHTINGS[ph]; return ph ? `<button class="wd-tile photo ${bagSel.poster === 's:' + i ? 'on' : ''}" data-sel="s:${i}"><canvas data-photo="${ph}" width="96" height="96"></canvas><b>${esc(S2 ? S2.short : l)}</b></button>` : tile('s:' + i, null, l, '', true); }).join('');
+    tiles += head('Clues', G.clues.length ? `${G.clues.length} found` : 'none yet') + G.clues.map(c => CM[c] ? tile('c:' + c, CM[c][0], CM[c][1]) : '').join('');
+    const sel = bagSel.poster || ''; let det = '';
+    if(sel[0] === 's'){ const i = +sel.slice(2), ph = G.photos[i], S2 = ph && WD.SIGHTINGS && WD.SIGHTINGS[ph]; det = ph ? `<canvas class="pic" data-photo="${ph}" width="240" height="240"></canvas><i class="k">${esc(SLOT[i])} sighting</i><b>${esc(S2 ? S2.title : 'Sighting')}</b><p>${esc(S2 ? S2.text : '')}</p>` : detail(null, 'Not found yet', SLOT[i] + ' sighting', 'Each chapter, find a photo of where Dayla was seen. It goes on the poster here.'); }
+    else if(sel[0] === 'c'){ const c = sel.slice(2); det = detail(CM[c] ? CM[c][0] : null, CM[c] ? CM[c][1] : 'Clue', 'Clue', WD.CLUES[c] || ''); }
+    body += `<div class="wd-postwrap"><div class="paper"><h2>MISSING</h2><div class="tag">Have you seen Dayla?</div><canvas data-dayla="1" width="300" height="300"></canvas><p>Boston terrier · brown &amp; white · pearl necklace · loves her yellow duck</p><p class="fine">Call David &amp; Laura · Tivoli Park</p></div><div class="wd-tiles">${tiles}</div><div class="wd-detail">${det}</div></div>`;
   } else if(bagTab === 'party'){
-    const P = G.partner && G.party[G.partner];
-    body += `<h3>${esc(WD.hero)} · Level ${G.lv}</h3><div class="wd-stats"><div class="wd-stat"><b>${G.hp}/${G.mhp}</b><span>HP · health</span></div><div class="wd-stat"><b>${G.sp}/${G.msp}</b><span>SP · spirit</span></div><div class="wd-stat"><b>${G.mpp}</b><span>PP · pin points</span></div><div class="wd-stat"><b>${G.xp}/100</b><span>Star points</span></div></div>
-      <p class="fine">${WD.hero === 'David' ? 'Moves: Jump Shot, Crossover. Special: Alley-Oop (3 SP). Family Call: Steven, Joseph, Olga.' : 'Moves: Heel Stomp, Purse Swing. Special: Group FaceTime (3 SP). Family Call: Mami Elsa, Titin, Carolina.'} Field skill: ${WD.hero === 'David' ? 'Dribble-dash (B) to sprint and jump gaps.' : 'Phone flashlight (B) to light up dark places and find secrets.'}</p>
-      ${G.learned.length ? `<p class="fine">Learned specials: ${G.learned.map(esc).join(', ')}</p>` : ''}
-      ${P ? `<h3>Partner · Alejandro</h3><div class="wd-stats"><div class="wd-stat"><b>${Math.max(0, P.hp)}/${P.mhp}</b><span>HP</span></div></div><p class="fine">Long-body chihuahua. Moves: Long-Body Spin, Nervous Yap. Sniff (🐾) reads clues and finds buried things.</p>` : '<p class="fine">No partner yet.</p>'}`;
+    const P = G.partner && G.party[G.partner], D = WD.hero === 'David';
+    const bar = (v, m, col) => `<span class="wd-bar"><i style="width:${Math.max(0, Math.min(100, v / m * 100))}%;background:${col}"></i></span>`;
+    const chips = list => `<div class="wd-chips">${list.map(([n, h]) => `<span><b>${esc(n)}</b>${h ? `<i>${esc(h)}</i>` : ''}</span>`).join('')}</div>`;
+    const moves = D ? [['Jump Shot', 'Hold A'], ['Crossover', 'Tap A']] : [['Heel Stomp', 'Hold A'], ['Purse Swing', 'Tap A']];
+    const specials = [[D ? 'Alley-Oop' : 'Group FaceTime', '3 SP']].concat(G.learned.includes('Love Attack') ? [['Love Attack', '2 SP']] : []);
+    const calls = (D ? ['Steven', 'Joseph', 'Olga'] : ['Mami Elsa', 'Titin', 'Carolina']).map(n => [n, '']);
+    body += `<div class="wd-partywrap">
+      <div class="wd-pcard"><div class="top"><canvas data-portrait="hero" width="168" height="168"></canvas><div class="st"><b>${esc(WD.hero)} <small>Lv ${G.lv}</small></b>
+        <span class="row"><em>HP</em>${bar(G.hp, G.mhp, '#5BC25A')}<small>${G.hp}/${G.mhp}</small></span>
+        <span class="row"><em>SP</em><span class="stars">${'★'.repeat(G.sp)}${'☆'.repeat(Math.max(0, G.msp - G.sp))}</span></span>
+        <span class="row"><em>XP</em>${bar(G.xp, 100, '#FFC94A')}<small>${G.xp}/100</small></span>
+        <span class="row"><em>PP</em><small>${G.mpp} · pins arrive in Chapter 1</small></span></div></div>
+        <div class="lbl">Moves</div>${chips(moves)}<div class="lbl">Specials</div>${chips(specials)}<div class="lbl">Family Call · once per battle</div>${chips(calls)}<div class="lbl">Field skill</div>${chips([[D ? '🏀 Dribble-dash' : '🔦 Flashlight', D ? 'B · sprint, jump gaps' : 'B · light up secrets']])}</div>
+      ${P ? `<div class="wd-pcard"><div class="top"><canvas data-portrait="partner" width="168" height="168"></canvas><div class="st"><b>Alejandro <small>partner</small></b>
+        <span class="row"><em>HP</em>${bar(Math.max(0, P.hp), P.mhp, '#5BC25A')}<small>${Math.max(0, P.hp)}/${P.mhp}</small></span><span class="note">Long-body chihuahua. Dayla’s friend. A little nervous.</span></div></div>
+        <div class="lbl">Moves</div>${chips([['Long-Body Spin', 'Tap A ×3'], ['Nervous Yap', 'Mash A']])}<div class="lbl">In battle</div>${chips([['Sniff', 'enemy info']])}<div class="lbl">Field skill</div>${chips([['🐾 Sniff', 'clues & buried things']])}</div>`
+      : `<div class="wd-pcard empty"><b>No partner yet</b><p class="fine">Someone in Tivoli Park wants to help.</p></div>`}</div>`;
   } else {
     const toys = ['ball', 'rope', 'bone'], TOY = { ball: 'Tennis Ball', rope: 'Rope Tug', bone: 'Squeaky Bone' };
     const keys = toys.map(k => 't:' + k).concat(G.verses.map(v => 'v:' + v)).concat(WD.hero === 'David' ? G.words.map((w, i) => 'w:' + i) : []);
@@ -266,7 +284,8 @@ WD.openBag = function(tab){
   pn.hidden = false;
   pn.querySelectorAll('canvas[data-icon]').forEach(cv => { const c = cv.getContext('2d'); c.setTransform(cv.width / 44, 0, 0, cv.width / 44, cv.width / 2, cv.height / 2); WD.drawIcon(c, cv.dataset.icon, 0, 0, cv.closest('.wd-tile,.wd-detail') ? 1.45 : .62, 1); });
   pn.querySelectorAll('canvas[data-photo]').forEach(cv => { const c = cv.getContext('2d'); if(cv.dataset.photo === 'uic') WD.sightingUIC(c, 0, 0, cv.width); });
-  const dc = pn.querySelector('canvas[data-dayla]'); if(dc){ const c = dc.getContext('2d'); c.fillStyle = '#F3E6CF'; c.fillRect(0, 0, 360, 360); c.setTransform(5.4, 0, 0, 5.4, 150, 290); WD.drawPuppet(c, WD.makeEnt({ kind: 'dog', duck: true, happy: true, t: 1 })); }
+  const dc = pn.querySelector('canvas[data-dayla]'); if(dc){ const c = dc.getContext('2d'); c.fillStyle = '#F3E6CF'; c.fillRect(0, 0, 300, 300); c.setTransform(4.5, 0, 0, 4.5, 125, 242); WD.drawPuppet(c, WD.makeEnt({ kind: 'dog', duck: true, happy: true, t: 1 })); }
+  pn.querySelectorAll('canvas[data-portrait]').forEach(cv => { const e = cv.dataset.portrait === 'hero' ? WD.makeEnt({ kind: 'human', look: WD.LOOKS[WD.hero], expr: 'happy', t: 1 }) : WD.makeEnt({ kind: 'chi', happy: true, t: 1 }); WD.drawPortraitOf(cv.getContext('2d'), e); });
   pn.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { WD.sfx('tap'); WD.openBag(b.dataset.tab); });
   pn.querySelectorAll('[data-sel]').forEach(b => b.onclick = () => { WD.sfx('tap'); bagSel[bagTab] = b.dataset.sel; const y = pn.querySelector('.wd-tiles').scrollTop; WD.openBag(); const t = pn.querySelector('.wd-tiles'); if(t) t.scrollTop = y; });
   pn.querySelectorAll('[data-use]').forEach(b => { const id = b.dataset.use, it = WD.ITEMS[id]; const P = G.partner && G.party[G.partner]; const useful = (it.hp && G.hp < G.mhp) || (it.php && P && P.hp < P.mhp) || (it.sp && G.sp < G.msp); b.disabled = !useful; b.onclick = () => { const r = WD.useItem(id); if(r){ WD.sfx('heal'); WD.toast([r.hp ? `+${r.hp} HP` : '', r.php ? `Alejandro +${r.php} HP` : '', r.sp ? `+${r.sp} SP` : ''].filter(Boolean).join(' · ')); } WD.openBag(); }; });

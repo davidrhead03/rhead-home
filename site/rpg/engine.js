@@ -146,6 +146,34 @@ const CSS = `
 .wd-detail .use{border:0;background:var(--leaf);color:#fff;font-weight:800;border-radius:99px;padding:7px 18px;box-shadow:0 0 0 2px var(--ink);margin-top:4px}
 .wd-detail .use:disabled{opacity:.4}
 @media (max-width:560px){.wd-bagwrap{grid-template-columns:1fr}}
+.wd-postwrap{display:grid;grid-template-columns:170px minmax(0,1fr) 200px;gap:12px;align-items:start}
+.wd-postwrap .paper{background:#FFFDF6;border-radius:6px;box-shadow:0 0 0 2px var(--ink),4px 6px 0 rgba(43,29,20,.25);padding:9px;transform:rotate(-1.5deg);text-align:center;display:grid;gap:4px;justify-items:center}
+.wd-postwrap .paper h2{margin:0;font-family:var(--display);font-weight:900;font-size:22px;color:var(--coral);letter-spacing:.08em;line-height:1}
+.wd-postwrap .paper .tag{font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.65}
+.wd-postwrap .paper canvas{width:110px;height:110px;border-radius:4px;box-shadow:0 0 0 2px var(--ink)}
+.wd-postwrap .paper p{font-size:11.5px;line-height:1.3}
+.wd-tile.photo canvas{width:48px;height:48px;border-radius:3px;box-shadow:0 0 0 1.5px var(--ink)}
+.wd-detail canvas.pic{width:120px;height:120px;border-radius:4px;box-shadow:0 0 0 2px var(--ink);justify-self:center}
+.wd-partywrap{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+.wd-pcard{background:#F7EEDD;border-radius:16px;padding:10px 12px 12px;box-shadow:inset 0 0 0 2px rgba(43,29,20,.12);display:grid;gap:6px}
+.wd-pcard.empty{place-items:center;min-height:120px;text-align:center}
+.wd-pcard .top{display:flex;gap:10px;align-items:center}
+.wd-pcard .top canvas{width:62px;height:62px;border-radius:50%;background:radial-gradient(circle at 50% 40%,#FFF3D6,#F6D7A6);box-shadow:0 0 0 2.5px var(--ink);flex:none}
+.wd-pcard .st{display:grid;gap:3px;min-width:0;flex:1}
+.wd-pcard .st>b{font-family:var(--display);font-weight:900;font-size:18px;line-height:1.1}
+.wd-pcard .st>b small{font-family:var(--body);font-size:12px;font-weight:800;opacity:.6;margin-left:4px}
+.wd-pcard .row{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:800}
+.wd-pcard .row em{font-style:normal;width:20px;opacity:.6;font-size:11px}
+.wd-pcard .row small{font-size:11.5px;opacity:.75;white-space:nowrap}
+.wd-pcard .stars{color:#E8A520;letter-spacing:1px;font-size:13px}
+.wd-pcard .note{font-size:11.5px;font-weight:700;opacity:.65;line-height:1.3}
+.wd-bar{flex:1;height:8px;border-radius:8px;background:#E7D7BC;box-shadow:inset 0 0 0 1.5px var(--ink);overflow:hidden;min-width:40px}
+.wd-bar i{display:block;height:100%}
+.wd-pcard .lbl{font-size:10.5px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--coral);margin-top:2px}
+.wd-chips{display:flex;flex-wrap:wrap;gap:5px}
+.wd-chips span{background:var(--paper);border-radius:10px;padding:3px 8px 4px;box-shadow:0 0 0 1.5px rgba(43,29,20,.25);font-size:12px;line-height:1.2}
+.wd-chips b{font-weight:800}.wd-chips i{font-style:normal;opacity:.6;margin-left:5px;font-size:11px;font-weight:700}
+@media (max-width:640px){.wd-postwrap{grid-template-columns:1fr}.wd-partywrap{grid-template-columns:1fr}}
 .wd-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
 .wd-stat{background:#F7EEDD;border-radius:14px;padding:8px 10px;box-shadow:inset 0 0 0 2px rgba(43,29,20,.12)}
 .wd-stat b{display:block;font-family:var(--display);font-size:22px;font-weight:900;line-height:1}
@@ -246,8 +274,8 @@ WD.sfx = function(k){
   switch(k){
     case 'open': tone('sine', 660, t, .08, .08); tone('sine', 990, t + .05, .1, .06); break;
     case 'tap': tone('sine', 880, t, .05, .05); break;
-    case 'hit': noise(t, .12, .35, 900); tone('square', 220, t, .12, .08, 110); break;
-    case 'big': noise(t, .25, .45, 600); tone('square', 330, t, .2, .1, 80); tone('triangle', 660, t + .05, .25, .08, 220); break;
+    case 'hit': tone('sine', 170, t, .16, .3, 55); tone('triangle', 880, t, .07, .07, 440); tone('sine', 1320, t + .015, .05, .03); noise(t, .04, .05, 2500); break;
+    case 'big': tone('sine', 140, t, .28, .36, 40); tone('triangle', 660, t, .12, .08, 330); [523, 784, 1047].forEach((f, i) => tone('triangle', f, t + .04 + i * .035, .16, .05)); noise(t, .06, .06, 1800); break;
     case 'nice': [784, 988, 1175].forEach((f, i) => tone('triangle', f, t + i * .06, .14, .09)); break;
     case 'perfect': [784, 988, 1175, 1568].forEach((f, i) => tone('square', f, t + i * .05, .14, .05)); noise(t + .1, .5, .12, 2600); break;
     case 'miss': tone('triangle', 300, t, .2, .08, 150); break;

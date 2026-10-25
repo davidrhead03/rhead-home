@@ -23,6 +23,7 @@ const dayla = (text) => say('Dayla', text, { ent: NPC.dayla });
 function learnWord(es, en){ if(!D()) return; const G = WD.G; if(G.words.some(w => w[0] === es)) return; G.words.push([es, en]); WD.toast(`New Spanish word: ${es} = ${en}`); WD.pingBag(); }
 WD.CLUES = { duck: 'Her yellow duck was left behind by the bowl.', print: 'A muddy boot print by the patio door, with a tiny paw print inside it.', glove: 'One small brown glove. Too small for someone that tall.', cats: 'Cat Agents in suits called Dayla “the package.”', sergeant: 'Sergeant Hairball said a van took her, for a rich “client.”', photo: 'A photo: Dayla at the UIC front desk, on papers stamped TRANSFER.' };
 WD.VERSES = { luke15: { ref: 'Luke 15:4', en: 'What man of you, having an hundred sheep, if he lose one of them, doth not leave the ninety and nine in the wilderness, and go after that which is lost, until he find it?', es: '¿Qué hombre de vosotros, teniendo cien ovejas, si perdiere una de ellas, no deja las noventa y nueve en el desierto, y va á la que se perdió, hasta que la halle?' } };
+WD.SIGHTINGS = { uic: { short: '#1 · UIC', title: 'Sighting #1 · UIC front desk', text: 'Dayla at United International College, eating breakfast off a stack of papers stamped TRANSFER. She looks content. Leads to Chapter 1.' } };
 function clue(k){ const G = WD.G; if(!G.clues.includes(k)) G.clues.push(k); }
 
 /* ================= goal line ================= */
@@ -632,11 +633,11 @@ WD.defineArea('courts', {
   },
   foes(){
     const f = [];
-    const mk = (type, x, y, patrol, party) => Object.assign(WD.makeEnt({ kind: WD.FOES[type].kind, look: WD.FOES[type].look ? WD.CATS[WD.FOES[type].look] : null, name: WD.FOES[type].name, x, y, dir: -1 }), { party, patrol });
-    f.push(mk('agent', 520, 60, [420, 640], ['agent']));
-    f.push(mk('iguana', 820, 66, [760, 940], ['iguana']));
-    f.push(mk('iguana', 1060, 54, [990, 1150], ['iguana', 'agent2']));
-    return f;
+    const mk = (id, type, x, y, patrol, party) => Object.assign(WD.makeEnt({ kind: WD.FOES[type].kind, look: WD.FOES[type].look ? WD.CATS[WD.FOES[type].look] : null, name: WD.FOES[type].name, x, y, dir: -1 }), { fid: id, party, patrol });
+    f.push(mk('courts_agent', 'agent', 520, 60, [420, 640], ['agent']));
+    f.push(mk('courts_iguana1', 'iguana', 820, 66, [760, 940], ['iguana']));
+    f.push(mk('courts_iguana2', 'iguana', 1060, 54, [990, 1150], ['iguana', 'agent2']));
+    return f.filter(x => !F('beat_' + x.fid));
   },
   npcs(){
     const n = [];

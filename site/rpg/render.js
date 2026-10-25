@@ -342,7 +342,7 @@ WD.drawPolaroid = function(c, x, y, w, rot, scene){
 WD.sightingUIC = function(c, x, y, s){
   c.fillStyle = '#E9DCC4'; c.fillRect(x, y, s, s);
   c.fillStyle = '#C8D8E8'; c.fillRect(x, y, s, s * .55);
-  c.fillStyle = '#1F3B6E'; c.fillRect(x + s * .08, y + s * .1, s * .5, s * .14); c.fillStyle = '#FFF'; c.font = `900 ${s * .085}px Grandstander, system-ui`; c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillText('UIC', x + s * .12, y + s * .17); c.font = `800 ${s * .05}px Nunito, system-ui`; c.fillText('FRONT DESK', x + s * .26, y + s * .175);
+  c.fillStyle = '#7A1F2B'; c.fillRect(x + s * .08, y + s * .1, s * .5, s * .14); c.fillStyle = '#FFF'; c.font = `900 ${s * .085}px Grandstander, system-ui`; c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillText('UIC', x + s * .12, y + s * .17); c.font = `800 ${s * .05}px Nunito, system-ui`; c.fillText('FRONT DESK', x + s * .26, y + s * .175);
   c.fillStyle = '#8A5A36'; c.fillRect(x, y + s * .62, s, s * .38); c.fillStyle = '#A9744A'; c.fillRect(x, y + s * .6, s, s * .06);
   c.fillStyle = '#FFFDF6'; for(let i = 0; i < 4; i++){ c.fillRect(x + s * .52 + i * 1.2, y + s * .5 - i * s * .025, s * .3, s * .1); }
   c.fillStyle = '#D6452B'; c.font = `900 ${s * .05}px Grandstander, system-ui`; c.save(); c.translate(x + s * .67, y + s * .53); c.rotate(-.15); c.fillText('TRANSFER', -s * .14, 0); c.restore();
@@ -397,6 +397,8 @@ WD.drawIcon = function(c, kind, x, y, s, t){
     case 'word': c.fillStyle = '#FFF8EC'; rr(c, -12, -9, 24, 15, 5); c.fill(); c.beginPath(); c.moveTo(-5, 5); c.lineTo(-8, 11); c.lineTo(0, 5); c.fill(); c.fillStyle = '#E8593C'; c.font = '900 12px Grandstander, system-ui'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('Ñ', 0, -1); break;
     case 'love': c.fillStyle = '#E86F79'; c.beginPath(); c.moveTo(0, 9); c.bezierCurveTo(-15, -2, -7, -14, 0, -5); c.bezierCurveTo(7, -14, 15, -2, 0, 9); c.fill(); break;
     case 'star': c.fillStyle = '#FFC94A'; star(c, 0, 0, 12); break;
+    case 'shades': c.fillStyle = '#121114'; rr(c, -13, -5, 11, 8, 3); c.fill(); rr(c, 2, -5, 11, 8, 3); c.fill(); c.fillRect(-3, -3, 6, 2); c.fillStyle = 'rgba(255,255,255,.45)'; c.fillRect(-11, -3, 3, 1.5); c.fillRect(4, -3, 3, 1.5); break;
+    case 'van': c.fillStyle = '#E9E2D2'; rr(c, -15, -9, 26, 15, 3); c.fill(); c.fillStyle = '#D7CFBE'; rr(c, 9, -5, 7, 11, 2); c.fill(); c.fillStyle = '#8FB4D4'; rr(c, 10, -4, 5, 5, 1); c.fill(); c.fillStyle = '#2E2E33'; [-8, 9].forEach(a => { c.beginPath(); c.arc(a, 7, 3.2, 0, 7); c.fill(); }); c.fillStyle = 'rgba(80,80,90,.35)'; c.fillRect(-20, 9, 6, 1.4); c.fillRect(-24, 5, 7, 1.4); break;
   }
   c.restore();
 };

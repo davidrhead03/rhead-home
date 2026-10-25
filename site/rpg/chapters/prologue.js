@@ -89,13 +89,37 @@ WD.drawFence = function(c, x0, x1, base, h, gateX){
   c.fillRect(x0, base - h - 3, x1 - x0, 2.5);
   if(gateX !== undefined){ c.fillStyle = '#6E7681'; c.fillRect(gateX - 30, base - h, 3, h); c.fillRect(gateX + 27, base - h, 3, h); c.strokeStyle = '#6E7681'; c.lineWidth = 2; c.strokeRect(gateX - 27, base - h + 4, 54, h - 6); }
 };
+/* full court seen from the side path: far baseline at y 2, near sideline at y 34 */
 function drawCourt(c, x0, x1){
-  c.fillStyle = '#C9673E'; c.fillRect(x0 - 8, -10, x1 - x0 + 16, 46);
-  c.fillStyle = '#3F7E8E'; c.fillRect(x0, -6, x1 - x0, 40);
-  c.fillStyle = '#B5562F'; c.fillRect(x0 + 40, -6, 110, 40);
-  c.strokeStyle = 'rgba(255,255,255,.85)'; c.lineWidth = 1.4; c.strokeRect(x0 + 2, -4, x1 - x0 - 4, 36); c.strokeRect(x0 + 40, -4, 110, 36);
-  c.beginPath(); c.ellipse(x0 + 150, 14, 30, 12, 0, -Math.PI / 2, Math.PI / 2); c.stroke();
-  c.beginPath(); c.moveTo((x0 + x1) / 2, -4); c.lineTo((x0 + x1) / 2, 32); c.stroke(); c.beginPath(); c.ellipse((x0 + x1) / 2, 14, 24, 10, 0, 0, Math.PI * 2); c.stroke();
+  const y0 = 2, y1 = 34, mid = (x0 + x1) / 2, ym = (y0 + y1) / 2, key = 74;
+  WD.drawFence(c, x0 - 14, x1 + 14, y0, 42);
+  c.fillStyle = '#B5562F'; c.fillRect(x0 - 10, y0 - 2, x1 - x0 + 20, y1 - y0 + 5);
+  c.fillStyle = '#3F7E8E'; c.fillRect(x0, y0, x1 - x0, y1 - y0);
+  c.fillStyle = '#4C8E9E'; c.fillRect(x0, y0, x1 - x0, 4);
+  c.fillStyle = '#C2563A'; c.fillRect(x0, ym - 7, key, 14); c.fillRect(x1 - key, ym - 7, key, 14);
+  c.strokeStyle = 'rgba(255,255,255,.9)'; c.lineWidth = 1.3;
+  c.strokeRect(x0, y0, x1 - x0, y1 - y0);
+  c.beginPath(); c.moveTo(mid, y0); c.lineTo(mid, y1); c.stroke();
+  c.beginPath(); c.ellipse(mid, ym, 22, 7, 0, 0, Math.PI * 2); c.stroke();
+  c.strokeRect(x0, ym - 7, key, 14); c.strokeRect(x1 - key, ym - 7, key, 14);
+  c.beginPath(); c.ellipse(x0 + key, ym, 14, 7, 0, -Math.PI / 2, Math.PI / 2); c.stroke();
+  c.beginPath(); c.ellipse(x1 - key, ym, 14, 7, 0, Math.PI / 2, Math.PI * 1.5); c.stroke();
+  c.beginPath(); c.ellipse(x0 + 14, ym, 112, 15, 0, -Math.PI / 2, Math.PI / 2); c.stroke();
+  c.beginPath(); c.ellipse(x1 - 14, ym, 112, 15, 0, Math.PI / 2, Math.PI * 1.5); c.stroke();
+}
+/* a hoop seen side-on: pole behind the baseline, arm, backboard edge, rim and net reaching over the key.
+   dir = 1 faces right (left end of the court), -1 faces left (right end) */
+function drawSideHoop(c, x, base, dir){
+  c.save(); c.translate(x, base); c.scale(dir * .78, .78);
+  c.fillStyle = 'rgba(40,28,60,.18)'; ell(c, 8, 1, 12, 2.5); c.fill();
+  c.fillStyle = '#3A3A40'; rr(c, -3, -112, 6, 112, 2); c.fill(); c.fillStyle = '#2B2B30'; c.fillRect(-5, -4, 10, 4);
+  c.fillStyle = '#3A3A40'; c.fillRect(0, -114, 16, 5); c.save(); c.translate(0, -104); c.rotate(-.55); c.fillRect(0, -1.5, 18, 3); c.restore();
+  c.fillStyle = '#FBF8F2'; rr(c, 15, -132, 6, 38, 1.5); c.fill(); c.strokeStyle = '#3A3A40'; c.lineWidth = 1; c.strokeRect(15, -132, 6, 38);
+  c.fillStyle = '#C2453A'; c.fillRect(17, -118, 2, 12);
+  c.strokeStyle = '#E8593C'; c.lineWidth = 2.4; c.beginPath(); c.ellipse(30, -102, 10, 2.6, 0, 0, Math.PI * 2); c.stroke();
+  c.strokeStyle = 'rgba(255,255,255,.92)'; c.lineWidth = .8; for(let i = -4; i <= 4; i++){ c.beginPath(); c.moveTo(30 + i * 2.4, -101); c.lineTo(30 + i * 1.3, -87); c.stroke(); }
+  c.beginPath(); c.moveTo(22, -96); c.lineTo(38, -96); c.moveTo(24, -91); c.lineTo(36, -91); c.stroke();
+  c.restore();
 }
 function drawPool(c, x0, x1, t){
   c.fillStyle = '#EDE6D8'; rr(c, x0 - 14, -8, x1 - x0 + 28, 44, 4); c.fill();
@@ -631,8 +655,8 @@ WD.defineArea('courts', {
     drawLot(c, 1340, 2100);
     drawCanal(c, CANAL[0], CANAL[1], t, { ledge: F('canal') && !D() || (F('ledge_seen') && !D()), plank: F('canal') && D() });
     drawCourt(c, 40, 520);
-    WD.drawHoop(c, 300, 0, 1);
-    if(D() && !F('toy_rope')){ WD.drawToy(c, 'rope', 327, -113, .9); }
+    drawSideHoop(c, 26, 18, 1); drawSideHoop(c, 534, 18, -1);
+    if(D() && !F('toy_rope')){ WD.drawToy(c, 'rope', 512, -63, .8); }
     drawPool(c, 700, 1150, t);
     // pump room grate (dark)
     c.fillStyle = '#3A3A40'; rr(c, 1010, 4, 34, 26, 2); c.fill(); c.strokeStyle = '#6E7681'; c.lineWidth = 1.2; for(let i = 0; i < 6; i++){ c.beginPath(); c.moveTo(1014 + i * 5, 6); c.lineTo(1014 + i * 5, 28); c.stroke(); }
@@ -652,8 +676,8 @@ WD.defineArea('courts', {
   things(){
     const L = [];
     const p = W.player;
-    L.push({ x: 300, y: 48, label: 'Hoop', h: 130, act: () => WD.cut(async () => { if(D()) await me(F('toy_rope') ? 'Tivoli court. I’ve hit so many shots here. Not now. Focus.' : 'Wait. Is that Dayla’s rope toy, stuck up on the rim? I could dash in and dunk it loose.', '', F('toy_rope') ? 'smirk' : 'surprised'); else await me('', { t: 'David’s court. He’d stay here all day if I let him.', es: 'La cancha de David. Se quedaría aquí todo el día si lo dejo.' }, 'smirk'); }) });
-    if(D() && !F('toy_rope')) L.push({ x: 300, y: 56, skill: 'b', label: 'Dunk!', h: 150, act: dunkToy });
+    L.push({ x: 470, y: 48, label: 'Hoop', h: 64, act: () => WD.cut(async () => { if(D()) await me(F('toy_rope') ? 'Tivoli court. I’ve hit so many shots here. Not now. Focus.' : 'Wait. Is that Dayla’s rope toy, stuck up on the rim? I could dash in and dunk it loose.', '', F('toy_rope') ? 'smirk' : 'surprised'); else await me('', { t: 'David’s court. He’d stay here all day if I let him.', es: 'La cancha de David. Se quedaría aquí todo el día si lo dejo.' }, 'smirk'); }) });
+    if(D() && !F('toy_rope')) L.push({ x: 470, y: 56, skill: 'b', label: 'Dunk!', h: 100, act: dunkToy });
     L.push({ x: 660, y: 46, label: 'Board', h: 96, act: board });
     L.push({ x: 900, y: 46, label: 'Pool', act: () => WD.cut(async () => { await me('The pool. Dayla thinks she can swim. She cannot.', { t: 'La piscina. Dayla thinks she can swim. No puede.', es: 'La piscina. Dayla cree que sabe nadar. No sabe.' }, 'smirk'); }) });
     if(!D() && !F('toy_rope')){
@@ -680,11 +704,11 @@ WD.defineArea('courts', {
 async function dunkToy(){
   await WD.cut(async () => {
     const p = W.player; p.dir = 1;
-    await WD.walkTo(p, 220, 60, 110);
+    await WD.walkTo(p, 370, 50, 110);
     await me('Dribble… dribble…', '', 'determined');
     W.dash = .6; WD.sfx('dash');
-    await WD.walkTo(p, 290, 60, 240); WD.sfx('jump');
-    await WD.tween(520, u => { p.z = Math.sin(u * Math.PI) * 70; p.x = lerp(290, 315, u); p.armRaise = -2.6 * Math.sin(u * Math.PI); });
+    await WD.walkTo(p, 452, 50, 240); WD.sfx('jump');
+    await WD.tween(520, u => { p.z = Math.sin(u * Math.PI) * 48; p.x = lerp(452, 494, u); p.armRaise = -2.6 * Math.sin(u * Math.PI); });
     p.armRaise = 0; WD.shake(6); WD.sfx('cheer');
     S('toy_rope'); WD.G.toys.push('rope'); WD.sfx('squeak');
     await WD.itemGet('rope', 'Rope Tug', `Knocked it right off the rim. Still got it. (Dayla’s Lost Toys ${WD.G.toys.length}/3)`);

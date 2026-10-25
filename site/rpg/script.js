@@ -20,6 +20,8 @@ WD.say = function(who, text, opts){
   return new Promise(res => {
     const box = el(), p = box.querySelector('p'), name = box.querySelector('.name'), sub = box.querySelector('.sub'), more = box.querySelector('.more'), ch = box.querySelector('.choices'), port = box.querySelector('.portrait');
     let main = text, subtitle = opts.sub || '';
+    // Laura talks to David in English, with Spanish words mixed in: use the English line
+    if(opts.es && who === 'Laura' && (WD.hero === 'David' || opts.toDavid)) opts = Object.assign({}, opts, { es: null });
     if(opts.es){ main = opts.es; subtitle = WD.hero === 'David' ? text : ''; }
     Object.values(WD.actors).forEach(e => { if(e) e.talk = false; });
     let ent = opts.ent || WD.actors[who] || null;
@@ -104,7 +106,7 @@ WD.phone = async function(who, lines){
   WD.sfx('ring'); await WD.wait(700); WD.sfx('ring'); await WD.wait(600);
   for(const L of lines){
     const speaker = L.who || who, ent = speaker === WD.hero ? WD.actors[WD.hero] : null;
-    await WD.say(speaker, L.text, { expr: L.expr, es: L.es, phone: speaker !== WD.hero, ent: ent || undefined });
+    await WD.say(speaker, L.text, { expr: L.expr, es: L.es, phone: speaker !== WD.hero, ent: ent || undefined, toDavid: who === 'David' || L.toDavid });
   }
 };
 

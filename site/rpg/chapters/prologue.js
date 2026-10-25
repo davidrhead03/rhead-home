@@ -381,12 +381,12 @@ async function callSpouse(inside){
     if(F('called')) return;
     if(D()){
       await WD.phone('Laura', [
-        { who: 'Laura', text: 'Hello? Babe, I’m at work, it’s crazy here…', es: '¿Aló? Amor, estoy en el trabajo, esto está loco…', expr: 'happy' },
+        { who: 'Laura', text: '¿Aló? Babe, I’m at work, it’s crazy here…', es: '¿Aló? Amor, estoy en el trabajo, esto está loco…', expr: 'happy' },
         { who: 'David', text: 'Laura. Someone took Dayla. Walked in the back door and just… took her.', expr: 'sad' },
-        { who: 'Laura', text: 'WHAT? What do you mean they took her?', es: '¿QUÉ? ¿Cómo que se la llevaron?', expr: 'surprised' },
+        { who: 'Laura', text: '¿QUÉ? What do you mean they took her?', es: '¿QUÉ? ¿Cómo que se la llevaron?', expr: 'surprised' },
         { who: 'David', text: 'Long coat, big hat. Left her duck, one glove and a muddy footprint. She didn’t even stop eating.', expr: 'worried' },
         { who: 'Laura', text: 'Of course she didn’t. Okay. Breathe. Go find Veci. He tracks deer up in Georgia. He can track anything.', expr: 'determined' },
-        { who: 'Laura', text: 'I’ll call you the second I can get out of here. And David… we’re going to find her. You hear me?', es: 'Te llamo apenas pueda salir. Y David… la vamos a encontrar. ¿Me oíste?', expr: 'determined' },
+        { who: 'Laura', text: 'I’ll call you the second I can get out of here. And David… we’re going to find her. ¿Me oíste?', es: 'Te llamo apenas pueda salir. Y David… la vamos a encontrar. ¿Me oíste?', expr: 'determined' },
         { who: 'David', text: 'Yeah. We will.', expr: 'determined' }
       ]);
     } else {
@@ -397,7 +397,7 @@ async function callSpouse(inside){
         { who: 'Laura', text: 'Long coat, big hat. Left her duck, one glove and a muddy footprint. She didn’t even stop eating, David.', es: 'Abrigo largo, sombrero grande. Dejó su patico, un guante y una huella de barro. Ni siquiera dejó de comer, David.', expr: 'worried' },
         { who: 'David', text: 'Of course she didn’t. Okay. Go get Veci. The guy tracks deer through the Georgia woods for fun.', expr: 'determined' },
         { who: 'David', text: 'I’ll get out of here as soon as I can. We’re getting her back. I promise.', expr: 'determined' },
-        { who: 'Laura', text: 'I love you. Okay. Let’s go.', es: 'Te amo. Okay. Vamos.', expr: 'determined' }
+        { who: 'Laura', text: 'Te amo. Okay. Let’s go.', es: 'Te amo. Okay. Vamos.', expr: 'determined' }
       ]);
     }
     S('called'); WD.updateGoal(); WD.saveNow();
@@ -822,11 +822,11 @@ async function photoScene(){
     a.nervous = false;
     if(D()){
       await WD.phone('Laura', [
-        { who: 'Laura', text: 'David! You won’t believe this. There’s a cat in a suit at the UIC front desk asking for “transfer papers” for a Boston terrier!', es: '¡David! No me lo vas a creer. ¡Hay un gato en traje en la recepción de UIC pidiendo “papeles de transferencia” para una Boston terrier!', expr: 'surprised' },
+        { who: 'Laura', text: '¡David! You won’t believe this. There’s a cat in a suit at the UIC front desk asking for “transfer papers” for a Boston terrier!', es: '¡David! No me lo vas a creer. ¡Hay un gato en traje en la recepción de UIC pidiendo “papeles de transferencia” para una Boston terrier!', expr: 'surprised' },
         { who: 'David', text: 'I found a photo. Dayla, on that exact desk. I’m coming.', expr: 'determined' },
-        { who: 'Laura', text: 'Okay. Hurry. And bring Veci’s jerky, I haven’t eaten.', es: 'Okay. Apúrate. Y trae la carne de Veci, no he comido.', expr: 'smirk' },
+        { who: 'Laura', text: 'Okay. ¡Apúrate! And bring Veci’s jerky, I haven’t eaten.', es: 'Okay. Apúrate. Y trae la carne de Veci, no he comido.', expr: 'smirk' },
         { who: 'David', text: 'Also, I have a partner now. His name is Alejandro.', expr: 'smirk' },
-        { who: 'Laura', text: 'Who is Alejandro?!', es: '¡¿Quién es Alejandro?!', expr: 'surprised' },
+        { who: 'Laura', text: '¿¡Who is Alejandro!?', es: '¡¿Quién es Alejandro?!', expr: 'surprised' },
         { who: 'David', text: 'Long story. Long dog.', expr: 'joy' }
       ]);
     } else {
@@ -835,7 +835,7 @@ async function photoScene(){
         { who: 'Laura', text: 'In the back lot. I beat a cat sergeant. Don’t ask.', es: 'En el parqueadero de atrás. Le gané a un gato sargento. No preguntes.', expr: 'smirk' },
         { who: 'Laura', text: 'David, the photo… Dayla is at UIC. At my front desk.', es: 'David, la foto… Dayla está en UIC. En mi recepción.', expr: 'worried' },
         { who: 'David', text: 'Then that’s where we’re going. I’ll meet you there. Bring the duck.', expr: 'determined' },
-        { who: 'Laura', text: 'Obviously.', es: 'Obvio.', expr: 'joy' }
+        { who: 'Laura', text: 'Obvio.', es: 'Obvio.', expr: 'joy' }
       ]);
     }
     await prologueEnd();

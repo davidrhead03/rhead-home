@@ -361,17 +361,17 @@ function talkSpouse(){
   WD.cut(async () => {
     const s = WD.spouse;
     if(!F('c1_chunkers')){
-      if(D()) await say(s, 'My office is through that door. Someone moved my cabinets, and there’s a dog in there who won’t move. A big one.', { es: 'Mi oficina es por esa puerta. Alguien movió mis archivadores y hay un perro ahí que no se mueve. Uno grande.', expr: 'worried' });
+      if(D()) await say(s, 'My office is through that door. Someone moved my cabinets, and there’s a dog in there who won’t move. Uno grande.', { es: 'Mi oficina es por esa puerta. Alguien movió mis archivadores y hay un perro ahí que no se mueve. Uno grande.', expr: 'worried' });
       else await say(s, 'Your office is right there. Angelica says there’s a dog sitting in it. A big one. Want me to come?', { expr: 'think' });
-      if(!D()) await me('', { t: 'Stay by the door. If that cat comes back, text me.', es: 'Quédate en la puerta. Si vuelve ese gato, me escribes.' }, 'determined');
+      if(!D()) await say(WD.hero, 'Stay by the door, okay? If that cat comes back, me escribes.', { expr: 'determined' });
     } else if(stamps() < 3){
       const tips = [];
       if(!F('stamp_reg')) tips.push(D() ? 'The Registrar’s Seal is in my records cage. It only opens while something heavy sits on that floor plate. Hint, hint.' : 'Your records cage only opens while something heavy sits on the floor plate. Chunkers is very heavy.');
       if(!F('stamp_eng')) tips.push('David Lesser has the English stamp. He’ll make you earn it. He loves a quiz.');
       if(!F('stamp_media')) tips.push('Marcela has the Media stamp. She’s down the hall, probably taking a picture of a plant.');
       await say(s, tips[Math.floor(WD.time) % tips.length], { expr: 'happy' });
-    } else if(!F('c1_forged')) await say(s, 'You got all three? Go show Angelica!', { es: '¿Tienes los tres? ¡Ve a mostrárselos a Angelica!', expr: 'joy' });
-    else if(!F('c1_boss')) await say(s, D() ? 'The old gym… Be careful in there, okay? Take the duck.' : 'The old gym. I’ll be right here. Go get her back.', { es: D() ? 'El gimnasio viejo… Ten cuidado, ¿sí? Llévate el patico.' : null, expr: 'worried' });
+    } else if(!F('c1_forged')) await say(s, D() ? '¿Los tres? Go show Angelica!' : 'You got all three? Go show Angelica!', { expr: 'joy' });
+    else if(!F('c1_boss')) await say(s, D() ? 'The old gym… Ten cuidado, okay? Take el patico.' : 'The old gym. I’ll be right here. Go get her back.', { es: D() ? 'El gimnasio viejo… Ten cuidado, ¿sí? Llévate el patico.' : null, expr: 'worried' });
     else await say(s, D() ? '¡Bogotá! My family is going to lose their minds.' : 'Bogotá, huh. Your family is going to feed me so much.', { es: D() ? '¡Bogotá! Mi familia se va a volver loca.' : null, expr: 'joy' });
   });
 }
@@ -555,7 +555,7 @@ async function caseScene(){
     WD.MUS.play('office'); WD.light = 'indoor';
     WD.cam.lock = true; WD.cam.x = 340; WD.cam.z = 1.08; p.x = 300; p.y = 66; p.dir = 1;
     await say('Angelica', 'Start with the Registrar’s Office. Someone left a very large dog in there, and he will not move.', { expr: 'think' });
-    if(D()) await say(WD.spouse, 'That’s my office! Go. I’ll stay out here with Leonela and watch the desk.', { es: '¡Esa es mi oficina! Ve. Yo me quedo aquí con Leonela cuidando la recepción.', expr: 'determined' });
+    if(D()) await say(WD.spouse, '¡Mi oficina! Go. I’ll stay out here with Leonela and watch the desk.', { es: '¡Esa es mi oficina! Ve. Yo me quedo aquí con Leonela cuidando la recepción.', expr: 'determined' });
     else await say(WD.spouse, 'Your office? Go. I’ll stay out here in case that cat comes back.', { expr: 'determined' });
     S('c1_case'); WD.saveNow();
     await WD.walkTo(a, 470, 56, 70); await WD.walkTo(sp, 560, 68, 70); a.dir = -1; a.talkTo = talkAngelica; sp.talkTo = talkSpouse;
@@ -1156,19 +1156,19 @@ async function afterInterlude(){
     await WD.narrate('(Back at UIC, by the car.)');
     if(D()){
       await WD.phone('Laura', [
-        { who: 'Laura', text: 'Babe. I just talked to my mom.', es: 'Amor. Acabo de hablar con mi mamá.', expr: 'happy' },
+        { who: 'Laura', text: 'Amor, I just talked to my mom.', es: 'Amor. Acabo de hablar con mi mamá.', expr: 'happy' },
         { who: 'Laura', text: 'If Dayla is going to Bogotá, then we’re going to Bogotá.', es: 'Si Dayla va para Bogotá, entonces nosotros vamos para Bogotá.', expr: 'determined' },
         { who: 'David', text: 'Then I guess my Spanish is about to get a lot better.', expr: 'smirk' },
-        { who: 'Laura', text: '¡Por fin! Okay. Pack. And don’t forget the duck.', es: '¡Por fin! Okay. Empaca. Y no se te olvide el patico.', expr: 'joy' },
+        { who: 'Laura', text: '¡Por fin! Okay. Pack. And don’t forget el patico.', es: '¡Por fin! Okay. Empaca. Y no se te olvide el patico.', expr: 'joy' },
         { who: 'David', text: 'Never.', expr: 'determined' }
       ]);
       learnWord('¡Por fin!', 'Finally!');
     } else {
       await WD.phone('David', [
         { who: 'David', text: 'So… Bogotá?', expr: 'happy' },
-        { who: 'Laura', text: 'Already called my mom. She’s ready for us.', es: 'Ya llamé a mi mamá. Nos está esperando.', expr: 'joy' },
+        { who: 'Laura', text: 'Already called mi mamá. She’s ready for us.', es: 'Ya llamé a mi mamá. Nos está esperando.', expr: 'joy' },
         { who: 'David', text: 'Then we go. Dayla, Chunkers, the whole crew. I’ll pack the duck.', expr: 'determined' },
-        { who: 'Laura', text: 'The duck stays with me.', es: 'El patico se queda conmigo.', expr: 'smirk' },
+        { who: 'Laura', text: 'El patico stays with me.', es: 'El patico se queda conmigo.', expr: 'smirk' },
         { who: 'David', text: 'Fair.', expr: 'joy' }
       ]);
     }

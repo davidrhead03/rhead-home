@@ -502,16 +502,20 @@ function drawCasaElsa(c, t){
   // living room: sofa, family photos, flag, a cross
   c.fillStyle = '#7A3E52'; rr(c, 60, -46, 190, 50, 12); c.fill(); c.fillStyle = '#93506A'; rr(c, 70, -64, 170, 30, 10); c.fill(); rr(c, 52, -46, 22, 46, 8); c.fill(); rr(c, 236, -46, 22, 46, 8); c.fill();
   c.fillStyle = '#E9D9B8'; rr(c, 80, -36, 40, 14, 5); c.fill(); rr(c, 190, -36, 40, 14, 5); c.fill();
-  [[90, -170, '#E8593C'], [150, -186, '#3E8FC7'], [210, -168, '#7CB86A']].forEach(([x, y, col]) => { c.fillStyle = '#7A5234'; c.fillRect(x - 20, y - 18, 40, 32); c.fillStyle = col; c.fillRect(x - 16, y - 14, 32, 24); c.fillStyle = '#FFF8EC'; ell(c, x - 4, y - 4, 4, 4); c.fill(); ell(c, x + 6, y - 2, 4, 4); c.fill(); });
-  drawFlag(c, 290, -200, 60, t, { pole: false });
-  c.fillStyle = '#7A5234'; c.fillRect(380, -200, 6, 34); c.fillRect(372, -190, 22, 6);
+  [[90, -104, '#E8593C'], [150, -116, '#3E8FC7'], [210, -102, '#7CB86A']].forEach(([x, y, col]) => { c.fillStyle = '#7A5234'; c.fillRect(x - 20, y - 18, 40, 32); c.fillStyle = col; c.fillRect(x - 16, y - 14, 32, 24); c.fillStyle = '#FFF8EC'; ell(c, x - 4, y - 4, 4, 4); c.fill(); ell(c, x + 6, y - 2, 4, 4); c.fill(); });
+  drawFlag(c, 540, -134, 50, t, { pole: false });
+  c.fillStyle = '#7A5234'; c.fillRect(342, -150, 5, 28); c.fillRect(335, -142, 19, 5);
+  c.save(); c.translate(0, 68);
   c.fillStyle = '#FFFDF6'; rr(c, 420, -200, 90, 46, 4); c.fill(); c.strokeStyle = GOLD; c.lineWidth = 2; c.strokeRect(422, -198, 86, 42); c.fillStyle = '#5A3A24'; c.font = '800 6px Nunito, system-ui'; c.textAlign = 'center'; c.fillText('“Jehová es mi pastor;', 465, -182); c.fillText('nada me faltará.”', 465, -172); c.fillText('Salmo 23:1', 465, -162);
+  c.restore();
   c.fillStyle = '#3A3A44'; rr(c, 300, -110, 90, 58, 4); c.fill(); c.fillStyle = '#5E8AC4'; c.fillRect(306, -104, 78, 46); c.fillStyle = YEL; ell(c, 345, -82, 9, 9); c.fill(); c.fillStyle = '#7A5234'; c.fillRect(296, -52, 98, 8);
   // the kitchen
   c.fillStyle = '#E9E2D2'; c.fillRect(640, -140, 700, 120); c.fillStyle = '#5BB5B0'; for(let x = 640; x < 1340; x += 16) for(let y = -140; y < -20; y += 16) if(((x + y) / 16) % 2 === 0) c.fillRect(x, y, 16, 16);
   c.fillStyle = '#FFFDF6'; c.fillRect(640, -56, 520, 60); c.fillStyle = '#C98A55'; c.fillRect(636, -60, 528, 6);
   // window with Monserrate
+  c.save(); c.translate(0, 84);
   c.fillStyle = '#9CC3EA'; c.fillRect(760, -230, 140, 80); c.fillStyle = '#5F8A72'; c.beginPath(); c.moveTo(760, -150); c.quadraticCurveTo(810, -170, 830, -214); c.lineTo(840, -214); c.quadraticCurveTo(860, -170, 900, -150); c.fill(); c.fillStyle = '#FFFDF6'; c.fillRect(830, -222, 10, 7); c.strokeStyle = '#7A5234'; c.lineWidth = 5; c.strokeRect(760, -230, 140, 80); c.lineWidth = 3; c.beginPath(); c.moveTo(830, -230); c.lineTo(830, -150); c.stroke();
+  c.restore();
   // stove + the big pot
   c.fillStyle = '#C9CCCF'; c.fillRect(940, -60, 100, 64); c.fillStyle = '#2B2B33'; c.fillRect(944, -64, 92, 6);
   c.fillStyle = '#9AA0A6'; rr(c, 956, -96, 50, 34, 6); c.fill(); c.fillStyle = '#7A8590'; c.fillRect(950, -98, 62, 5);
@@ -519,13 +523,16 @@ function drawCasaElsa(c, t){
   // arepa griddle
   c.fillStyle = '#2B2B33'; ell(c, 1080, -64, 30, 6); c.fill(); c.fillStyle = '#F4DA9C'; [1068, 1088].forEach(x => { ell(c, x, -67, 9, 3.4); c.fill(); });
   // fridge
+  c.save(); c.translate(0, 4); c.scale(1, .8); c.translate(0, -4);
   c.fillStyle = '#F4F1EA'; rr(c, 1180, -170, 70, 174, 6); c.fill(); c.strokeStyle = '#C9CCCF'; c.lineWidth = 2; c.beginPath(); c.moveTo(1180, -100); c.lineTo(1250, -100); c.stroke(); c.fillStyle = '#9AA0A6'; c.fillRect(1240, -160, 3, 30); c.fillRect(1240, -90, 3, 40);
   [[1196, -150, '#E8593C'], [1214, -140, YEL], [1200, -120, '#3E8FC7']].forEach(([x, y, col]) => { c.fillStyle = col; rr(c, x, y, 10, 8, 2); c.fill(); });
+  c.restore();
   // dining table
   c.fillStyle = '#7A5234'; c.fillRect(520, -22, 6, 26); c.fillRect(600, -22, 6, 26); c.fillStyle = '#FFFDF6'; rr(c, 500, -30, 126, 10, 3); c.fill(); c.fillStyle = '#E86F79'; for(let i = 0; i < 6; i++) c.fillRect(504 + i * 20, -24, 8, 4);
   c.fillStyle = '#C98A55'; ell(c, 562, -36, 16, 5); c.fill(); [['#F2B33D', 552], ['#E8833A', 562], ['#9A4A8A', 572]].forEach(([col, x]) => { c.fillStyle = col; ell(c, x, -40, 5, 4.4); c.fill(); });
 }
 function drawMall(c, t, floor){
+  c.save(); c.translate(0, 4); c.scale(1, .74); c.translate(0, -4);
   c.fillStyle = '#F2EEE6'; c.fillRect(-90, -280, 2300, 300);
   const sky = c.createLinearGradient(0, -280, 0, -220); sky.addColorStop(0, '#9CC3EA'); sky.addColorStop(1, '#D6E6F2'); c.fillStyle = sky; for(let x = 0; x < 2200; x += 240) c.fillRect(x, -280, 180, 48);
   c.fillStyle = '#C9C4BA'; for(let x = 0; x < 2200; x += 240) c.fillRect(x + 176, -280, 8, 48);
@@ -541,6 +548,7 @@ function drawMall(c, t, floor){
   });
   // sale banners in tricolor
   for(let x = 60; x < 2100; x += 360){ c.fillStyle = YEL; c.fillRect(x, -232, 60, 18); c.fillStyle = BLU; c.fillRect(x, -214, 60, 9); c.fillStyle = RED; c.fillRect(x, -205, 60, 9); }
+  c.restore();
   // floor
   const fg = c.createLinearGradient(0, 20, 0, 240); fg.addColorStop(0, '#E9E2D4'); fg.addColorStop(1, '#C9C0B0'); c.fillStyle = fg; c.fillRect(-90, 4, 2300, 420);
   c.strokeStyle = 'rgba(120,110,100,.18)'; c.lineWidth = 1; for(let x = -90; x < 2210; x += 40){ c.beginPath(); c.moveTo(x, 4); c.lineTo(x * 1.08, 220); c.stroke(); } for(let y = 20; y < 220; y += 22){ c.beginPath(); c.moveTo(-90, y); c.lineTo(2210, y); c.stroke(); }

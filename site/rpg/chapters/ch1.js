@@ -385,7 +385,7 @@ const SHOTS = [
   { id: 'statue', area: 'uic_front', x: 1080, y: 50, name: 'the eagle ray statue' },
   { id: 'gymdoor', area: 'uic_front', x: 1760, y: 50, name: 'the old gym doors' },
   { id: 'desk', area: 'uic_lobby', x: 320, y: 56, name: 'the front desk' },
-  { id: 'banner', area: 'uic_lobby', x: 1380, y: 50, name: 'the GO RAYS banner' }
+  { id: 'banner', area: 'uic_lobby', x: 1310, y: 56, name: 'the GO RAYS banner' }
 ];
 function shotThings(areaId){
   if(!F('c1_camera') || F('stamp_media')) return [];
@@ -497,7 +497,7 @@ WD.defineArea('uic_lobby', {
     door(c, 1020, 'MEDIA', { col: '#8E5E7A' });
     plant(c, 1100, 20);
     door(c, 1220, 'PRESIDENT', { col: '#6E5030' });
-    banner(c, 1380, -200, t);
+    banner(c, 1310, -132, t);
     c.fillStyle = '#C9CCCF'; rr(c, 1440, -60, 22, 40, 3); c.fill(); c.fillStyle = '#9AA0A6'; c.fillRect(1444, -64, 14, 5);
     DESK.staff.forEach(e => { WD.tickEnt(e, 0); paintBehind(e); });
     deskCounter(c, 230);

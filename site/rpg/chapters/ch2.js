@@ -33,7 +33,7 @@ const LUNI = () => W.partner && WD.G.partner === 'lunita' ? W.partner : null;
 const lunita = (text, expr) => say('Lunita', text, { expr });
 
 /* ================= data ================= */
-Object.assign(WD.NAMECOL, { 'Mami Elsa': '#C2557A', Titin: '#C9A21A', Carolina: '#2F8F8A', Diego: '#3E5E9E', Diana: '#6B4FA0', Juandi: '#003893', Lunita: '#C98A55', Papu: '#7C808A', Moka: '#8A5A36', 'Paloma Pickpocket': '#6E7480', 'Clearance Cat': '#C9803A', 'The Markdown Manager': '#B33F2A', 'Runaway Cart': '#7A8590', Zumbador: '#2F9A6A', 'Ruana Cat': '#7A4A2E', 'El Cóndor': '#1E1E26', 'Doña Gloria': '#B34A4A', 'Fruit Seller': '#4F8A3A' });
+Object.assign(WD.NAMECOL, { 'Mami Elsa': '#C2557A', Titin: '#C9A21A', Carolina: '#2F8F8A', Diego: '#3E5E9E', Diana: '#6B4FA0', Juandi: '#003893', Lunita: '#C98A55', Papu: '#7C808A', Moka: '#8A5A36', 'Paloma Pickpocket': '#6E7480', 'Clearance Cat': '#C9803A', 'The Markdown Manager': '#B33F2A', 'Runaway Cart': '#7A8590', Zumbador: '#2F9A6A', 'Ruana Cat': '#7A4A2E', 'El Cóndor': '#1E1E26', 'Doña Gloria': '#B34A4A', 'Fruit Seller': '#4F8A3A', Barista: '#7A4A2E', 'Oblea Seller': '#C2453A', Shopkeeper: '#B9803A' });
 Object.assign(WD.LOOKS, {
   'Mami Elsa': { skin: '#D9A882', hair: '#B9B4AE', hairStyle: 'pony', pony: '#B9B4AE', scrunchie: '#E86F79', top: '#F7E6EE', floral: ['#E8593C', '#E86F79', '#58AEDD', '#7CD86A'], pants: '#4A4A60', shoes: '#5A4C42', height: .84, eye: '#2A1A14', lashes: true, age: true },
   Titin: { skin: '#D3A27C', hair: '#D2CDC6', hairStyle: 'short', mustache: '#CFC9C1', glasses: true, top: '#F2EEE4', pants: '#3E4A6B', shoes: '#2B1D14', height: .98, eye: '#2A1A14', age: true, belly: 4 },
@@ -42,6 +42,9 @@ Object.assign(WD.LOOKS, {
   Diana: { skin: '#D9A882', hair: '#141012', hairStyle: 'long', top: '#9AB6D8', skirt: '#3E4A6B', pants: '#D9A882', shoes: '#3A2A22', height: .93, eye: '#2A1A14', lashes: true, pearl: true },
   Juandi: { skin: '#D3A07A', hair: '#1D1416', hairStyle: 'spiky', top: YEL, jersey: { band: BLU, band2: RED, n: '10', num: BLU }, pants: BLU, shoes: '#F4F4F2', height: 1.05, eye: '#2A1A14' },
   'Doña Gloria': { skin: '#C99272', hair: '#3A2418', hairStyle: 'bun', top: '#E8593C', scarf: YEL, pants: '#3E4A6B', shoes: '#3A2A22', height: .9, eye: '#2A1A14', lashes: true, age: true },
+  Barista: { skin: '#C99272', hair: '#2B211C', hairStyle: 'bun', top: '#FFFDF6', scarf: '#7A4A2E', pants: '#2B2B33', shoes: '#2B1D14', height: .94, eye: '#2A1A14', lashes: true },
+  'Oblea Seller': { skin: '#B9845E', hair: '#3A2418', hairStyle: 'short', mustache: '#2B211C', top: '#FFFDF6', hat: '#F2EEE4', hatBand: RED, pants: '#3E4A6B', shoes: '#2B1D14', height: 1.0, eye: '#2A1A14', belly: 4 },
+  Shopkeeper: { skin: '#D9A882', hair: '#5A3824', hairStyle: 'pony', top: '#7A4A2E', scarf: YEL, pants: '#3E4A6B', shoes: '#2B1D14', height: .92, eye: '#2A1A14', lashes: true, age: true },
   'Fruit Seller': { skin: '#B9845E', hair: '#2B211C', hairStyle: 'cap', cap: BLU, top: '#7CB86A', pants: '#5A4C42', shoes: '#3A2A22', height: 1.0, eye: '#2A1A14' }
 });
 Object.assign(WD.CATS, {
@@ -72,9 +75,9 @@ Object.assign(WD.TOYS, {
   condorplush: { name: 'Plush Cóndor', ch: 2, where: 'Bogotá', desc: 'From the gift shop on top of Monserrate. Much friendlier than the real one.' }
 });
 Object.assign(WD.PINS, {
-  tricolor: { name: 'Tricolor Pin', pp: 1, desc: 'Yellow, blue and red. Start every battle with 1 extra SP.' },
-  ruana: { name: 'Ruana Pin', pp: 1, desc: 'Cozy. Your partner takes 1 less damage from every hit.' },
-  oro: { name: 'Golden Frog Pin', pp: 2, desc: 'Like the treasures in the gold museum. Superguard counters hit 1 harder.' }
+  tricolor: { name: 'Tricolor Pin', pp: 3, desc: 'Yellow, blue and red. Start every battle with 1 extra SP.' },
+  ruana: { name: 'Ruana Pin', pp: 2, desc: 'Cozy. Your partner takes 1 less damage from every hit.' },
+  oro: { name: 'Golden Frog Pin', pp: 3, desc: 'Like the treasures in the gold museum. Superguard counters hit 1 harder.' }
 });
 WD.VERSES.jos19 = { ref: 'Joshua 1:9', en: 'Have not I commanded thee? Be strong and of a good courage; be not afraid, neither be thou dismayed: for the LORD thy God is with thee whithersoever thou goest.', es: 'Mira que te mando que te esfuerces y seas valiente: no temas ni desmayes, porque Jehová tu Dios será contigo en donde quiera que fueres.' };
 
@@ -95,14 +98,14 @@ Object.assign(WD.FOES, {
   ruanacat: { name: 'Ruana Cat', kind: 'cat', look: 'ruana', hp: 14, atk: 3, xp: 18, smart: true,
     moves: [{ id: 'bonk', name: 'Bonk', type: 'melee', dmg: 3, w: 3, delay: [100, 600] }, { id: 'hail', name: 'Granizo', type: 'barrage', dmg: 2, n: 3, w: 2, proj: 'hail', rhythm: [500, 260, 760] }, { id: 'wrap', name: 'Cozy Wrap', type: 'brace', w: 1, say: 'The Ruana Cat wraps up in its ruana. It takes 2 less damage until its next turn.' }],
     tattle: 'A Ruana Cat. Mountain guard. HP 14, Attack 3. Granizo is a Bogotá hailstorm: three hard hits in a lumpy rhythm. It wraps up in its ruana to block damage.' },
-  manager: { name: 'The Markdown Manager', kind: 'cat', look: 'manager', hp: 40, atk: 3, xp: 80, boss: true, smart: true, learn: true,
+  manager: { name: 'The Markdown Manager', kind: 'cat', look: 'manager', hp: 46, atk: 3, xp: 80, boss: true, smart: true, learn: true,
     moves: [{ id: 'slash', name: 'Price Slash', type: 'melee', dmg: 3, w: 3, feint: .45, delay: [0, 500] }, { id: 'coupons', name: 'Coupon Storm', type: 'barrage', dmg: 2, n: 3, w: 2, proj: 'pricetag', rhythm: [500, 280, 700] }, { id: 'final', name: 'FINAL SALE', type: 'melee', dmg: 5, w: 1, windup: true, noSuper: true, big: true, speed: 520, charge: 'The Markdown Manager raises a giant FINAL SALE sign! It slams down next turn. Make him dizzy to stop it!' }],
     rage: [{ id: 'slash', name: 'Price Slash', type: 'melee', dmg: 3, w: 2, feint: .5, delay: [0, 600] }, { id: 'coupons', name: 'Coupon Storm', type: 'barrage', dmg: 1, n: 5, w: 2, proj: 'pricetag', rhythm: [480, 260, 260, 680, 300] }, { id: 'final', name: 'FINAL SALE', type: 'melee', dmg: 5, w: 2, windup: true, noSuper: true, big: true, speed: 520, charge: 'The Markdown Manager raises a giant FINAL SALE sign! It slams down next turn. Make him dizzy to stop it!' }, { id: 'clear', name: 'Cleanup on Aisle 2!', type: 'summon', summon: 'salecat', w: 3, say: '“CLEANUP ON AISLE TWO!” The Manager rings the store bell!', after: 'A Clearance Cat reports for duty!' }],
-    tattle: 'The Markdown Manager. HP 40, Attack 3 to 5. Runs the pet store for the Collector. When he lifts the FINAL SALE sign, make him dizzy with a Perfect Crossover or Purse Swing, or Guard it (red: no Superguard). At half health he calls Clearance Cats.' },
-  condor: { name: 'El Cóndor', kind: 'condor', hp: 80, atk: 4, xp: 160, boss: true, smart: true, learn: true, air: true, groundable: true, hover: 16,
+    tattle: 'The Markdown Manager. HP 46, Attack 3 to 5. Runs the pet store for the Collector. When he lifts the FINAL SALE sign, make him dizzy with a Perfect Crossover or Purse Swing, or Guard it (red: no Superguard). At half health he calls Clearance Cats.' },
+  condor: { name: 'El Cóndor', kind: 'condor', hp: 90, atk: 4, xp: 160, boss: true, smart: true, learn: true, air: true, groundable: true, hover: 16,
     moves: [{ id: 'dive', name: 'Dive Bomb', type: 'melee', dmg: 3, w: 3, feint: .5, delay: [200, 700], speed: 420, big: true }, { id: 'feathers', name: 'Feather Storm', type: 'barrage', dmg: 2, n: 3, w: 2, proj: 'feather', rhythm: [480, 260, 640] }, { id: 'gust', name: 'Andean Gust', type: 'special', w: 2 }, { id: 'snatch', name: 'Snatch', type: 'special', w: 1 }],
     rage: [{ id: 'dive', name: 'Dive Bomb', type: 'melee', dmg: 4, w: 3, feint: .55, delay: [200, 800], speed: 400, big: true }, { id: 'feathers', name: 'Feather Storm', type: 'barrage', dmg: 2, n: 4, w: 2, proj: 'feather', rhythm: [460, 240, 620, 260] }, { id: 'gust', name: 'Andean Gust', type: 'special', w: 2 }, { id: 'snatch', name: 'Snatch', type: 'special', w: 1 }, { id: 'sky', name: 'Sky Dive', type: 'melee', dmg: 5, w: 2, windup: true, noSuper: true, big: true, speed: 500, charge: 'El Cóndor climbs high into the clouds… It will come straight down next turn! Ground it or get ready to Guard!' }],
-    tattle: 'El Cóndor, a giant Andean condor hired as the Collector’s courier. HP 80, Attack 3 to 5. It flies: only jumps reach it, unless Lunita lands two Perfect pounces and knocks it to the ground. The Gust is red, so no Superguard. Snatch grabs your partner until you hit the condor hard. At half health it climbs for a Sky Dive.' }
+    tattle: 'El Cóndor, a giant Andean condor hired as the Collector’s courier. HP 90, Attack 3 to 5. It flies: only jumps reach it, unless Lunita lands two Perfect pounces and knocks it to the ground. The Gust is red, so no Superguard. Snatch grabs your partner until you hit the condor hard. At half health it climbs for a Sky Dive.' }
 });
 /* the condor's two special moves (gust, snatch) */
 const CONDOR_SPECIAL = {
@@ -299,7 +302,10 @@ const ICON2 = {
   condorplush(c){ c.save(); c.scale(.26, .26); c.translate(0, 50); drawCondor(c, { t: 0 }); c.restore(); },
   photo3(c){ WD.drawPolaroid(c, 0, 2, 22, -.06, (c2, px, py, ps) => sightingMarket(c2, px, py, ps)); },
   flag(c, t){ drawFlag(c, -12, -8, 24, t || 0, { pole: false }); },
-  frog(c){ drawFrog(c, 0, 0, 1); }
+  frog(c){ drawFrog(c, 0, 0, 1); },
+  sweater(c){ c.fillStyle = YEL; c.beginPath(); c.moveTo(-8, -9); c.lineTo(8, -9); c.lineTo(14, -3); c.lineTo(10, 1); c.lineTo(8, -2); c.lineTo(8, 10); c.lineTo(-8, 10); c.lineTo(-8, -2); c.lineTo(-10, 1); c.lineTo(-14, -3); c.closePath(); c.fill(); c.fillStyle = BLU; c.fillRect(-8, 1, 16, 2.6); c.fillStyle = RED; c.fillRect(-8, 4, 16, 2.6); c.fillStyle = '#E2B52A'; c.beginPath(); c.arc(0, -9, 4, 0, Math.PI); c.fill(); },
+  mug(c){ c.fillStyle = '#FFFDF6'; rr(c, -8, -8, 14, 16, 2); c.fill(); c.strokeStyle = '#FFFDF6'; c.lineWidth = 2.4; c.beginPath(); c.arc(7, 0, 4, -1.2, 1.2); c.stroke(); c.fillStyle = '#5F8A72'; c.beginPath(); c.moveTo(-7, 4); c.lineTo(-3, -2); c.lineTo(0, 1); c.lineTo(3, -3); c.lineTo(5, 4); c.closePath(); c.fill(); c.fillStyle = '#7A4A2E'; c.font = '900 3.4px Grandstander, system-ui'; c.textAlign = 'center'; c.fillText('CAFÉ', -1, -3.5); },
+  ruanaitem(c){ c.fillStyle = '#7A4A2E'; c.beginPath(); c.moveTo(-12, -6); c.lineTo(-3, -10); c.lineTo(3, -10); c.lineTo(12, -6); c.lineTo(10, 9); c.lineTo(-10, 9); c.closePath(); c.fill(); c.fillStyle = YEL; c.fillRect(-11, 0, 22, 2); c.fillStyle = RED; c.fillRect(-10.6, 3.4, 21.2, 2); c.fillStyle = '#F2E6CF'; c.beginPath(); c.arc(0, -9, 3, 0, 7); c.fill(); c.strokeStyle = '#5A341E'; c.lineWidth = .8; for(let x = -8; x <= 8; x += 2.6){ c.beginPath(); c.moveTo(x, 9); c.lineTo(x, 12); c.stroke(); } }
 };
 function drawFrog(c, x, y, s){ c.save(); c.translate(x, y); c.scale(s, s); c.fillStyle = GOLD; ell(c, 0, 2, 10, 7); c.fill(); [[-7, -4], [7, -4]].forEach(([a, b]) => { ell(c, a, b, 3.4, 3.4); c.fill(); }); c.fillStyle = '#B88A2A'; [[-9, 7], [9, 7], [-6, 9], [6, 9]].forEach(([a, b]) => { ell(c, a, b, 3, 1.6); c.fill(); }); c.fillStyle = '#2B1D14'; ell(c, -7, -4.4, 1.3, 1.3); c.fill(); ell(c, 7, -4.4, 1.3, 1.3); c.fill(); c.strokeStyle = '#B88A2A'; c.lineWidth = .8; c.beginPath(); c.arc(0, 2, 4, .3, Math.PI - .3); c.stroke(); c.restore(); }
 const baseIcon2 = WD.drawIcon;
@@ -531,28 +537,89 @@ function drawCasaElsa(c, t){
   c.fillStyle = '#7A5234'; c.fillRect(520, -22, 6, 26); c.fillRect(600, -22, 6, 26); c.fillStyle = '#FFFDF6'; rr(c, 500, -30, 126, 10, 3); c.fill(); c.fillStyle = '#E86F79'; for(let i = 0; i < 6; i++) c.fillRect(504 + i * 20, -24, 8, 4);
   c.fillStyle = '#C98A55'; ell(c, 562, -36, 16, 5); c.fill(); [['#F2B33D', 552], ['#E8833A', 562], ['#9A4A8A', 572]].forEach(([col, x]) => { c.fillStyle = col; ell(c, x, -40, 5, 4.4); c.fill(); });
 }
+/* the mall: a row of clear storefronts, pillars with planters, and real things on display */
+const MALL1 = [
+  { name: 'MODA', col: '#E86F79', x: 240, w: 270, kind: 'moda' },
+  { name: 'ZAPATOS', col: '#3E8FC7', x: 570, w: 230, kind: 'zapatos' },
+  { name: '¡GRAN BARATA!', col: RED, x: 980, w: 260, kind: 'barata' },
+  { name: 'RECUERDOS', col: '#D99A1E', x: 1300, w: 230, kind: 'recuerdos' },
+  { name: 'ARTESANÍAS', col: '#7A4A2E', x: 1590, w: 230, kind: 'artesanias' }
+];
+const MALL2 = [
+  { name: 'JUGUETES', col: '#E8593C', x: 170, w: 250, kind: 'juguetes' },
+  { name: 'CAFÉ DE LA ABUELA', col: '#7A4A2E', x: 480, w: 250, kind: 'cafe' },
+  { name: 'ROPA', col: '#3E8FC7', x: 790, w: 220, kind: 'ropa' },
+  { name: 'MASCOTAS FELICES', col: '#4F9A4A', x: 1070, w: 340, kind: 'mascotas' }
+];
+function drawStore(c, s, t){
+  const { x, w, col, name, kind } = s, top = -132;
+  // sign + awning
+  c.fillStyle = '#2B1D14'; rr(c, x - 3, top - 3, w + 6, 26, 5); c.fill(); c.fillStyle = col; rr(c, x, top, w, 20, 4); c.fill();
+  c.fillStyle = '#FFFDF6'; c.font = '900 12px Grandstander, system-ui'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(name, x + w / 2, top + 10.5);
+  const ay = top + 24; for(let i = 0; i < Math.ceil(w / 18); i++){ c.fillStyle = i % 2 ? '#FFFDF6' : shade(col, .15); c.beginPath(); c.moveTo(x + i * 18, ay); c.lineTo(x + i * 18 + 18, ay); c.lineTo(x + i * 18 + 18, ay + 8); c.arc(x + i * 18 + 9, ay + 8, 9, 0, Math.PI); c.closePath(); c.fill(); }
+  // shop front: wall, display window, glass door
+  const fy = ay + 16, fh = 4 - fy, dw = 40, dx = x + w - dw - 14;
+  c.fillStyle = shade(col, .72); c.fillRect(x, fy, w, fh);
+  c.fillStyle = '#DCEBF2'; c.fillRect(x + 10, fy + 6, dx - x - 20, fh - 22); c.strokeStyle = '#9AA0A6'; c.lineWidth = 2; c.strokeRect(x + 10, fy + 6, dx - x - 20, fh - 22);
+  const wx = x + 10, ww = dx - x - 20, wy = fy + 6, wh = fh - 22;
+  c.save(); c.beginPath(); c.rect(wx, wy, ww, wh); c.clip(); drawWindow(c, kind, wx, wy, ww, wh, t); c.restore();
+  c.fillStyle = 'rgba(255,255,255,.35)'; c.beginPath(); c.moveTo(wx + 8, wy); c.lineTo(wx + 26, wy); c.lineTo(wx + 6, wy + wh); c.lineTo(wx - 12, wy + wh); c.fill();
+  c.fillStyle = '#B9BCC2'; c.fillRect(dx - 2, fy + 4, dw + 4, fh - 4); c.fillStyle = 'rgba(200,225,240,.85)'; c.fillRect(dx, fy + 6, dw, fh - 6); c.fillStyle = '#7A8590'; c.fillRect(dx + dw - 8, fy + 34, 3, 16);
+  c.fillStyle = '#9A9086'; c.fillRect(x, -2, w, 6);
+}
+function drawWindow(c, kind, x, y, w, h, t){
+  const base = y + h, mid = x + w / 2;
+  if(kind === 'moda' || kind === 'ropa'){ const n = Math.max(2, Math.floor(w / 46)); for(let i = 0; i < n; i++){ const mx = x + 24 + i * (w - 40) / (n - 1); c.fillStyle = '#C9B9A4'; c.fillRect(mx - 1, base - 12, 2, 12); c.fillStyle = '#E9DCC4'; ell(c, mx, base - 64, 6, 7); c.fill(); c.fillStyle = [YEL, '#E86F79', '#7CB86A', '#3E8FC7', '#9A4A8A'][i % 5]; c.beginPath(); c.moveTo(mx - 8, base - 56); c.lineTo(mx + 8, base - 56); c.lineTo(mx + 13, base - 14); c.lineTo(mx - 13, base - 14); c.closePath(); c.fill(); } }
+  if(kind === 'zapatos'){ for(let r = 0; r < 3; r++){ c.fillStyle = '#C9A877'; c.fillRect(x + 6, base - 18 - r * 26, w - 12, 3); for(let i = 0; i < Math.floor((w - 20) / 26); i++){ c.fillStyle = ['#E8593C', '#2B1D14', '#FFFDF6', '#3E8FC7', '#E86F79'][(i + r) % 5]; rr(c, x + 12 + i * 26, base - 26 - r * 26, 18, 8, [6, 6, 2, 2]); c.fill(); } } }
+  if(kind === 'barata'){ c.fillStyle = '#9AA0A6'; c.fillRect(x + 10, base - 70, w - 20, 3); for(let i = 0; i < Math.floor((w - 24) / 12); i++){ c.fillStyle = ['#E86F79', YEL, '#7CB86A', '#58AEDD'][i % 4]; rr(c, x + 14 + i * 12, base - 67, 10, 40, 2); c.fill(); } c.save(); c.translate(mid, base - 18); c.rotate(-.12); c.fillStyle = YEL; rr(c, -40, -12, 80, 22, 4); c.fill(); c.fillStyle = RED; c.font = '900 13px Grandstander, system-ui'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('-50%', 0, 0); c.restore(); }
+  if(kind === 'recuerdos'){ c.fillStyle = '#C9A877'; c.fillRect(x + 6, base - 34, w - 12, 3); c.fillRect(x + 6, base - 70, w - 12, 3); [['flag', 30, 1], ['tinto', 72, 1], ['frog', 114, 1], ['futbol', 30, 0], ['empanada', 72, 0], ['ccard', 114, 0]].forEach(([k, dx, r]) => { if(x + dx > x + w - 10) return; c.save(); c.translate(x + dx, base - 46 - r * 36); c.scale(1.2, 1.2); (ICON2[k] || (() => {}))(c, t); c.restore(); }); }
+  if(kind === 'artesanias'){ for(let i = 0; i < Math.floor((w - 20) / 34); i++){ const hx = x + 22 + i * 34; c.strokeStyle = '#7A5234'; c.lineWidth = 1; c.beginPath(); c.moveTo(hx, y); c.lineTo(hx, y + 14); c.stroke(); c.fillStyle = ['#7A4A2E', '#B33F2A', '#3E6FB5'][i % 3]; rr(c, hx - 12, y + 14, 24, 40, 3); c.fill(); c.fillStyle = YEL; c.fillRect(hx - 12, y + 30, 24, 3); c.fillStyle = RED; c.fillRect(hx - 12, y + 36, 24, 3); } for(let i = 0; i < 3; i++){ c.fillStyle = '#C9A15A'; ell(c, x + 30 + i * 40, base - 10, 14, 9); c.fill(); c.strokeStyle = '#8A6A3A'; c.beginPath(); for(let k = -10; k <= 10; k += 4){ c.moveTo(x + 30 + i * 40 + k, base - 18); c.lineTo(x + 30 + i * 40 + k, base - 2); } c.stroke(); } }
+  if(kind === 'juguetes'){ c.fillStyle = '#58AEDD'; rr(c, x + 10, base - 40, w - 20, 40, 10); c.fill(); const R0 = rng(4); for(let i = 0; i < 46; i++){ c.fillStyle = [YEL, '#E8593C', '#7CD86A', '#E86F79', '#FFFDF6'][i % 5]; ell(c, x + 18 + R0() * (w - 36), base - 34 + R0() * 26, 5, 5); c.fill(); } c.fillStyle = '#E8593C'; rr(c, x + 20, y + 10, 30, 24, 3); c.fill(); c.fillStyle = YEL; ell(c, x + w - 40, y + 26, 12, 12); c.fill(); }
+  if(kind === 'cafe'){ c.fillStyle = '#7A4A2E'; c.fillRect(x + 6, base - 34, w - 12, 34); c.fillStyle = '#C9CCCF'; rr(c, x + 20, base - 64, 40, 30, 4); c.fill(); c.fillStyle = '#2B2B33'; c.fillRect(x + 28, base - 56, 24, 10); c.fillStyle = '#2B1D14'; rr(c, x + 80, y + 8, 80, 40, 3); c.fill(); c.fillStyle = '#FFFDF6'; c.font = '800 6px Nunito, system-ui'; c.textAlign = 'left'; ['TINTO ......... 2.000', 'CAFÉ CON LECHE 4.000', 'BUÑUELO ....... 2.500', 'PANDEBONO ..... 2.500'].forEach((l, i) => c.fillText(l, x + 84, y + 16 + i * 8)); c.textAlign = 'center'; [100, 130].forEach(dx => { c.fillStyle = '#FFFDF6'; c.fillRect(x + dx, base - 44, 10, 10); }); }
+  if(kind === 'mascotas'){ c.fillStyle = '#9CD3E8'; rr(c, x + 14, base - 56, 70, 46, 4); c.fill(); c.fillStyle = '#E8833A'; [[34, -34], [60, -40], [48, -24]].forEach(([dx, dy], i) => { const fx = x + dx + Math.sin(t * 1.4 + i) * 6; ell(c, fx, base + dy, 5, 3); c.fill(); c.beginPath(); c.moveTo(fx - 4, base + dy); c.lineTo(fx - 9, base + dy - 3); c.lineTo(fx - 9, base + dy + 3); c.fill(); });
+    c.fillStyle = '#C9A15A'; rr(c, x + 100, base - 70, 100, 70, 4); c.fill(); c.fillStyle = 'rgba(40,30,20,.55)'; c.fillRect(x + 106, base - 64, 88, 58); c.strokeStyle = '#7A5234'; c.lineWidth = 1.4; for(let bx = x + 108; bx < x + 196; bx += 8){ c.beginPath(); c.moveTo(bx, base - 64); c.lineTo(bx, base - 6); c.stroke(); }
+    c.fillStyle = '#4F9A4A'; c.font = '900 9px Grandstander, system-ui'; c.textAlign = 'center'; c.fillText('🐾 ADOPTA 🐾', x + 150, base - 76); }
+}
+function drawPillar(c, x, t){
+  c.fillStyle = '#E9E2D4'; c.fillRect(x - 10, -170, 20, 174); c.fillStyle = '#D6CDBC'; c.fillRect(x - 10, -170, 4, 174);
+  drawFlag(c, x + 10, -146, 30, t, { pole: false });
+  c.fillStyle = '#B9803A'; rr(c, x - 18, -16, 36, 20, 4); c.fill(); c.fillStyle = '#3F8A4A'; [[-10, -22, 12], [6, -26, 13], [0, -34, 11]].forEach(([dx, dy, r]) => { ell(c, x + dx, dy, r, r * .8); c.fill(); });
+}
+/* a little display table with the thing you can pick up sitting on it */
+function drawDisplay(c, x, kind, t, gone){
+  c.fillStyle = 'rgba(40,28,60,.18)'; ell(c, x, 52, 24, 5); c.fill();
+  c.fillStyle = '#7A5234'; c.fillRect(x - 2, 26, 4, 24); c.fillRect(x - 12, 48, 24, 3);
+  c.fillStyle = '#FFFDF6'; ell(c, x, 26, 22, 6); c.fill(); c.fillStyle = YEL; c.fillRect(x - 22, 26, 44, 5); c.fillStyle = BLU; c.fillRect(x - 21, 31, 42, 3); c.fillStyle = RED; c.fillRect(x - 20, 34, 40, 3);
+  if(gone){ c.fillStyle = '#2B1D14'; c.font = '900 6px Grandstander, system-ui'; c.textAlign = 'center'; c.fillText('AGOTADO', x, 22); return; }
+  c.save(); c.translate(x, 12 + Math.sin(t * 2 + x) * 1.2); c.scale(1.15, 1.15); (ICON2[kind] || (() => {}))(c, t); c.restore();
+}
 function drawMall(c, t, floor){
-  c.save(); c.translate(0, 4); c.scale(1, .74); c.translate(0, -4);
-  c.fillStyle = '#F2EEE6'; c.fillRect(-90, -280, 2300, 300);
-  const sky = c.createLinearGradient(0, -280, 0, -220); sky.addColorStop(0, '#9CC3EA'); sky.addColorStop(1, '#D6E6F2'); c.fillStyle = sky; for(let x = 0; x < 2200; x += 240) c.fillRect(x, -280, 180, 48);
-  c.fillStyle = '#C9C4BA'; for(let x = 0; x < 2200; x += 240) c.fillRect(x + 176, -280, 8, 48);
-  c.fillStyle = '#D9D2C4'; c.fillRect(-90, -232, 2300, 10);
-  const stores = floor === 2 ? [['JUGUETES', '#E8593C', 120], ['CAFÉ', '#7A4A2E', 460], ['ROPA', '#3E8FC7', 800], ['MASCOTAS FELICES', '#7CB86A', 1140]] : [['MODA', '#E86F79', 120], ['ZAPATOS', '#3E8FC7', 460], ['¡GRAN BARATA!', RED, 800], ['RECUERDOS', YEL, 1160], ['ARTESANÍAS', '#7A4A2E', 1500]];
-  stores.forEach(([name, col, x]) => {
-    c.fillStyle = shade(col, .55); c.fillRect(x, -200, 280, 204); c.fillStyle = col; c.fillRect(x, -214, 280, 22); c.fillStyle = '#FFFDF6'; c.font = '900 13px Grandstander, system-ui'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(name, x + 140, -203);
-    c.fillStyle = 'rgba(200,225,240,.55)'; c.fillRect(x + 12, -180, 256, 150); c.strokeStyle = '#B9BCC2'; c.lineWidth = 2; c.strokeRect(x + 12, -180, 256, 150); c.beginPath(); c.moveTo(x + 140, -180); c.lineTo(x + 140, -30); c.stroke();
-    if(name === 'MODA' || name === 'ROPA'){ [40, 90, 190, 240].forEach((dx, i) => { c.fillStyle = '#E9DCC4'; ell(c, x + dx, -130, 7, 8); c.fill(); c.fillStyle = ['#E8593C', YEL, '#7CB86A', '#3E8FC7'][i]; rr(c, x + dx - 11, -122, 22, 40, 6); c.fill(); }); }
-    if(name === 'RECUERDOS'){ [[50, 'flag'], [110, 'tinto'], [180, 'frog'], [230, 'futbol']].forEach(([dx, k]) => { c.save(); c.translate(x + dx, -110); c.scale(1.6, 1.6); (ICON2[k] || (() => {}))(c, t); c.restore(); }); }
-    if(name === 'MASCOTAS FELICES'){ c.fillStyle = '#C9A15A'; rr(c, x + 30, -110, 90, 70, 4); c.fill(); c.strokeStyle = '#7A5234'; for(let bx = x + 36; bx < x + 120; bx += 8){ c.beginPath(); c.moveTo(bx, -106); c.lineTo(bx, -44); c.stroke(); } c.fillStyle = '#7CD86A'; c.font = '900 8px Grandstander, system-ui'; c.fillText('🐾', x + 200, -100); }
-    if(name === 'JUGUETES'){ c.fillStyle = '#58AEDD'; rr(c, x + 40, -80, 200, 50, 10); c.fill(); const R0 = rng(4); for(let i = 0; i < 40; i++){ c.fillStyle = [YEL, '#E8593C', '#7CD86A', '#E86F79', '#FFFDF6'][i % 5]; ell(c, x + 50 + R0() * 180, -60 + R0() * 26, 5, 5); c.fill(); } }
-  });
-  // sale banners in tricolor
-  for(let x = 60; x < 2100; x += 360){ c.fillStyle = YEL; c.fillRect(x, -232, 60, 18); c.fillStyle = BLU; c.fillRect(x, -214, 60, 9); c.fillStyle = RED; c.fillRect(x, -205, 60, 9); }
-  c.restore();
+  const L = WD.viewL, cx = WD.cam.x, x0 = cx - L - 80, x1 = cx + L + 80;
+  // walls, skylight band, ceiling lights
+  c.fillStyle = '#F2EEE6'; c.fillRect(x0, -320, x1 - x0, 324);
+  c.fillStyle = '#E2DACA'; c.fillRect(x0, -176, x1 - x0, 6);
+  c.fillStyle = 'rgba(255,248,220,.5)'; for(let x = Math.floor(x0 / 160) * 160; x < x1; x += 160){ ell(c, x, -184, 22, 4); c.fill(); }
+  (floor === 2 ? MALL2 : MALL1).forEach(s => drawStore(c, s, t));
+  const pillars = floor === 2 ? [140, 455, 760, 1040] : [210, 540, 830, 1270, 1560];
+  pillars.forEach(x => drawPillar(c, x, t));
+  if(floor === 1){
+    // entrance doors from the plaza
+    c.fillStyle = '#B9BCC2'; c.fillRect(30, -150, 160, 154); c.fillStyle = 'rgba(200,225,240,.85)'; c.fillRect(38, -120, 70, 120); c.fillRect(112, -120, 70, 120);
+    c.fillStyle = '#3E6FB5'; rr(c, 38, -146, 144, 20, 4); c.fill(); c.fillStyle = '#FFFDF6'; c.font = '900 11px Grandstander, system-ui'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('ENTRADA · PLAZA', 110, -135.5);
+    // central fountain
+    c.fillStyle = '#C9C0B0'; ell(c, 900, 30, 60, 12); c.fill(); c.fillStyle = '#9CD3E8'; ell(c, 900, 28, 52, 9); c.fill(); c.fillStyle = '#C9C0B0'; c.fillRect(894, -12, 12, 40);
+    c.strokeStyle = 'rgba(200,235,250,.9)'; c.lineWidth = 2; for(let i = 0; i < 5; i++){ const a = -1.2 + i * .6, u = (t * 1.2 + i * .2) % 1; c.beginPath(); c.moveTo(900, -14); c.quadraticCurveTo(900 + Math.sin(a) * 30, -40, 900 + Math.sin(a) * 50, 26); c.stroke(); }
+    // benches
+    [[720, 40], [1100, 40]].forEach(([bx, by]) => { c.fillStyle = '#7A5234'; c.fillRect(bx - 30, by - 14, 60, 6); c.fillRect(bx - 30, by - 24, 60, 4); c.fillStyle = '#3A3A44'; c.fillRect(bx - 26, by - 8, 4, 12); c.fillRect(bx + 22, by - 8, 4, 12); });
+  } else {
+    // the escalator arriving from below
+    c.fillStyle = '#9AA0A6'; c.beginPath(); c.moveTo(20, 4); c.lineTo(90, 4); c.lineTo(110, -30); c.lineTo(40, -30); c.closePath(); c.fill(); c.strokeStyle = '#2B2B33'; c.lineWidth = 4; c.beginPath(); c.moveTo(16, -14); c.lineTo(40, -50); c.stroke();
+    c.fillStyle = '#2B1D14'; rr(c, 40, -110, 70, 18, 4); c.fill(); c.fillStyle = '#FFFDF6'; c.font = '900 9px Grandstander, system-ui'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('▼ PISO 1', 75, -101);
+  }
   // floor
-  const fg = c.createLinearGradient(0, 20, 0, 240); fg.addColorStop(0, '#E9E2D4'); fg.addColorStop(1, '#C9C0B0'); c.fillStyle = fg; c.fillRect(-90, 4, 2300, 420);
-  c.strokeStyle = 'rgba(120,110,100,.18)'; c.lineWidth = 1; for(let x = -90; x < 2210; x += 40){ c.beginPath(); c.moveTo(x, 4); c.lineTo(x * 1.08, 220); c.stroke(); } for(let y = 20; y < 220; y += 22){ c.beginPath(); c.moveTo(-90, y); c.lineTo(2210, y); c.stroke(); }
-  c.fillStyle = 'rgba(255,255,255,.25)'; for(let x = 0; x < 2200; x += 240) c.fillRect(x + 20, 30, 140, 8);
+  const fg = c.createLinearGradient(0, 4, 0, 240); fg.addColorStop(0, '#EDE6D8'); fg.addColorStop(1, '#C9C0B0'); c.fillStyle = fg; c.fillRect(x0, 4, x1 - x0, 420);
+  c.strokeStyle = 'rgba(120,110,100,.16)'; c.lineWidth = 1; for(let x = Math.floor(x0 / 40) * 40; x < x1; x += 40){ c.beginPath(); c.moveTo(x, 4); c.lineTo(x * 1.06 - 20, 220); c.stroke(); } for(let y = 20; y < 220; y += 22){ c.beginPath(); c.moveTo(x0, y); c.lineTo(x1, y); c.stroke(); }
+  c.fillStyle = 'rgba(255,255,255,.22)'; for(let x = Math.floor(x0 / 240) * 240; x < x1; x += 240) c.fillRect(x + 30, 30, 120, 6);
 }
 function drawEscalator(c, x, on, t){
   c.fillStyle = '#9AA0A6'; c.beginPath(); c.moveTo(x, 4); c.lineTo(x + 40, 4); c.lineTo(x + 170, -150); c.lineTo(x + 130, -150); c.closePath(); c.fill();
@@ -722,7 +789,7 @@ WD.defineArea('bog_home', {
     if(F('c2_boss') && F('int2_done')){ NPC.spouse = WD.makeEnt({ kind: 'human', look: WD.LOOKS[WD.spouse], name: WD.spouse, x: 760, y: 66, dir: -1, light: 'indoor', talkTo: talkSpouseHome }); n.push(NPC.spouse); NPC.titin2 = mkp('Titin', 860, 70, -1, talkTitin, { light: 'indoor' }); n.push(NPC.titin2); }
     return n;
   },
-  drawBack(t){ const c = WD.ctx; c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = '#E9C99A'; c.fillRect(0, 0, WD.cv.width, WD.cv.height); WD.setLayer(1); drawCasaElsa(c, t); },
+  drawBack(t){ const c = WD.ctx; c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = '#E9C99A'; c.fillRect(0, 0, WD.cv.width, WD.cv.height); WD.setLayer(1); drawCasaElsa(c, t); if(!F('toy_arepatoy')){ c.save(); c.translate(150, 2); c.rotate(-.2); c.scale(.8, .8); ICON2.arepatoy(c, t); c.restore(); } },
   things(){
     const L = [];
     L.push({ x: 110, y: 66, label: 'Go out', h: 90, act: () => { WD.sfx('door'); WD.gotoArea('bog_street', 220, 64, { dir: 1, from: 'bog_home' }); } });
@@ -748,6 +815,7 @@ WD.defineArea('bog_plaza', {
     const n = [];
     if(!F('c2_church')){ NPC.diana = mkp('Diana', 520, 58, 1, talkDiana); n.push(NPC.diana); }
     NPC.fruit = mkp('Fruit Seller', 1420, 48, -1, talkFruit); n.push(NPC.fruit);
+    NPC.oblea = mkp('Oblea Seller', 1160, 50, -1, () => WD.cut(async () => { if(!F('c2_oblea')){ S('c2_oblea'); WD.giveItem('oblea', 2); await say('Oblea Seller', D() ? '¡Obleas con arequipe! (Wafers with caramel!) For you, two. ¡Bienvenido!' : '¡Obleas con arequipe! Para ti, dos, mi reina.', { expr: 'joy' }); await WD.itemGet('oblea', 'Obleas ×2', WD.ITEMS.oblea.desc); } else await say('Oblea Seller', D() ? '¡Vuelva pronto! (Come back soon!)' : '¡Vuelva pronto, mi reina!', { expr: 'happy' }); })); n.push(NPC.oblea);
     if(F('c2_fruit') && !F('c2_mall_in')){ NPC.carolina = mkp('Carolina', 2060, 60, -1, talkCarolina); n.push(NPC.carolina); }
     return n;
   },
@@ -776,7 +844,6 @@ WD.defineArea('bog_plaza', {
     const L = [];
     L.push({ x: 490, y: 48, label: F('c2_church') ? 'Cathedral' : 'Cathedral', h: 120, act: () => WD.cut(async () => { if(!F('c2_church')) return churchScene(); await me('The cathedral. Quiet inside, even with the whole plaza buzzing outside.', { t: 'La catedral. Siempre en paz.', es: 'La catedral. Siempre en paz.' }, 'happy'); }) });
     L.push({ x: 900, y: 50, label: 'Statue', h: 130, act: () => WD.cut(async () => { await me('A general on a pedestal, covered in pigeons. The pigeons look like they’re in charge.', { t: 'El general y sus palomas. Las palomas mandan aquí.', es: 'El general y sus palomas. Las palomas mandan aquí.' }, 'smirk'); }) });
-    L.push({ x: 1120, y: 52, label: 'Obleas', h: 80, act: () => WD.cut(async () => { if(!F('c2_oblea')){ S('c2_oblea'); WD.giveItem('oblea', 2); await say('Oblea Seller', D() ? '¡Obleas con arequipe! (Wafers with caramel!) For you, two. ¡Bienvenido!' : '¡Obleas con arequipe! Para ti, dos, mi reina.', { expr: 'joy' }); await WD.itemGet('oblea', 'Obleas ×2', WD.ITEMS.oblea.desc); } else await say('Oblea Seller', D() ? '¡Vuelva pronto! (Come back soon!)' : '¡Vuelva pronto, mi reina!', { expr: 'happy' }); }) });
     L.push({ x: 1735, y: 48, label: 'Gold', h: 110, act: () => WD.cut(async () => { await me('The gold museum. Thousands of tiny gold pieces made long before Colombia was Colombia. Frogs, birds, little rafts… ', { t: 'El Museo del Oro. Ranitas, pajaritos, todo en oro. Lo más lindo.', es: 'El Museo del Oro. Ranitas, pajaritos, todo en oro. Lo más lindo.' }, 'surprised'); }) });
     L.push({ x: 2060, y: 50, label: 'Mall', h: 110, act: () => WD.cut(async () => { if(!F('c2_fruit')){ await me('The mall. Hmm. Let’s ask around the market first.', { t: 'El centro comercial. Primero preguntemos en el mercado.', es: 'El centro comercial. Primero preguntemos en el mercado.' }, 'think'); return; } if(!F('c2_mall_in')) return mallEntrance(); WD.sfx('door'); await WD.gotoArea('bog_mall1', 130, 66, { dir: 1, from: 'bog_plaza' }); }) });
     return L;
@@ -786,40 +853,41 @@ WD.defineArea('bog_plaza', {
 
 /* ================= AREA: the mall, floor 1 ================= */
 WD.defineArea('bog_mall1', {
-  ch: 2, name: 'Centro Comercial · Piso 1', sub: 'Carolina’s favourite place on Earth', music: 'mall', light: 'indoor', minX: 90, maxX: 1960, laneTop: 46, laneBot: 92, camMin: -60, camMax: 2060, camZ: .86, battleBack: 'mall',
+  ch: 2, name: 'Centro Comercial · Piso 1', sub: 'Carolina’s favourite place on Earth', music: 'mall', light: 'indoor', minX: 90, maxX: 2080, laneTop: 46, laneBot: 92, camMin: -60, camMax: 2180, camZ: .86, battleBack: 'mall',
   sniffNothing: 'Alejandro sniffs… perfume samples, new shoes, and a LOT of cat.',
   exits: { left: { to: 'bog_plaza', x: 2060 } },
-  npcs(){ const n = []; NPC.carolina = mkp('Carolina', 220, 58, 1, talkCarolina, { light: 'indoor' }); n.push(NPC.carolina); return n; },
+  npcs(){ const n = []; NPC.carolina = mkp('Carolina', 240, 58, 1, talkCarolina, { light: 'indoor' }); n.push(NPC.carolina); return n; },
   foes(){
-    return [mkFoe('c2_m1', 'salecat', 640, 62, [560, 760], ['salecat'], 'indoor'), mkFoe('c2_m2', 'cart', 1020, 70, [940, 1120], ['cart'], 'indoor'), mkFoe('c2_m3', 'salecat', 1420, 56, [1340, 1520], ['salecat', 'cart'], 'indoor')].filter(x => !F('beat_' + x.fid));
+    return [mkFoe('c2_m1', 'salecat', 660, 62, [580, 780], ['salecat'], 'indoor'), mkFoe('c2_m2', 'cart', 1130, 70, [1040, 1220], ['cart'], 'indoor'), mkFoe('c2_m3', 'salecat', 1500, 56, [1420, 1560], ['salecat', 'cart'], 'indoor')].filter(x => !F('beat_' + x.fid));
   },
   drawBack(t){ const c = WD.ctx; c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = '#F2EEE6'; c.fillRect(0, 0, WD.cv.width, WD.cv.height); WD.setLayer(1); drawMall(c, t, 1);
-    // the security shutter, floor plate and power box by the escalator
-    c.fillStyle = '#9AA0A6'; c.fillRect(1770, -150, 70, 154); if(!F('c2_shutter')){ c.fillStyle = '#7A8590'; for(let y = -146; y < 4; y += 8) c.fillRect(1772, y, 66, 5); } else { c.fillStyle = '#3A3A44'; c.fillRect(1774, -146, 62, 150); c.fillStyle = F('c2_power') ? '#7CD86A' : '#E8593C'; rr(c, 1792, -100, 26, 34, 3); c.fill(); c.fillStyle = '#2B2B33'; c.fillRect(1800, -92, 10, 18); }
-    c.fillStyle = WD.flag('c2_plate') ? '#7CD86A' : '#C9A15A'; rr(c, 1700, 64, 46, 10, 3); c.fill(); c.strokeStyle = '#2B1D14'; c.lineWidth = 1; c.stroke();
-    drawEscalator(c, 1850, F('c2_power'), t);
+    drawDisplay(c, 375, 'sweater', t, F('buy_sweater')); drawDisplay(c, 1415, 'mug', t, F('buy_mug')); drawDisplay(c, 1705, 'ruanaitem', t, F('buy_ruana'));
+    // the security shutter with the power box behind it, its floor plate, and the escalator up
+    c.fillStyle = '#9AA0A6'; c.fillRect(1860, -150, 76, 154); c.fillStyle = '#2B1D14'; rr(c, 1862, -168, 72, 16, 3); c.fill(); c.fillStyle = YEL; c.font = '900 8px Grandstander, system-ui'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('⚡ ENERGÍA', 1898, -160);
+    if(!F('c2_shutter')){ c.fillStyle = '#7A8590'; for(let y = -146; y < 4; y += 8) c.fillRect(1862, y, 72, 5); } else { c.fillStyle = '#3A3A44'; c.fillRect(1864, -146, 68, 150); c.fillStyle = F('c2_power') ? '#7CD86A' : '#E8593C'; rr(c, 1884, -100, 28, 36, 3); c.fill(); c.fillStyle = '#2B2B33'; c.fillRect(1893, -92, 10, 20); }
+    c.fillStyle = WD.flag('c2_plate') ? '#7CD86A' : '#C9A15A'; rr(c, 1806, 62, 50, 12, 3); c.fill(); c.strokeStyle = '#2B1D14'; c.lineWidth = 1.2; c.stroke(); c.fillStyle = '#2B1D14'; c.font = '900 6px Grandstander, system-ui'; c.fillText('PESO', 1831, 68.5);
+    drawEscalator(c, 1960, F('c2_power'), t);
   },
   things(){
     const L = [];
-    if(F('list_get') && !F('buy_sweater')) L.push({ x: 260, y: 50, label: 'Sweater', h: 90, sparkle: true, act: () => buy('buy_sweater', 'A little dog sweater', 'Yellow, with a tiny blue and red stripe. For when Dayla comes home.') });
-    if(F('list_get') && !F('buy_mug')) L.push({ x: 1300, y: 50, label: 'Mug', h: 90, sparkle: true, act: () => buy('buy_mug', 'A coffee mug', '“Café de Colombia,” with a little mountain on it.') });
-    if(F('list_get') && !F('buy_ruana')) L.push({ x: 1640, y: 50, label: 'Ruana', h: 90, sparkle: true, act: () => buy('buy_ruana', 'A wool ruana', 'Warm, soft and striped. Perfect for a cold night on a mountain.') });
-    if(!F('c2_shutter')) L.push({ x: 1723, y: 70, skill: 'p', who: 'chunkers', label: 'Sit', h: 40, act: plateSit });
-    if(F('c2_shutter') && !F('c2_power')) L.push({ x: 1805, y: 56, label: 'Power', h: 90, sparkle: true, act: powerOn });
-    L.push({ x: 1900, y: 56, label: 'Escalator', h: 90, act: () => WD.cut(async () => { if(!F('c2_power')){ await me('“Fuera de servicio.” Out of order. Somebody cut the power on purpose.', { t: '“Fuera de servicio.” Alguien la apagó a propósito.', es: '“Fuera de servicio.” Alguien la apagó a propósito.' }, 'think'); if(!F('c2_shutter')) await me('The power box is behind that shutter. There’s a floor plate in front of it, like the old gym…', { t: 'El tablero está detrás de esa reja. Y hay una placa en el piso…', es: 'El tablero está detrás de esa reja. Y hay una placa en el piso…' }, 'think'); return; } WD.sfx('step'); await WD.gotoArea('bog_mall2', 130, 66, { dir: 1, from: 'bog_mall1' }); }) });
+    if(F('list_get') && !F('buy_sweater')) L.push({ x: 375, y: 54, label: 'Sweater', h: 70, act: () => buy('buy_sweater', 'A little dog sweater', 'Yellow, with a tiny blue and red stripe. For when Dayla comes home.', 'sweater') });
+    if(F('list_get') && !F('buy_mug')) L.push({ x: 1415, y: 54, label: 'Mug', h: 70, act: () => buy('buy_mug', 'A coffee mug', '“Café de Colombia,” with a little mountain on it.', 'mug') });
+    if(F('list_get') && !F('buy_ruana')) L.push({ x: 1705, y: 54, label: 'Ruana', h: 70, act: () => buy('buy_ruana', 'A wool ruana', 'Warm, soft and striped. Perfect for a cold night on a mountain.', 'ruanaitem') });
+    if(!F('c2_shutter')) L.push({ x: 1831, y: 68, skill: 'p', who: 'chunkers', label: 'Sit', h: 40, act: plateSit });
+    if(F('c2_shutter') && !F('c2_power')) L.push({ x: 1898, y: 58, label: 'Power', h: 90, sparkle: true, act: powerOn });
+    L.push({ x: 2010, y: 58, label: 'Escalator', h: 90, act: () => WD.cut(async () => { if(!F('c2_power')){ await me('“Fuera de servicio.” Out of order. Somebody cut the power on purpose.', { t: '“Fuera de servicio.” Alguien la apagó a propósito.', es: '“Fuera de servicio.” Alguien la apagó a propósito.' }, 'think'); if(!F('c2_shutter')) await me('The power box is behind that shutter, and there’s a heavy floor plate in front of it. Like the old gym…', { t: 'El tablero está detrás de esa reja. Y hay una placa en el piso…', es: 'El tablero está detrás de esa reja. Y hay una placa en el piso…' }, 'think'); return; } WD.sfx('step'); await WD.gotoArea('bog_mall2', 130, 66, { dir: 1, from: 'bog_mall1' }); }) });
     return L;
   },
-  limit(nx){ if(!F('c2_power')) return Math.min(nx, 1880); return nx; },
-  async enter(from){ if(!F('c2_mall_seen')){ S('c2_mall_seen'); await WD.cut(async () => { await fam('Carolina', 'My mall! Look, everything is on sale! …Focus. Dayla. Lunita. Then sales.', '¡Mi centro comercial! ¡Mira, todo en promoción! …Concéntrate. Dayla. Lunita. Después las ofertas.', 'joy'); await fam('Carolina', 'Those cats went upstairs. But the escalator is off.', 'Esos gatos se fueron para arriba. Pero la escalera eléctrica está apagada.', 'worried'); WD.updateGoal(); }); } }
+  async enter(from){ if(!F('c2_mall_seen')){ S('c2_mall_seen'); await WD.cut(async () => { await fam('Carolina', 'My mall! Look, everything is on sale! …Focus. Dayla. Lunita. Then sales.', '¡Mi centro comercial! ¡Mira, todo en promoción! …Concéntrate. Dayla. Lunita. Después las ofertas.', 'joy'); await fam('Carolina', 'Those cats went upstairs. But the escalator is off. It’s at the far end, past the souvenir shops.', 'Esos gatos se fueron para arriba. Pero la escalera eléctrica está apagada. Queda al fondo, después de los recuerdos.', 'worried'); WD.updateGoal(); }); } }
 });
-async function buy(flag, name, desc){
-  await WD.cut(async () => { S(flag); WD.sfx('get'); await WD.itemGet('bag', name, desc, 'Carolina’s list');
+async function buy(flag, name, desc, icon){
+  await WD.cut(async () => { S(flag); WD.sfx('get'); await WD.itemGet(icon || 'bag', name, desc, 'Carolina’s list');
     const n = ['buy_ruana', 'buy_mug', 'buy_sweater'].filter(F).length; WD.toast(`Carolina’s list: ${n}/3`);
     if(n === 3) await me('That’s the whole list! Back to Carolina at the entrance.', { t: '¡La lista completa! Donde mi mamá.', es: '¡La lista completa! Donde mi mamá.' }, 'joy'); WD.updateGoal(); });
 }
 async function plateSit(){
   await WD.cut(async () => {
-    const a = W.partner; await WD.walkTo(a, 1723, 68, 90); a.sit = true; a.pinned = true; WD.sfx('clang'); WD.shake(3); S('c2_plate');
+    const a = W.partner; await WD.walkTo(a, 1831, 68, 90); a.sit = true; a.pinned = true; WD.sfx('clang'); WD.shake(3); S('c2_plate');
     await WD.say('Chunkers', 'Chunkers sit. Chunkers good at sit.', { expr: 'happy' });
     WD.sfx('door'); S('c2_shutter'); await WD.wait(400);
     await me('The shutter’s up! The power box is right there.', { t: '¡Se abrió la reja!', es: '¡Se abrió la reja!' }, 'joy');
@@ -836,25 +904,33 @@ async function powerOn(){
 
 /* ================= AREA: the mall, floor 2 ================= */
 WD.defineArea('bog_mall2', {
-  ch: 2, name: 'Centro Comercial · Piso 2', sub: 'Mascotas Felices, at the far end', music: 'mall', light: 'indoor', minX: 90, maxX: 1440, laneTop: 46, laneBot: 92, camMin: -60, camMax: 1500, camZ: .86, battleBack: 'petstore',
+  ch: 2, name: 'Centro Comercial · Piso 2', sub: 'Mascotas Felices, at the far end', music: 'mall', light: 'indoor', minX: 70, maxX: 1440, laneTop: 46, laneBot: 92, camMin: -60, camMax: 1500, camZ: .86, battleBack: 'petstore',
   sniffNothing: 'Alejandro sniffs… coffee, toys, and… a mini pinscher?!',
-  npcs(){ const n = []; if(!F('c2_boss_m')){ NPC.manager = WD.makeEnt({ kind: 'cat', look: WD.CATS.manager, name: 'The Markdown Manager', x: 1340, y: 60, dir: -1, light: 'indoor' }); n.push(NPC.manager); } if(!F('c2_lunita')){ NPC.lunita = mkDog('Lunita', 'minpin', 1250, 34, { dir: 1, nervous: true, zSort: -40 }); n.push(NPC.lunita); } return n; },
-  foes(){ return [mkFoe('c2_n1', 'cart', 520, 70, [440, 620], ['cart', 'cart'], 'indoor'), mkFoe('c2_n2', 'salecat', 920, 58, [840, 1020], ['salecat', 'salecat'], 'indoor')].filter(x => !F('beat_' + x.fid)); },
+  npcs(){ const n = [];
+    NPC.barista = mkp('Barista', 600, 50, 1, talkBarista, { light: 'indoor' }); n.push(NPC.barista);
+    if(!F('c2_boss_m')){ NPC.manager = WD.makeEnt({ kind: 'cat', look: WD.CATS.manager, name: 'The Markdown Manager', x: 1330, y: 62, dir: -1, light: 'indoor' }); n.push(NPC.manager); }
+    if(!F('c2_lunita')){ NPC.lunita = mkDog('Lunita', 'minpin', 1220, 46, { dir: 1, nervous: true }); n.push(NPC.lunita); }
+    return n; },
+  foes(){ return [mkFoe('c2_n1', 'cart', 520, 70, [440, 640], ['cart', 'cart'], 'indoor'), mkFoe('c2_n2', 'salecat', 900, 58, [820, 1000], ['salecat', 'salecat'], 'indoor')].filter(x => !F('beat_' + x.fid)); },
   drawBack(t){ const c = WD.ctx; c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = '#F2EEE6'; c.fillRect(0, 0, WD.cv.width, WD.cv.height); WD.setLayer(1); drawMall(c, t, 2); },
   things(){
     const L = [];
-    L.push({ x: 110, y: 60, label: 'Down', h: 80, act: () => { WD.sfx('step'); WD.gotoArea('bog_mall1', 1880, 64, { dir: -1, from: 'bog_mall2' }); } });
-    if(!F('toy_futbol')) L.push({ x: 250, y: 56, skill: 'p', who: 'alejandro', label: 'Sniff', h: 60, act: () => WD.cut(async () => { const a = W.partner; a.sniff = true; WD.sfx('sniff'); await WD.wait(800); a.sniff = false; WD.emote(a, '!'); await WD.say('Alejandro', 'In the ball pit! Something smells like Dayla! I’m going in. I may not come back. Tell my story.', { expr: 'happy' }); a.vis = false; WD.sfx('whoosh'); await WD.wait(900); a.vis = true; await toyGet('futbol'); }) });
-    L.push({ x: 640, y: 50, label: 'Café', h: 90, act: () => WD.cut(async () => { if(!F('c2_cafegift')){ S('c2_cafegift'); WD.giveItem('tinto', 2); await say('Barista', D() ? '¿Un tintico? (A little coffee?) On the house. You look like you need it.' : '¿Un tintico, mi reina? Invita la casa. Se nota que lo necesita.', { expr: 'happy' }); await WD.itemGet('tinto', 'Tinto ×2', WD.ITEMS.tinto.desc); } else await me('Smells amazing in there.', { t: 'Qué rico huele.', es: 'Qué rico huele.' }, 'happy'); }) });
-    if(!F('c2_boss_m')) L.push({ x: 1300, y: 58, label: 'Pet store', h: 100, act: managerFight });
+    L.push({ x: 80, y: 60, label: 'Down', h: 80, act: () => { WD.sfx('step'); WD.gotoArea('bog_mall1', 1980, 64, { dir: -1, from: 'bog_mall2' }); } });
+    if(!F('toy_futbol')) L.push({ x: 300, y: 56, skill: 'p', who: 'alejandro', label: 'Sniff', h: 60, act: () => WD.cut(async () => { const a = W.partner; a.sniff = true; WD.sfx('sniff'); await WD.wait(800); a.sniff = false; WD.emote(a, '!'); await WD.say('Alejandro', 'In the ball pit! Something smells like Dayla! I’m going in. I may not come back. Tell my story.', { expr: 'happy' }); a.vis = false; WD.sfx('whoosh'); await WD.wait(900); a.vis = true; await toyGet('futbol'); }) });
+    if(!F('c2_boss_m')) L.push({ x: 1150, y: 60, label: 'Pet store', h: 100, r: 90, act: managerFight });
     return L;
   },
-  limit(nx){ if(!F('c2_boss_m') && !WD.inCut()) return Math.min(nx, 1240); return nx; }
+  update(){ const p = W.player; if(!F('c2_boss_m') && WD.mode === 'explore' && p && p.x >= 1130) managerFight(); },
+  limit(nx){ if(!F('c2_boss_m') && !WD.inCut()) return Math.min(nx, 1160); return nx; }
 });
+function talkBarista(){ WD.cut(async () => {
+  if(!F('c2_cafegift')){ S('c2_cafegift'); WD.giveItem('tinto', 2); await fam('Barista', 'A little coffee? On the house. You look like you need it.', D() ? '¿Un tintico? Invita la casa. Se nota que lo necesita.' : '¿Un tintico, mi reina? Invita la casa. Se nota que lo necesita.', 'happy'); await WD.itemGet('tinto', 'Tinto ×2', WD.ITEMS.tinto.desc); return; }
+  await fam('Barista', 'Those cats in suits ordered twelve milks and didn’t pay. They went into the pet store at the end.', 'Esos gatos de vestido pidieron doce leches y no pagaron. Se metieron a la tienda de mascotas del fondo.', 'angry');
+}); }
 async function managerFight(){
   await WD.cut(async () => {
-    const p = W.player, m = NPC.manager, l = NPC.lunita; WD.cam.lock = true; await WD.camTo(1260, 1.12, 700);
-    await WD.walkTo(p, 1180, 66, 90); p.dir = 1;
+    const p = W.player, m = NPC.manager, l = NPC.lunita; if(F('c2_boss_m')) return; WD.cam.lock = true; await WD.camTo(1250, 1.0, 700);
+    await WD.walkTo(p, 1150, 66, 90); p.dir = 1;
     WD.emote(l, '!'); WD.sfx('yap');
     if(D()) await WD.say('Lunita', '(A tiny mini pinscher in a display kennel barks her head off. She has a pink collar with a moon on it.)', { ent: l, expr: 'angry' });
     else await me('', { t: '¡LUNITA! ¡Mi bebé! ¿Qué te hicieron?', es: '¡LUNITA! ¡Mi bebé! ¿Qué te hicieron?' }, 'surprised');
@@ -865,7 +941,7 @@ async function managerFight(){
     await say('The Markdown Manager', 'Ha! Everything must go, including YOU!', { ent: m, expr: 'angry' });
     WD.cam.lock = false;
     const res = await fight(['manager'], 'petstore', { music: 'boss', intro: async (B, h) => { await h.bSay('The Markdown Manager: “Attention shoppers! Cleanup on aisle YOU!”', 1700); } });
-    if(res !== 'win') return;
+    if(res !== 'win'){ p.x = 1000; return; }
     WD.mode = 'cutscene'; WD.showControls(false); WD.letter = 1;
     S('c2_boss_m'); m.expr = 'dizzy'; m.rot = -.3;
     await say('The Markdown Manager', 'Ugh… I’m… I’m being… marked DOWN…', { ent: m, expr: 'sad' });
@@ -873,7 +949,7 @@ async function managerFight(){
     await WD.hop(m, 1500, 60, 40, 600); W.npcs = W.npcs.filter(e => e !== m); NPC.manager = null; WD.sfx('whoosh');
     WD.giveKey('ticket'); clue('cablecar'); await WD.itemGet('ticket', 'Cable Car Ticket', WD.KEYS.ticket.desc, 'Clue');
     // Lunita joins
-    WD.sfx('clang'); l.nervous = false; l.happy = true; await WD.hop(l, 1200, 66, 30, 500); WD.emote(l, 'heart', 2);
+    WD.sfx('clang'); l.nervous = false; l.happy = true; await WD.hop(l, 1185, 66, 30, 500); WD.emote(l, 'heart', 2);
     await lunita(D() ? '(Lunita sniffs your shoe. You smell like Laura. That settles it: you’re family. She licks your hand once, very officially.)' : '(Lunita jumps straight into your arms and licks your whole face.)', 'joy');
     await lunita('Arf! ARF! (Translation: “Those cats took the brown one with the duck smell! I chased them! Then they put ME in a box! RUDE!”)', 'angry');
     if(D()) await me('…I’m pretty sure I understood that. Okay, Lunita. You’re with us.', '', 'determined');
@@ -947,7 +1023,7 @@ WD.defineArea('bog_summit', {
   ch: 2, name: 'Monserrate · Summit', sub: '3,152 metres above the sea', music: 'mountain', minX: 80, maxX: 1500, battleBack: 'summit', camZ: 1.0,
   sniffNothing: 'Alejandro sniffs… candles, cold stone, and feathers the size of a skateboard.',
   exits: { left: { to: 'bog_trail', x: 2150 } },
-  npcs(){ const n = []; if(!F('c2_boss')){ NPC.condor = WD.makeEnt({ kind: 'condor', name: 'El Cóndor', x: 1260, y: 40, dir: -1, zSort: -30 }); n.push(NPC.condor); } return n; },
+  npcs(){ const n = []; NPC.shop = mkp('Shopkeeper', 730, 50, -1, () => WD.cut(async () => { if(F('c2_boss') && !F('toy_condorplush')) return (() => WD.cut(async () => { await say('Shopkeeper', D() ? '¡Se lo regalo! (It’s a gift!) You scared off that awful bird.' : '¡Se lo regalo, mi reina! Usted espantó a ese pajarraco.', { expr: 'joy' }); await toyGet('condorplush'); }))(); await say('Shopkeeper', D() ? '¡Bienvenido a Monserrate! (Welcome!) Careful, a huge condor has been stealing my postcards.' : '¡Bienvenida a Monserrate, mi reina! Cuidado, un cóndor gigante me anda robando las postales.', { expr: F('c2_boss') ? 'joy' : 'worried' }); })); n.push(NPC.shop); if(!F('c2_boss')){ NPC.condor = WD.makeEnt({ kind: 'condor', name: 'El Cóndor', x: 1260, y: 40, dir: -1, zSort: -30 }); n.push(NPC.condor); } return n; },
   drawBack(t, dt){
     const c = WD.ctx; bogSky(t, dt, 'eve', true); drawCityBelow(c, t, true); WD.setLayer(1);
     const cam = WD.cam, half = WD.view.w / (2 * WD.view.S * cam.z), x0 = cam.x - half - 40, x1 = cam.x + half + 40;
@@ -970,7 +1046,6 @@ WD.defineArea('bog_summit', {
     L.push({ x: 390, y: 50, label: 'Sanctuary', h: 130, act: () => WD.cut(async () => { await me('The sanctuary on top of Monserrate. People walk all the way up here to pray. I get it now.', { t: 'El santuario. La gente sube hasta acá a pie para orar. Ahora entiendo por qué.', es: 'El santuario. La gente sube hasta acá a pie para orar. Ahora entiendo por qué.' }, 'happy'); healAll(); WD.toast('A quiet moment. HP, SP and partners restored.'); WD.saveNow(); }) });
     if(!F('c2_crate')) L.push({ x: 995, y: 56, label: 'Crate', h: 70, sparkle: true, act: condorScene });
     if(F('c2_boss') && !F('c2_photo')) L.push({ x: 1210, y: 58, label: 'Nest', h: 100, sparkle: true, act: nestScene });
-    if(F('c2_boss') && !F('toy_condorplush')) L.push({ x: 700, y: 56, label: 'Gift shop', h: 80, sparkle: true, act: () => WD.cut(async () => { await say('Gift Shop', D() ? '¡Se lo regalo! (It’s a gift!) You scared off that awful bird.' : '¡Se lo regalo, mi reina! Usted espantó a ese pajarraco.', { expr: 'joy' }); await toyGet('condorplush'); }) });
     if(F('c2_boss')) L.push({ x: 120, y: 60, label: 'Cable car', h: 90, act: () => WD.cut(async () => { const i = await WD.choose(WD.hero, D() ? 'Take the cable car back down?' : '¿Bajamos en el teleférico?', ['Down to the barrio', 'Stay']); if(i === 0) await WD.gotoArea('bog_street', 1000, 66, { dir: -1, from: 'bog_summit' }); }) });
     return L;
   },

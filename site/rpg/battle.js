@@ -23,10 +23,10 @@ WD.FOES = {
   iguana: { name: 'Sunbather Iguana', kind: 'iguana', hp: 7, atk: 1, xp: 14,
     moves: [{ id: 'whip', name: 'Tail Whip', type: 'melee', dmg: 1, w: 3, delay: [120, 520] }, { id: 'sun', name: 'Soak Up the Sun', type: 'heal', amt: 3, w: 2 }],
     tattle: 'A Sunbather Iguana. South Florida’s finest. HP 7, Attack 1. Once it’s hurt it sunbathes to heal 3, so finish it fast. Its Tail Whip is lazy and slow: wait for it.' },
-  sergeant: { name: 'Sergeant Hairball', kind: 'cat', look: 'sergeant', hp: 32, atk: 2, xp: 100, boss: true, smart: true,
+  sergeant: { name: 'Sergeant Hairball', kind: 'cat', look: 'sergeant', hp: 36, atk: 2, xp: 100, boss: true, smart: true,
     moves: [{ id: 'lob', name: 'Hairball Lob', type: 'lob', dmg: 2, w: 3, proj: 'hairball' }, { id: 'slam', name: 'Belly Slam', type: 'melee', dmg: 3, w: 2, delay: [150, 600] }, { id: 'whistle', name: 'Fall In!', type: 'summon', w: 2, summon: 'agent' }],
     rage: [{ id: 'barrage', name: 'Hairball Barrage', type: 'barrage', dmg: 2, n: 3, w: 3, proj: 'hairball', rhythm: [560, 380, 720] }, { id: 'slam', name: 'Belly Slam', type: 'melee', dmg: 3, w: 2, delay: [150, 600], feint: .35 }, { id: 'drill', name: 'Drill Stomp', type: 'melee', dmg: 3, w: 2, noSuper: true, delay: [0, 300] }, { id: 'whistle', name: 'Fall In!', type: 'summon', w: 1, summon: 'agent' }],
-    tattle: 'Sergeant Hairball. Runs the back lot like boot camp. HP 32, Attack 2 to 3. His Belly Slam waits a beat before landing. At half health he fires hairballs three at a time, and not evenly: ba-bap… bap. His Drill Stomp glows red, so it can only be Guarded, not Superguarded.' }
+    tattle: 'Sergeant Hairball. Runs the back lot like boot camp. HP 36, Attack 2 to 3. His Belly Slam waits a beat before landing. At half health he fires hairballs three at a time, and not evenly: ba-bap… bap. His Drill Stomp glows red, so it can only be Guarded, not Superguarded.' }
 };
 
 let B = null, cmd = null;
@@ -74,7 +74,7 @@ function layoutFoes(){
 }
 function buildHud(){
   const h = WD.$('.wd-bhud'), G = WD.G, P = G.partner ? G.party[G.partner] : null;
-  h.innerHTML = `<div class="wd-hpcol"><div class="wd-hp" data-hp="p"><b>${esc(WD.hero)}</b><div class="bar"><i></i></div><small></small></div>${P ? `<div class="wd-hp" data-hp="a"><b>${esc(WD.partnerDef().name)}</b><div class="bar"><i></i></div><small></small></div>` : ''}</div><div class="wd-hype"></div><div class="wd-hpcol foes"></div>`;
+  h.innerHTML = `<div class="wd-hpcol"><div class="wd-hp" data-hp="p"><b>${esc(WD.hero)}</b><div class="bar"><i></i></div><small></small></div>${P ? `<div class="wd-hp" data-hp="a"><b>${esc(WD.partnerDef().name)}</b><div class="bar"><i></i></div><small></small></div>` : ''}</div><div class="wd-mid"><div class="wd-hype"></div><div class="wd-lvchip"></div></div><div class="wd-hpcol foes"></div>`;
   h.hidden = false; updHud();
 }
 function updHud(){
@@ -84,6 +84,7 @@ function updHud(){
   const fc = h.querySelector('.foes'); const live = B.foes.filter(f => f.alive);
   if(fc.children.length !== live.length || [...fc.children].some((c, i) => c.dataset.id !== String(live[i].idx))) fc.innerHTML = live.map(f => `<div class="wd-hp foe" data-id="${f.idx}"><b>${esc(f.def.name)}</b><div class="bar"><i></i></div><small></small></div>`).join('');
   live.forEach(f => set(fc.querySelector(`[data-id="${f.idx}"]`), f.hp, f.max));
+  const lc = h.querySelector('.wd-lvchip'); if(lc) lc.innerHTML = `<b>Lv ${G.lv}</b><span class="xb"><i style="width:${Math.min(100, G.xp)}%"></i></span><small>${G.xp}/100 ★</small>`;
   h.querySelector('.wd-hype').innerHTML = '★'.repeat(G.sp) + '☆'.repeat(Math.max(0, G.msp - G.sp)) + '<small>HYPE · SP</small>';
 }
 
@@ -123,6 +124,16 @@ async function hurtAlly(who, n){
   updHud(); await WD.wait(300);
 }
 const live = () => B.foes.filter(f => f.alive);
+/* Dizzy is a chance, not a guarantee. Bosses shrug it off unless they're charging a big attack,
+   and nobody can be stunned two turns in a row. */
+function tryDizzy(f, chance, text){
+  if(!f || !f.alive) return false;
+  if(f.stunGuard){ addText(f.e.x, -110, 'Shook it off!', '#B9BCC2'); return false; }
+  if(f.def.boss && !f.charging){ addText(f.e.x, -110, 'Resisted!', '#B9BCC2'); return false; }
+  if(f.charging) chance = 1;
+  if(Math.random() >= chance){ return false; }
+  f.dizzy = Math.max(f.dizzy, 1); f.e.expr = 'dizzy'; addText(f.e.x, -110, text || 'Dizzy!', '#B39CE0'); return true;
+}
 const atkB = () => (WD.G && WD.G.atkB) || 0;
 const partnerUp = () => { const G = WD.G; return !!(B.a && G.party[G.partner] && G.party[G.partner].hp > 0); };
 
@@ -190,7 +201,7 @@ async function run(){
   if(WD.hasPin('tricolor')){ hype(1); addText(B.p.x, -130, '+1 SP · Tricolor Pin', '#FFC94A'); }
   if(opts.first){
     const f = live()[0];
-    if(opts.first === 'flash'){ await bSay('First strike! The flashlight blinds them!'); live().forEach(x => { x.dizzy = 1; x.e.expr = 'dizzy'; }); addText(f.e.x, -100, 'Dazzled!', '#FFC94A', true); }
+    if(opts.first === 'flash'){ await bSay('First strike! The flashlight blinds them!'); live().forEach(x => { if(!x.def.boss){ x.dizzy = 1; x.e.expr = 'dizzy'; } }); addText(f.e.x, -100, 'Dazzled!', '#FFC94A', true); }
     else { await bSay(opts.first === 'dash' ? 'First strike! You dashed right into them!' : 'First strike!'); await hitFoe(f, 1, { noBuff: true }); }
   }
   if(opts.intro) await opts.intro(B, { bSay, addFoe: id => { const f = addFoe(id, true); updHud(); return tw(f.e, { x: f.home }, 700); } });
@@ -258,7 +269,7 @@ async function jumpShot(f){
 async function crossover(f){
   const p = B.p; await tw(p, { x: f.e.x - 50 }, 420); B.focus = 'ring'; const q = await ringTime(f.e.x, -36); B.focus = null;
   await tw(p, { x: f.e.x - 20 }, 140); rating(q); await hitFoe(f, [1, 2, 3][q] + atkB());
-  if(q === 2 && f.alive){ f.dizzy = Math.max(f.dizzy, 1); f.e.expr = 'dizzy'; addText(f.e.x, -110, 'Dizzy!', '#B39CE0'); }
+  if(q === 2) tryDizzy(f, .4);
   p.dir = -1; await tw(p, { x: B.home.p }, 480); p.dir = 1;
   if(!q) await punish(f, 'p');
 }
@@ -278,7 +289,7 @@ async function groupFaceTime(){
   WD.sfx('ring'); await bSay('Group FaceTime! The whole family picks up at once…', 1500);
   await bSay(WD.hero === 'Laura' ? '“¡VAMOS, LAURA! ¡TÚ PUEDES!”' : '“¡VAMOS, LAURA! ¡TÚ PUEDES!” (Go, Laura! You can do it!)', 1500);
   B.call = null; cheer(3); WD.sfx('big'); B.shake = 12;
-  for(const f of live().slice()){ f.dizzy = Math.max(f.dizzy, 1); f.e.expr = 'dizzy'; addText(f.e.x, -100, 'So loud!', '#B39CE0'); await hitFoe(f, 3); }
+  for(const f of live().slice()){ tryDizzy(f, .6, 'So loud!'); await hitFoe(f, 3); }
   const G = WD.G; G.hp = Math.min(G.mhp, G.hp + 3); const P = G.partner && G.party[G.partner]; if(P && P.hp > 0) P.hp = Math.min(P.mhp, P.hp + 3);
   WD.sfx('heal'); addText(B.p.x, -100, '+3', '#7CD86A', true); updHud(); await WD.wait(500);
 }
@@ -292,7 +303,7 @@ async function loveAttack(f){
 /* family calls: the people stay safe on the phone; they help from wherever they are */
 const CALLS = {
   David: [
-    { id: 'steven', name: 'Steven', icon: 'toque', sub: 'A bad joke. Stuns everyone.' },
+    { id: 'steven', name: 'Steven', icon: 'toque', sub: 'A bad joke. Might stun everyone (not bosses).' },
     { id: 'joseph', name: 'Joseph', icon: 'bbq', sub: 'BBQ. Heals you and your partner 6 HP.' },
     { id: 'olga', name: 'Olga', icon: 'choc', sub: 'Dark chocolate. +2 SP, stronger hits for 3 turns.' }
   ],
@@ -311,7 +322,7 @@ async function familyCall(){
   if(c.id === 'steven'){
     await bSay('Steven: “Why did the hockey player bring a ladder to the game?”', 1900);
     await bSay('Steven: “…Because it was going into OVER-time. Eh? Eh?”', 1900);
-    B.call = null; for(const f of live()){ f.dizzy = Math.max(f.dizzy, 1); f.e.expr = 'dizzy'; addText(f.e.x, -100, 'Groan…', '#B39CE0'); } WD.sfx('miss'); cheer(1); await WD.wait(700);
+    B.call = null; for(const f of live()){ tryDizzy(f, .8, 'Groan…'); } WD.sfx('miss'); cheer(1); await WD.wait(700);
   } else if(c.id === 'joseph'){
     await bSay('Joseph: “Fired up the grill. Eat up, son.”', 1700);
     B.call = null; G.hp = Math.min(G.mhp, G.hp + 6); if(P && P.hp > 0) P.hp = Math.min(P.mhp, P.hp + 6);
@@ -350,7 +361,7 @@ async function partnerTurn(){
       { label: 'Good Boy Guard', sub: 'Chunkers takes the next hit for you, and blocks some' }
     ] : [
       { label: 'Long-Body Spin', sub: 'Tap A on each ring. Up to 4 hits' },
-      { label: 'Nervous Yap', sub: 'Mash A! Loud enough and they get dizzy' },
+      { label: 'Nervous Yap', sub: 'Mash A! Loud enough and they might get dizzy' },
       { label: 'Sniff', sub: 'Learn about an enemy' }
     ];
     if(others.length) opts.push({ label: 'Swap partner', sub: `Switch to ${others.map(k => WD.PARTNERS[k].name).join(' / ')}. Free`, cls: 'call' });
@@ -363,7 +374,7 @@ async function partnerTurn(){
       a.sit = false; B.focus = 'hold'; const q = await holdRelease(); B.focus = null;
       await tw(a, { x: f.e.x - 70 }, 300); WD.sfx('dash'); await tw(a, { x: f.e.x - 14 }, 260, 12);
       rating(q, a.x); await hitFoe(f, [1, 3, 4][q]);
-      if(q === 2 && f.alive){ f.dizzy = Math.max(f.dizzy, 1); f.e.expr = 'dizzy'; addText(f.e.x, -110, 'Bonk!', '#B39CE0'); }
+      if(q === 2) tryDizzy(f, .3, 'Bonk!');
       await tw(a, { x: B.home.a }, 420, 16);
       if(!q) await punish(f, 'a');
       return;
@@ -386,7 +397,7 @@ async function partnerTurn(){
       for(let k = 0; k < Math.min(6, 1 + Math.floor(n / 4)); k++){ WD.sfx('yap'); addText(a.x + 20 + k * 6, -70 - k * 8, 'YAP!', '#FFF8EC'); await WD.wait(90); }
       a.bark = false; a.nervous = false;
       await hitFoe(f, n >= 10 ? 2 : 1);
-      if(n >= 15 && f.alive){ f.dizzy = Math.max(f.dizzy, 1); f.e.expr = 'dizzy'; addText(f.e.x, -110, 'Dizzy!', '#B39CE0'); rating(2); } else if(n >= 10) rating(1);
+      if(n >= 15){ tryDizzy(f, .5); rating(2); } else if(n >= 10) rating(1);
     }
     return;
   }
@@ -474,7 +485,8 @@ async function tipOnce(key, text){ if(WD.flag('tip_' + key)) return; WD.set('tip
 async function foeTurn(f){
   const e = f.e;
   f.brace = 0;
-  if(f.dizzy > 0){ f.dizzy--; if(f.charging){ f.charging = null; e.glow = false; addText(e.x, -120, 'Charge lost!', '#FFC94A', true); } addText(e.x, -96, 'Too dizzy to move', '#B39CE0'); await WD.wait(800); if(!f.dizzy) e.expr = 'happy'; return; }
+  if(f.stunGuard > 0) f.stunGuard--;
+  if(f.dizzy > 0){ f.dizzy--; if(!f.dizzy) f.stunGuard = 1; if(f.charging){ f.charging = null; e.glow = false; addText(e.x, -120, 'Charge lost!', '#FFC94A', true); } addText(e.x, -96, 'Too dizzy to move', '#B39CE0'); await WD.wait(800); if(!f.dizzy) e.expr = 'happy'; return; }
   if(f.grounded > 0){ f.grounded--; await bSay(`${f.def.name} shakes off the dust and flaps back up into the sky.`, 1500); f.air = true; WD.sfx('whoosh'); return; }
   if(f.def.rage && f.hp <= f.max / 2 && !f.raged){ f.raged = true; await bSay(`${f.def.name} is getting serious!`, 1300); e.expr = 'angry'; B.shake = 8; WD.sfx('hiss'); }
   let mv;
@@ -584,10 +596,9 @@ async function victory(){
   burst(0, -60, 40, ['#FFC94A', '#E8593C', '#7CD86A', '#58AEDD', '#FFF8EC']);
   addText(0, -140, 'You win!', '#FFC94A', 'huge'); B.p.expr = 'joy'; if(B.a) { B.a.happy = true; B.a.nervous = false; B.a.sit = false; B.a.zzz = false; }
   await WD.tween(500, u => { B.p.z = Math.sin(u * Math.PI) * 30; if(B.a) B.a.z = Math.sin(u * Math.PI) * 24; });
-  await WD.wait(500); addText(0, -110, `+${xp} Star Points`, '#FFF8EC', true); await WD.wait(1300);
-  G.xp += xp;
+  await WD.wait(400);
   const P = G.partner && G.party[G.partner]; if(P && P.hp <= 0) P.hp = 1;
-  while(G.xp >= 100){ G.xp -= 100; await levelUp(); }
+  await xpGain(xp);
   Object.keys(G.party).forEach(k => { if(G.party[k].hp <= 0) G.party[k].hp = 1; });
   await endBattle('win');
 }
@@ -597,6 +608,22 @@ async function levelUp(){
   if(i === 0) G.mhp += 5; else if(i === 1) G.msp += 1; else { G.mpp += 3; G.pp = G.mpp; }
   G.hp = G.mhp; G.sp = G.msp; Object.keys(G.party).forEach(k => { const P = G.party[k]; P.mhp += 2; P.hp = P.mhp; });
   updHud();
+}
+/* the Star Points box: how much you earned, and how close the next level is */
+async function xpGain(xp){
+  const G = WD.G, el = document.createElement('div'); el.className = 'wd-xpbox'; WD.root.appendChild(el);
+  let left = xp;
+  const draw = (from, msg) => { el.innerHTML = `<i class="k">Star Points</i><b>+${xp}</b><div class="lvrow"><span>Lv ${G.lv}</span><div class="xbar"><i style="width:${from}%"></i><u style="left:${from}%;width:0"></u></div><span>Lv ${G.lv + 1}</span></div><small>${msg}</small>`; };
+  while(true){
+    const from = G.xp, to = Math.min(100, from + left); left -= to - from;
+    draw(from, to >= 100 ? 'Level up!' : `${100 - to} more to Level ${G.lv + 1}`);
+    WD.sfx('chime'); await WD.wait(350);
+    const u = el.querySelector('u'); u.style.transition = 'width .9s ease-out'; void u.offsetWidth; u.style.width = (to - from) + '%';
+    await WD.wait(1500); G.xp = to;
+    if(G.xp >= 100){ G.xp = 0; el.hidden = true; await levelUp(); el.hidden = false; if(left > 0) continue; draw(0, `100 more to Level ${G.lv + 1}`); await WD.wait(1100); }
+    break;
+  }
+  el.remove(); updHud();
 }
 function endBattle(res){
   return WD.pageTurn(() => {

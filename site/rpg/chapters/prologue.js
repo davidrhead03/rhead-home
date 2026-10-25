@@ -911,6 +911,7 @@ async function resume(G0){
   G0.pins = G0.pins || []; G0.worn = G0.worn || [];
   if(F('p_done')){ try{ await WD.require('chapters/ch1'); if(F('int1_done') || F('c2_arrived')) await WD.require('chapters/ch2'); }catch(e){ console.error(e); } }
   if(WD.repairSave) WD.repairSave(G0);
+  if(WD.trimPins) WD.trimPins();
   makeHero();
   const A = WD.areas[G0.area] ? G0.area : 'home';
   await WD.gotoArea(A, G0.x || 330, G0.y || 66, { dir: 1 });

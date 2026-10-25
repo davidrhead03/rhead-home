@@ -217,6 +217,11 @@ EXPLORE.draw = function(t, dt){
   if(A.drawGround) A.drawGround(t);
   // sparkles for things that want attention
   things().forEach(o => { if(o.sparkle) WD.sparkle(ctx, o.x + (o.sx || 0), o.y - (o.sy || 20), t + o.x); });
+  // partner-skill spots are always marked, so you never use something you can't see
+  things().forEach(o => { if(o.skill !== 'p' || o.noMark || o.decoy) return; const lbl = (o.label || '').toLowerCase(), x = o.x, y = o.y + 6;
+    if(lbl === 'sniff'){ ctx.fillStyle = 'rgba(122,82,52,.45)'; ell(ctx, x, y, 14, 4); ctx.fill(); ctx.fillStyle = 'rgba(90,60,40,.5)'; [[-6, -1], [3, 1], [7, -2]].forEach(([a, b]) => { ell(ctx, x + a, y + b, 2.6, 1.4); ctx.fill(); });
+      ctx.strokeStyle = 'rgba(255,248,236,.75)'; ctx.lineWidth = 1.4; for(let i = 0; i < 3; i++){ const u = (t * .6 + i / 3) % 1; ctx.globalAlpha = 1 - u; ctx.beginPath(); ctx.moveTo(x - 6 + i * 6, y - 4 - u * 26); ctx.quadraticCurveTo(x - 2 + i * 6, y - 10 - u * 26, x - 6 + i * 6, y - 16 - u * 26); ctx.stroke(); } ctx.globalAlpha = 1; }
+    else { const a = .35 + .25 * Math.sin(t * 4 + x); ctx.strokeStyle = `rgba(155,210,122,${a + .3})`; ctx.lineWidth = 2; ctx.setLineDash([4, 3]); ell(ctx, x, y, 18, 5); ctx.stroke(); ctx.setLineDash([]); } });
   const list = [W.player, W.partner].concat(W.npcs, W.foes).filter(e => e && e.vis && !e.dead).sort((a, b) => (a.y + (a.zSort || 0)) - (b.y + (b.zSort || 0)));
   list.forEach(e => { const ds = .9 + (e.y - 44) / 48 * .14; const [sx, sy] = WD.toScreen(e.x, e.y); WD.paintEnt(e, sx, sy, WD.view.dpr * WD.view.S * WD.cam.z * ds * e.scale); });
   WD.setLayer(1);
@@ -249,9 +254,9 @@ WD.TOYS = { ball: { name: 'Tennis Ball', ch: 0, where: 'Tivoli Park' }, rope: { 
 WD.CH_NAMES = ['Tivoli Park', 'UIC', 'Bogotá'];
 /* pins: worn in the Party tab, each costs PP */
 WD.PINS = {
-  pearl: { name: 'Pearl Pin', pp: 1, desc: 'A normal Guard blocks 1 extra damage.' },
-  honor: { name: 'Honor Roll Pin', pp: 1, desc: 'NICE and PERFECT attacks give 1 extra Hype.' },
-  eagle: { name: 'Eagle Ray Pin', pp: 2, desc: 'Your Jump Shot or Heel Stomp hits 1 harder.' }
+  pearl: { name: 'Pearl Pin', pp: 2, desc: 'A normal Guard blocks 1 extra damage.' },
+  honor: { name: 'Honor Roll Pin', pp: 2, desc: 'NICE and PERFECT attacks give 1 extra Hype.' },
+  eagle: { name: 'Eagle Ray Pin', pp: 3, desc: 'Your Jump Shot or Heel Stomp hits 1 harder.' }
 };
 /* every pin has its own enamel art: kind 'pin_<id>' */
 const PIN_ART = {
@@ -276,6 +281,8 @@ WD.drawIcon = function(c, kind, x, y, s, t){
 };
 WD.pinIcon = id => PIN_ART[id] ? 'pin_' + id : 'pin';
 WD.hasPin = id => !!(WD.G && WD.G.worn && WD.G.worn.includes(id));
+/* take pins off (newest first) if they no longer fit, e.g. after pin costs went up */
+WD.trimPins = () => { const G = WD.G; if(!G || !G.worn) return; while(G.worn.length && WD.ppUsed() > G.mpp) G.worn.pop(); };
 WD.ppUsed = () => ((WD.G && WD.G.worn) || []).reduce((n, id) => n + (WD.PINS[id] ? WD.PINS[id].pp : 0), 0);
 WD.givePin = id => { const G = WD.G; G.pins = G.pins || []; G.worn = G.worn || []; if(!G.pins.includes(id)) G.pins.push(id); if(WD.ppUsed() + WD.PINS[id].pp <= G.mpp && !G.worn.includes(id)) G.worn.push(id); };
 WD.toyCount = ch => { const G = WD.G, ids = Object.keys(WD.TOYS).filter(k => ch === undefined || WD.TOYS[k].ch === ch); return [ids.filter(k => G.toys.includes(k)).length, ids.length]; };

@@ -15,7 +15,23 @@ let talk = null, portEnt = null, portPhone = false;
 function el(){ return WD.$('.wd-talk'); }
 /* who: a name. opts: { expr, es, phone, ent, sub }
    es = the Spanish line. David's save shows it with an English subtitle; Laura's save shows the Spanish on its own. */
-WD.say = function(who, text, opts){
+/* if the person talking is standing off-screen, slide the camera over so you can see them */
+function showSpeaker(ent){
+  const W = WD.W; if(!ent || !W || !W.area || WD.scene !== WD.EXPLORE || !ent.vis) return null;
+  const inWorld = ent === W.player || ent === W.partner || (W.npcs || []).includes(ent) || (W.foes || []).includes(ent); if(!inWorld) return null;
+  const v = WD.view, cam = WD.cam, half = v.w / (2 * v.S * cam.z), margin = half * .28;
+  if(Math.abs(ent.x - cam.x) < half - margin) return null;
+  const A = W.area, lo = (A.camMin !== undefined ? A.camMin : A.minX - 60) + half, hi = (A.camMax !== undefined ? A.camMax : A.maxX + 60) - half;
+  const p = W.player; let tx = ent.x; if(p && ent !== p && Math.abs(p.x - ent.x) < half * 1.5) tx = (p.x + ent.x) / 2;
+  tx = lo > hi ? (lo + hi) / 2 : Math.max(lo, Math.min(hi, tx));
+  const x0 = cam.x; cam.lock = true; return WD.tween(450, u => { cam.x = x0 + (tx - x0) * WD.U.ease(u); });
+}
+WD.say = async function(who, text, opts){
+  const pre = opts || {};
+  const pan = showSpeaker(pre.ent || WD.actors[who]); if(pan) await pan;
+  return sayNow(who, text, opts);
+};
+function sayNow(who, text, opts){
   opts = opts || {};
   return new Promise(res => {
     const box = el(), p = box.querySelector('p'), name = box.querySelector('.name'), sub = box.querySelector('.sub'), more = box.querySelector('.more'), ch = box.querySelector('.choices'), port = box.querySelector('.portrait');

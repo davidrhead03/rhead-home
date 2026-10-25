@@ -252,6 +252,7 @@ const HTML = `
 <button class="wd-btn wd-b" hidden aria-label="B button: hero skill"><span></span><small></small></button>
 <button class="wd-btn wd-p" hidden aria-label="Partner skill"><span>🐾</span><small></small></button>
 <div class="wd-bhud" hidden></div>
+<button class="wd-lv" hidden aria-label="Level and Star Points. Opens your party"><b></b><span class="xb"><i></i></span><small></small></button>
 <div class="wd-bmenu" hidden></div>
 <div class="wd-toast"></div>
 <div class="wd-get" hidden><div class="sheet"><i></i><canvas width="220" height="220"></canvas><b></b><p></p><span class="tap">Tap to continue</span></div></div>
@@ -488,6 +489,7 @@ WD.stick = function(){
 };
 function wireControls(){
   const q = s => root.querySelector(s);
+  q('.wd-lv').onclick = () => { if(WD.mode === 'explore' && WD.openBag){ WD.sfx('tap'); WD.openBag('party'); } };
   ['a', 'b', 'p'].forEach(k => {
     const b = q('.wd-' + k);
     b.addEventListener('pointerdown', e => { e.preventDefault(); try{ b.setPointerCapture(e.pointerId); }catch(x){} if(k !== 'a') b.classList.add('down'); press(k); });
@@ -636,6 +638,9 @@ function frame(now){
   if(fadeA > .002){ ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = Math.min(1, fadeA); ctx.fillStyle = fadeCol; ctx.fillRect(0, 0, WD.cv.width, WD.cv.height); ctx.globalAlpha = 1; }
   drawPageTurn();
   if(WD.drawTalkPortrait) WD.drawTalkPortrait();
+  const lv = root.querySelector('.wd-lv'), showLv = !!(WD.G && WD.G.started && WD.mode === 'explore' && !WD.asDayla);
+  if(lv.hidden === showLv) lv.hidden = !showLv;
+  if(showLv){ const key = WD.G.lv + ':' + WD.G.xp; if(lv.dataset.k !== key){ lv.dataset.k = key; lv.querySelector('b').textContent = 'Lv ' + WD.G.lv; lv.querySelector('i').style.width = Math.min(100, WD.G.xp) + '%'; lv.querySelector('small').textContent = WD.G.xp + '/100 ★'; } }
   const pb = root.querySelector('.wd-pause'), want = !!(WD.G && WD.G.started && ['explore', 'cutscene', 'battle'].includes(WD.mode)); if(pb.hidden === want) pb.hidden = !want;
   if(WD.G && WD.G.started && WD.mode === 'explore' && performance.now() - lastSave > 45000) WD.saveNow();
 }

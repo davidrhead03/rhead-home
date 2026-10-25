@@ -173,7 +173,7 @@ WD.defineArea('home', {
   name: 'Home', sub: 'Tivoli Park · Deerfield Beach', music: 'home', light: 'indoor', minX: 70, maxX: 700, laneTop: 46, laneBot: 92, camMin: -60, camMax: 800, camZ: .92, battleBack: 'walk',
   npcs(){
     const n = [];
-    if(!F('taken')){ NPC.dayla = WD.makeEnt({ kind: 'dog', name: 'Dayla', x: 450, y: 62, dir: 1, eat: 1, light: 'indoor', talkTo: talkDayla, label: !F('try_call') ? 'Call her' : !F('try_joke') ? 'Joke' : 'Dayla', faceable: false }); n.push(NPC.dayla); }
+    if(!F('taken')){ NPC.dayla = WD.makeEnt({ kind: 'dog', name: 'Dayla', x: 450, y: 62, dir: 1, eat: 1, bowl: true, light: 'indoor', talkTo: talkDayla, label: !F('try_call') ? 'Call her' : !F('try_joke') ? 'Joke' : 'Dayla', faceable: false }); n.push(NPC.dayla); }
     else NPC.dayla = null;
     return n;
   },
@@ -319,7 +319,7 @@ async function kidnapping(){
   await WD.fade(1, 350);
   // set up the window shot
   const coat = WD.makeEnt({ kind: 'coat', name: '???', x: 40, y: 60, dir: 1, light: 'indoor', oneGlove: true });
-  const dog = WD.makeEnt({ kind: 'dog', name: 'Dayla', x: 450, y: 62, dir: 1, eat: 1, light: 'indoor' });
+  const dog = WD.makeEnt({ kind: 'dog', name: 'Dayla', x: 450, y: 62, dir: 1, eat: 1, bowl: true, light: 'indoor' });
   Object.assign(WINDOW, { ents: [coat, dog], coat, dog, carry: false, open: false, bowl: false, bowlFull: true });
   NPC.dayla && (NPC.dayla.vis = false);
   WD.setScene(WINDOW, 'cutscene');

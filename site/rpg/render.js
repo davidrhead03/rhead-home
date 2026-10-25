@@ -153,7 +153,7 @@ function drawDog(c, st){
   if(st.happy || st.bark){ c.fillStyle = '#E86F79'; ell(c, 6.5, 7.6 + (st.bark ? 1 : 0), 2.2, 2.6 + (st.bark ? 1 : 0)); c.fill(); }
   if(st.duck){ c.save(); c.translate(11, 5); c.rotate(st.shake ? Math.sin(t * 40) * .5 : .2); c.scale(.42, .42); drawDuck(c, t); c.restore(); }
   c.restore();
-  if(eat && !st.noBowl){ drawBowl(c, 21.5, -2.5, st.bowlFull !== false); }
+  if(eat && st.bowl && !st.noBowl){ drawBowl(c, 21.5, -2.5, st.bowlFull !== false); }
 }
 function drawBowl(c, x, y, full){
   c.fillStyle = '#C9D6E6'; rr(c, x - 7.5, y - 2.5, 15, 5, 2.5); c.fill(); c.fillStyle = '#8FA4BF'; rr(c, x - 6.5, y - 3.5, 13, 2, 1); c.fill();
@@ -411,7 +411,7 @@ WD.drawPolaroid = function(c, x, y, w, rot, scene){
   c.save(); c.beginPath(); c.rect(-w / 2 + w * .07, -w * .51, w * .86, w * .86); c.clip(); if(scene) scene(c, -w / 2 + w * .07, -w * .51, w * .86); c.restore();
   c.restore();
 };
-/* the first sighting: Dayla at the UIC front desk, eating out of a bowl on a stack of papers */
+/* the first sighting: Dayla at the UIC front desk, eating off a stack of papers */
 WD.sightingUIC = function(c, x, y, s){
   c.fillStyle = '#E9DCC4'; c.fillRect(x, y, s, s);
   c.fillStyle = '#C8D8E8'; c.fillRect(x, y, s, s * .55);

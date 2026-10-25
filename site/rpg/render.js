@@ -154,7 +154,7 @@ WD.drawDuck = drawDuck;
 /* ================= Alejandro (long-body chihuahua) ================= */
 function drawChi(c, st){
   const D = CHI, mv = st.move || 0, w = st.walk || 0, t = st.t || 0;
-  const jit = st.nervous ? Math.sin(t * 70) * .5 : 0;
+  const jit = st.nervous ? Math.sin(t * 24) * .22 : 0;  // a small chihuahua shiver, not a full shake
   const bob = -Math.abs(Math.sin(w)) * 1.4 * mv + Math.sin(t * 4) * .3 * (1 - mv);
   c.save(); c.translate(jit, 0);
   const s = Math.sin(w) * .7 * mv;

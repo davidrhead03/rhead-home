@@ -516,12 +516,14 @@ async function dumpsterScene(){
     await WD.walkTo(al, p.x - 40, 84, 90); al.dir = 1;
     await me('Alejandro? The chihuahua Dayla always says hi to?', { t: '¡Alejandro! Dayla’s little friend!', es: '¡Alejandro! ¡El amiguito de Dayla!' }, 'surprised');
     await say('Alejandro', 'H-hi. Yes. Me. Alejandro. Long body, big ears, very trustworthy.', { ent: al });
+    al.nervous = false;
     await say('Alejandro', 'I heard what happened. Dayla is my friend! I want to help. I have the best nose in all of Tivoli Park.', { ent: al, expr: 'happy' });
     await say('Alejandro', 'I can sniff out clues, dig up buried stuff and read scents. Like a tattletale, but helpful.', { ent: al });
     await say('Veci', 'A chihuahua tracker. I’ve seen stranger things in the woods.', { ent: v, expr: 'smirk' });
     await me('Can you smell this glove? The stranger dropped it.', { t: '¿Puedes oler este guante? Se le cayó al extraño.', es: '¿Puedes oler este guante? Se le cayó al extraño.' }, 'think');
-    al.sniff = true; WD.sfx('sniff'); await WD.wait(900); al.sniff = false; WD.emote(al, 'sweat', 2);
+    al.sniff = true; WD.sfx('sniff'); await WD.wait(900); al.sniff = false; WD.emote(al, 'sweat', 2); al.nervous = true;
     await say('Alejandro', 'That smells like… uh… leather! And… nobody! Smells like nobody I know! Ha! Ha. Let’s go!', { ent: al, expr: 'happy' });
+    al.nervous = false;
     await say('Veci', 'Bueno. I have to get to work. The cars don’t fix themselves. My door is open if you need anything. Mi casa es tu casa.', { ent: v, expr: 'happy' });
     // Alejandro joins
     const G = WD.G; G.partner = 'alejandro'; G.party.alejandro = { hp: 8, mhp: 8 };
@@ -744,8 +746,9 @@ async function bossScene(){
     await say('Sergeant Hairball', 'I am Sergeant Hairball! This back lot is under MY command!', { ent: s, expr: 'angry' });
     await me('Cool. Where’s my dog?', { t: 'Very nice hat. Where is my dog?', es: 'Muy bonito tu sombrero. ¿Dónde está mi perra?' }, 'smirk');
     await say('Sergeant Hairball', 'The package left with the van ten minutes ago, civilian. Courtesy of the Coll— …of the CLIENT. The client.', { ent: s, expr: 'happy' });
-    WD.emote(a, 'sweat', 2);
+    WD.emote(a, 'sweat', 2); a.nervous = true;
     await say('Alejandro', 'Th-the client! Never heard of him! Ha!', { expr: 'surprised' });
+    a.nervous = false;
     await say('Sergeant Hairball', 'My orders: nobody follows the trail. And YOU, civilian, are following the trail!', { ent: s, expr: 'angry' });
     await say('Sergeant Hairball', 'Drop and give me twenty! …HAIRBALLS! HURK!', { ent: s, expr: 'angry' });
     WD.MUS.play('boss');
@@ -790,8 +793,9 @@ async function photoScene(){
     k.dir = 1; await WD.hop(k, 1830, 20, 40, 500); k.vis = false; W.npcs = W.npcs.filter(e => e !== k); KAIROS.on = false;
     await WD.camTo(1660, 1.15, 700);
     await me('…That black cat. It looked exactly like Kairos.', { t: '…¿Kairos? No. It can’t be. …Can it?', es: '…¿Kairos? No. No puede ser. …¿O sí?' }, 'sad');
-    WD.emote(a, 'sweat', 2);
+    WD.emote(a, 'sweat', 2); a.nervous = true;
     await say('Alejandro', 'Cats! Ha! So many cats around here lately. Wonder why! Nobody knows!', { expr: 'surprised' });
+    a.nervous = false;
     if(D()){
       await WD.phone('Laura', [
         { who: 'Laura', text: 'David! You won’t believe this. There’s a cat in a suit at the UIC front desk asking for “transfer papers” for a Boston terrier!', es: '¡David! No me lo vas a creer. ¡Hay un gato en traje en la recepción de UIC pidiendo “papeles de transferencia” para una Boston terrier!', expr: 'surprised' },

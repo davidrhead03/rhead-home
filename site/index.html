@@ -1014,9 +1014,21 @@ button.riv-stake{cursor:pointer;border:1.5px dashed color-mix(in srgb,var(--ink)
 .riv-owe{display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px 12px;border-radius:14px;background:color-mix(in srgb,var(--gold) 18%,var(--surface))}
 .riv-owe>span{font-size:22px}
 /* rhead island */
-.rpg-feature{display:flex;align-items:center;gap:12px;width:100%;border:0;cursor:pointer;font:inherit;color:inherit;text-align:left;padding:14px;border-radius:22px;margin-bottom:14px;background:linear-gradient(135deg,color-mix(in srgb,var(--sky) 30%,var(--surface)),color-mix(in srgb,var(--sage) 30%,var(--surface)));box-shadow:var(--shadow)}
-.rpg-feature b{display:block;font-family:var(--display);font-size:21px;line-height:1.15}.rpg-feature .fine{display:block}
-.rpg-f-art{width:58px;height:58px;border-radius:16px;overflow:hidden;flex:none;box-shadow:0 0 0 2px rgba(255,255,255,.6)}.rpg-f-art svg{display:block}
+.rpg-feature{position:relative;display:flex;align-items:stretch;gap:12px;width:100%;min-height:150px;border:0;cursor:pointer;font:inherit;color:#2B1D14;text-align:left;padding:12px 12px 12px 10px;border-radius:22px;margin-bottom:16px;overflow:hidden;background:#86B8EC;box-shadow:0 0 0 3px #2B1D14,0 6px 0 #2B1D14;transition:transform .12s,box-shadow .12s;isolation:isolate}
+.rpg-feature:active{transform:translateY(4px);box-shadow:0 0 0 3px #2B1D14,0 2px 0 #2B1D14}
+.rpg-scene{position:absolute;inset:0;z-index:-1}.rpg-scene svg{display:block;width:100%;height:100%}
+.rpg-poster{flex:none;width:84px;align-self:center;transform:rotate(-4deg);filter:drop-shadow(2px 4px 0 rgba(43,29,20,.35))}.rpg-poster svg{display:block;width:100%;height:auto}
+.rpg-txt{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:5px;padding-bottom:30px}
+.rpg-chip{align-self:flex-start;background:#FFF8EC;color:#2B1D14;font-size:11.5px;font-weight:800;letter-spacing:.04em;padding:3px 9px 4px;border-radius:99px;box-shadow:0 0 0 2px #2B1D14;transform:rotate(-1.5deg);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rpg-logo{display:block;font-family:var(--display);font-weight:700;font-size:27px;line-height:1;color:#FFC94A;letter-spacing:.2px;transform:rotate(-2deg);text-shadow:2px 2px 0 #2B1D14,-1.5px -1.5px 0 #FFF8EC,1.5px -1.5px 0 #FFF8EC,-1.5px 1.5px 0 #FFF8EC,1.5px 1.5px 0 #FFF8EC,0 5px 0 rgba(43,29,20,.3)}
+.rpg-logo i{font-style:normal;color:#E8593C}
+.rpg-sub{font-size:12.5px;font-weight:700;line-height:1.3;color:#2B1D14;background:rgba(255,248,236,.86);padding:3px 8px;border-radius:9px;align-self:flex-start}
+.rpg-pips{position:absolute;left:104px;bottom:15px;display:flex;gap:3px;align-items:center}
+.rpg-pips i{width:7px;height:7px;border-radius:50%;background:rgba(255,248,236,.55);box-shadow:0 0 0 1.5px #2B1D14}
+.rpg-pips i.on{background:#FFC94A}.rpg-pips i.now{background:#E8593C;animation:rpgPulse 1.4s ease-in-out infinite}
+@keyframes rpgPulse{50%{transform:scale(1.35)}}
+.rpg-play{position:absolute;right:12px;bottom:10px;background:#E8593C;color:#fff;font-family:var(--display);font-weight:700;font-size:15px;padding:6px 14px 7px;border-radius:99px;box-shadow:0 0 0 2.5px #2B1D14,0 3px 0 #2B1D14}
+@media (prefers-reduced-motion:reduce){.rpg-pips i.now{animation:none}}
 html.rpg-open,html.rpg-open body{overflow:hidden;overscroll-behavior:none}
 .rpg-host{position:fixed;inset:0;z-index:200;background:#3E8FC7;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;overflow:hidden;font-family:var(--body)}
 .rpg-cv{position:absolute;inset:0;image-rendering:pixelated;image-rendering:crisp-edges}
@@ -5040,7 +5052,7 @@ function vGames(){
   const tabs = GAME_SECTIONS.map(([e, t, sub, ks], i) => [['together','daily','arcade','us'][i], e, t.replace('Play together', 'Together').replace('Daily challenges', 'Daily'), sub, ks]).concat([['scores','🏆','Scores','Who’s winning',[]]]);
   const cur = tabs.find(x => x[0] === tab) || tabs[0];
   const card = k => { const G = GAMES.find(x => x[0] === k); if(!G) return ''; const b = gameBadge(k); return `<button class="g-mini" data-act="game-sel" data-v="${k}" style="--c:var(${G[4]})"><span class="g-emo">${GAME_EMO[k] || '🎮'}</span><b>${esc(GAME_SHORT[k] || G[1])}</b>${b ? `<i class="g-dot ${/sage/.test(b) ? 'ok' : ''}">${/sage/.test(b) ? '✓' : '!'}</i>` : ''}</button>`; };
-  return pageHead('Games', 'Play together or beat each other’s scores') + `<button class="rpg-feature" data-act="rpg-open"><span class="rpg-f-art">${rpgArt()}</span><span class="grow"><span class="eyebrow">${rpgStatus()}</span><b>Where’s Dayla?</b><span class="fine">Someone took Dayla mid-breakfast. Follow the trail!</span></span><span class="btn primary small">Play</span></button>` + rivalCard() + `
+  return pageHead('Games', 'Play together or beat each other’s scores') + rpgCard() + rivalCard() + `
     ${waiting.length ? `<div class="g-wait">${waiting.map(([G, b]) => `<button data-act="game-sel" data-v="${G[0]}"><span>${GAME_EMO[G[0]] || '🎮'}</span><b>${esc(G[1])}</b>${b}</button>`).join('')}</div>` : ''}
     ${GAME_SECTIONS.map(([e, t, sub, ks]) => `<div class="g-sec2"><div class="g-sec2-h">${e} <b>${t}</b></div><div class="g-grid4">${ks.map(card).join('')}</div></div>`).join('')}
     <button class="g-scores-btn" data-act="g-scores">🏆 <b>Scoreboard</b><span>${S.gScores ? 'Hide ▲' : 'Show ▼'}</span></button>
@@ -6026,14 +6038,35 @@ async function c4Drop(c){
 }
 async function c4New(){ const st = c4State(), starter = other(st.starter || 'laura'); S.c4Last = -1; await setDoc('games/c4', { board:Array(42).fill(null), turn:starter, starter, winner:null, line:null, scores:st.scores || { david:0, laura:0, draw:0 }, at:Date.now() }); }
 /* ---------- Where's Dayla? (the RPG lives in /rpg/, loaded only when opened; engine.js loads the rest) ---------- */
-function rpgArt(){
-  const r = (x, y, w, h, c) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}"/>`;
-  return `<svg viewBox="0 0 16 16" width="58" height="58" shape-rendering="crispEdges" aria-hidden="true">${r(0,0,16,16,'#2A3350')}${r(2,2,1,1,'#fff')}${r(9,1,1,1,'#fff')}${r(5,4,1,1,'#F2C14E')}${r(0,12,16,4,'#5DAF5F')}${r(0,12,16,1,'#74C062')}`
-    + `<ellipse cx="12.3" cy="8.6" rx="3.2" ry="4.3" fill="#7A5BC4" opacity=".75"/><ellipse cx="12.3" cy="8.6" rx="3.2" ry="4.3" fill="none" stroke="#E0A3F0" stroke-width=".8"/><ellipse cx="12.3" cy="8.6" rx="1.8" ry="2.6" fill="none" stroke="#B39CE0" stroke-width=".6"/>`
-    + `${r(9,10,3,2,'#F2C14E')}${r(10,8,2,2,'#F2C14E')}${r(12,9,1,1,'#F28C38')}${r(11,8,1,1,'#2A201C')}`
-    + `${r(1,9,1,2,'#6B4226')}${r(2,10,4,2,'#6B4226')}${r(5,10,1,2,'#F7F2EA')}${r(5,8,3,3,'#6B4226')}${r(7,10,1,1,'#F7F2EA')}${r(5,7,1,1,'#4A2C18')}${r(7,7,1,1,'#4A2C18')}${r(6,9,1,1,'#1A1414')}${r(2,12,1,1,'#6B4226')}${r(5,12,1,1,'#F7F2EA')}</svg>`;
+function rpgScene(){
+  const palm = (x, h, k) => `<g transform="translate(${x} 128)" opacity="${k}"><path d="M0 0 Q2 ${-h * .5} ${4} ${-h}" stroke="#2F5E3A" stroke-width="3" fill="none"/>${[-1.9, -1.3, -.6, .1, .8, 1.4].map(a => `<path d="M4 ${-h} q${Math.cos(a - 1.57) * 14} ${Math.sin(a - 1.57) * 8 - 4} ${Math.cos(a - 1.57) * 26} ${Math.sin(a - 1.57) * 14 + 6}" stroke="#2F6E3E" stroke-width="3" fill="none" stroke-linecap="round"/>`).join('')}</g>`;
+  const paws = [150, 182, 214, 246, 278, 310, 342].map((x, i) => `<g transform="translate(${x} ${139 + (i % 2) * 5}) scale(.9 .55)" fill="#8A6A44" opacity=".55"><ellipse cx="0" cy="2" rx="3.4" ry="2.6"/><circle cx="-3.4" cy="-2" r="1.2"/><circle cx="-1.2" cy="-3.6" r="1.2"/><circle cx="1.2" cy="-3.6" r="1.2"/><circle cx="3.4" cy="-2" r="1.2"/></g>`).join('');
+  return `<svg viewBox="0 0 400 160" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="rpgSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3E78D4"/><stop offset=".5" stop-color="#86B8EC"/><stop offset=".9" stop-color="#FCDDB2"/></linearGradient><radialGradient id="rpgSun"><stop offset="0" stop-color="#FFF7E0"/><stop offset=".25" stop-color="#FFE9B8" stop-opacity=".7"/><stop offset="1" stop-color="#FFD49A" stop-opacity="0"/></radialGradient></defs>
+    <rect width="400" height="160" fill="url(#rpgSky)"/><circle cx="350" cy="44" r="60" fill="url(#rpgSun)"/><circle cx="350" cy="44" r="13" fill="#FFF7E0"/>
+    <g fill="#fff" opacity=".9"><ellipse cx="240" cy="30" rx="22" ry="9"/><ellipse cx="256" cy="24" rx="15" ry="9"/><ellipse cx="272" cy="31" rx="14" ry="7"/></g>
+    <g fill="#F1E8D4"><rect x="150" y="84" width="96" height="46"/><rect x="262" y="90" width="110" height="40"/></g><g fill="#A78867"><path d="M144 86 L160 68 L236 68 L252 86Z"/><path d="M256 92 L270 76 L364 76 L378 92Z"/></g>
+    <g fill="#86A7C0">${[160, 184, 208, 226, 272, 298, 324, 350].map(x => `<rect x="${x}" y="${x < 250 ? 96 : 100}" width="12" height="13"/>`).join('')}</g>
+    ${palm(132, 74, .95)}${palm(250, 66, .9)}${palm(388, 80, .95)}
+    <rect y="126" width="400" height="34" fill="#6DB24E"/><rect y="132" width="400" height="16" fill="#D9C7A7"/><rect y="131" width="400" height="2" fill="#E9DCC4"/>${paws}</svg>`;
 }
-function rpgStatus(){ const w = gdoc('rpg_world_' + (S.me || 'david')) || {}; if(w.v !== 2) return 'New story adventure'; return w.p_done ? 'Prologue done ✓ · Chapter 1 coming soon' : w.p_start ? `Prologue · Lv ${w.lv || 1}` : 'New story adventure'; }
+function rpgPoster(){
+  return `<svg viewBox="0 0 80 100" aria-hidden="true"><rect x="1.5" y="1.5" width="77" height="97" rx="3" fill="#FFFDF6" stroke="#2B1D14" stroke-width="3"/><rect x="7" y="7" width="66" height="15" rx="2" fill="#E8593C"/><text x="40" y="18.5" text-anchor="middle" font-family="Fredoka,Nunito,system-ui,sans-serif" font-weight="700" font-size="11" fill="#fff" letter-spacing="1">MISSING</text>
+    <rect x="9" y="26" width="62" height="50" rx="2" fill="#F3E6CF"/>
+    <g transform="translate(40 54)"><path d="M-17 -8 Q-19 -26 -10 -31 Q-8 -20 -6 -12Z" fill="#874630"/><path d="M-15 -11 Q-16 -23 -11 -27 Q-10 -19 -8.5 -13Z" fill="#E8A39A"/><path d="M17 -8 Q19 -26 10 -31 Q8 -20 6 -12Z" fill="#A65A3A"/><path d="M15 -11 Q16 -23 11 -27 Q10 -19 8.5 -13Z" fill="#E8A39A"/>
+      <ellipse cx="0" cy="2" rx="17" ry="15" fill="#A65A3A"/><path d="M-2 -13 Q2 -14 2 -6 L4 6 L-4 6 L-2 -6Z" fill="#FBF4EA"/><ellipse cx="0" cy="9" rx="10" ry="7" fill="#FBF4EA"/><ellipse cx="0" cy="5.5" rx="3.6" ry="2.6" fill="#7A4A40"/>
+      <circle cx="-8" cy="-1" r="5" fill="#FFF6EC"/><circle cx="8" cy="-1" r="5" fill="#FFF6EC"/><circle cx="-7.4" cy="-1" r="3.8" fill="#3B2116"/><circle cx="8.6" cy="-1" r="3.8" fill="#3B2116"/><circle cx="-6.2" cy="-2.6" r="1.3" fill="#fff"/><circle cx="9.8" cy="-2.6" r="1.3" fill="#fff"/>
+      <path d="M-3 11 Q0 13.5 3 11" stroke="#7A4A40" stroke-width="1.2" fill="none"/>${[-9, -6, -3, 0, 3, 6, 9].map(x => `<circle cx="${x}" cy="${16 + Math.abs(x) * -.18}" r="1.4" fill="#FFFDF6" stroke="#C9BFA9" stroke-width=".4"/>`).join('')}</g>
+    <g transform="translate(59 68) scale(.55)"><ellipse cx="0" cy="0" rx="13" ry="8" fill="#F7D23E"/><ellipse cx="9" cy="-6" rx="7" ry="6.5" fill="#F7D23E"/><ellipse cx="16" cy="-4" rx="5.5" ry="3" fill="#F28A2E"/><circle cx="11" cy="-8" r="1.4" fill="#1A1414"/></g>
+    <text x="40" y="88" text-anchor="middle" font-family="Fredoka,Nunito,system-ui,sans-serif" font-weight="700" font-size="11" fill="#2B1D14" letter-spacing="1.5">DAYLA</text></svg>`;
+}
+function rpgProgress(){ const w = gdoc('rpg_world_' + (S.me || 'david')) || {}; if(w.v !== 2) return { done: 0, now: -1 }; return { done: w.p_done ? 1 : 0, now: w.p_done ? -1 : w.p_start ? 0 : -1 }; }
+function rpgCard(){
+  const pr = rpgProgress(), labels = ['Prologue', 'Ch 1', 'Ch 2', 'Ch 3', 'Ch 4', 'Ch 5', 'Ch 6', 'Ch 7', 'Ch 8', 'Finale'];
+  const pips = labels.map((l, i) => `<i class="${i < pr.done ? 'on' : i === pr.now ? 'now' : ''}" title="${l}"></i>`).join('');
+  const started = pr.done > 0 || pr.now >= 0;
+  return `<button class="rpg-feature" data-act="rpg-open" aria-label="Play Where’s Dayla?"><span class="rpg-scene">${rpgScene()}</span><span class="rpg-poster">${rpgPoster()}</span><span class="rpg-txt"><span class="rpg-chip">${esc(rpgStatus())}</span><b class="rpg-logo">Where’s <i>Dayla?</i></b><span class="rpg-sub">Someone took Dayla mid-breakfast. Follow the trail!</span></span><span class="rpg-pips" aria-hidden="true">${pips}</span><span class="rpg-play">${started ? 'Continue ▶' : 'Play ▶'}</span></button>`;
+}
+function rpgStatus(){ const w = gdoc('rpg_world_' + (S.me || 'david')) || {}; if(w.v !== 2) return 'New story adventure'; return w.p_done ? 'Prologue ✓ · Chapter 1 soon' : w.p_start ? `Prologue · Lv ${w.lv || 1}` : 'New story adventure'; }
 function rpgRaining(){ try{ const w = meta('weather'), d = w && Array.isArray(w.days) ? w.days.find(x => x.date === ymd(new Date())) : null; return !!d && /rain|shower|storm|thunder|drizzle/i.test(String(d.cond || '')); }catch(e){ return false; } }
 function closeRPG(){ try{ window.RheadRPG && window.RheadRPG.stop(); }catch(e){} const h = document.getElementById('rpg-host'); if(h) h.remove(); document.documentElement.classList.remove('rpg-open'); }
 function openRPG(){

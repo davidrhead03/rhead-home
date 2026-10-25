@@ -11,19 +11,22 @@ const { clamp, lerp, ease, rr, ell, star, rng, shade, esc } = WD.U;
 
 /* ================= enemies ================= */
 WD.FOES = {
-  agent: { name: 'Cat Agent', kind: 'cat', look: 'agent', hp: 4, atk: 1, xp: 14,
-    moves: [{ id: 'swipe', name: 'Claw Swipe', type: 'melee', dmg: 1, w: 3 }, { id: 'shades', name: 'Sunglasses Toss', type: 'lob', dmg: 1, w: 2, proj: 'shades' }],
-    tattle: 'A Cat Agent. Works for some mysterious boss. HP 4, Attack 1. The sunglasses are for style. He can’t see a thing indoors.' },
-  agent2: { name: 'Cat Agent', kind: 'cat', look: 'agent2', hp: 4, atk: 1, xp: 14,
-    moves: [{ id: 'swipe', name: 'Claw Swipe', type: 'melee', dmg: 1, w: 3 }, { id: 'hiss', name: 'Hiss', type: 'buff', w: 1 }],
-    tattle: 'Another Cat Agent. When he hisses, his next hit gets stronger, so Guard that one. HP 4, Attack 1.' },
-  iguana: { name: 'Sunbather Iguana', kind: 'iguana', hp: 5, atk: 1, xp: 12,
-    moves: [{ id: 'whip', name: 'Tail Whip', type: 'melee', dmg: 1, w: 3 }, { id: 'sun', name: 'Soak Up the Sun', type: 'heal', amt: 2, w: 1 }],
-    tattle: 'A Sunbather Iguana. South Florida’s finest. HP 5, Attack 1. It heals by sunbathing, so finish it fast. Honestly it just wanted the warm spot.' },
-  sergeant: { name: 'Sergeant Hairball', kind: 'cat', look: 'sergeant', hp: 20, atk: 2, xp: 90, boss: true,
-    moves: [{ id: 'lob', name: 'Hairball Lob', type: 'lob', dmg: 2, w: 3, proj: 'hairball' }, { id: 'slam', name: 'Belly Slam', type: 'melee', dmg: 2, w: 2 }, { id: 'whistle', name: 'Fall In!', type: 'summon', w: 2, summon: 'agent' }],
-    rage: [{ id: 'barrage', name: 'Hairball Barrage', type: 'barrage', dmg: 1, n: 3, w: 3, proj: 'hairball' }, { id: 'slam', name: 'Belly Slam', type: 'melee', dmg: 2, w: 2 }, { id: 'whistle', name: 'Fall In!', type: 'summon', w: 1, summon: 'agent' }],
-    tattle: 'Sergeant Hairball. Runs the back lot like boot camp. HP 20, Attack 2. At half health he gets serious and fires hairballs three at a time. Watch his throat and Guard each one!' }
+  /* move keys: dmg, w (weight), delay [min,max] ms pause before the swing, feint (chance of a fake-out first),
+     rhythm [ms per shot] for uneven multi-hits, noSuper (red glow: can only be Guarded), windup (charges a turn first).
+     foe keys: def (armour), twice (acts two times a turn), punish (counter-hit after an "Oops"), smart (picks targets and moves wisely), learn (boss uses what you guard worst) */
+  agent: { name: 'Cat Agent', kind: 'cat', look: 'agent', hp: 5, atk: 1, xp: 14,
+    moves: [{ id: 'swipe', name: 'Claw Swipe', type: 'melee', dmg: 1, w: 3, delay: [0, 260] }, { id: 'shades', name: 'Sunglasses Toss', type: 'lob', dmg: 1, w: 2, proj: 'shades' }],
+    tattle: 'A Cat Agent. Works for some mysterious boss. HP 5, Attack 1. The sunglasses are for style. He can’t see a thing indoors. Sometimes he waits a beat before swiping, so watch his paw, not the clock.' },
+  agent2: { name: 'Cat Agent', kind: 'cat', look: 'agent2', hp: 5, atk: 1, xp: 14,
+    moves: [{ id: 'swipe', name: 'Claw Swipe', type: 'melee', dmg: 1, w: 3, delay: [0, 320] }, { id: 'hiss', name: 'Hiss', type: 'buff', w: 1 }],
+    tattle: 'Another Cat Agent. HP 5, Attack 1. When he hisses, his next hit gets stronger, so Guard that one.' },
+  iguana: { name: 'Sunbather Iguana', kind: 'iguana', hp: 7, atk: 1, xp: 14,
+    moves: [{ id: 'whip', name: 'Tail Whip', type: 'melee', dmg: 1, w: 3, delay: [120, 520] }, { id: 'sun', name: 'Soak Up the Sun', type: 'heal', amt: 3, w: 2 }],
+    tattle: 'A Sunbather Iguana. South Florida’s finest. HP 7, Attack 1. Once it’s hurt it sunbathes to heal 3, so finish it fast. Its Tail Whip is lazy and slow: wait for it.' },
+  sergeant: { name: 'Sergeant Hairball', kind: 'cat', look: 'sergeant', hp: 32, atk: 2, xp: 100, boss: true, smart: true,
+    moves: [{ id: 'lob', name: 'Hairball Lob', type: 'lob', dmg: 2, w: 3, proj: 'hairball' }, { id: 'slam', name: 'Belly Slam', type: 'melee', dmg: 3, w: 2, delay: [150, 600] }, { id: 'whistle', name: 'Fall In!', type: 'summon', w: 2, summon: 'agent' }],
+    rage: [{ id: 'barrage', name: 'Hairball Barrage', type: 'barrage', dmg: 2, n: 3, w: 3, proj: 'hairball', rhythm: [560, 380, 720] }, { id: 'slam', name: 'Belly Slam', type: 'melee', dmg: 3, w: 2, delay: [150, 600], feint: .35 }, { id: 'drill', name: 'Drill Stomp', type: 'melee', dmg: 3, w: 2, noSuper: true, delay: [0, 300] }, { id: 'whistle', name: 'Fall In!', type: 'summon', w: 1, summon: 'agent' }],
+    tattle: 'Sergeant Hairball. Runs the back lot like boot camp. HP 32, Attack 2 to 3. His Belly Slam waits a beat before landing. At half health he fires hairballs three at a time, and not evenly: ba-bap… bap. His Drill Stomp glows red, so it can only be Guarded, not Superguarded.' }
 };
 
 let B = null, cmd = null;
@@ -47,7 +50,7 @@ function setup(opts, resolve){
   const a = P ? WD.makeEnt({ kind: PD.kind, name: PD.name, y: 7, dir: 1, flip: 1, light: 'day' }) : null;
   const home = { p: a ? -Wb * .7 : -Wb * .55, a: -Wb * .34 };
   p.x = home.p; if(a){ a.x = home.a; if(P.hp <= 0){ a.rot = -1.4; a.nervous = true; } }
-  B = { opts, resolve, home, Wb, p, a, foes: [], fx: [], texts: [], crowd: [], cheer: 0, curtain: 0, t: 0, shake: 0, over: false, fam: false, atkUp: 0, proj: [], call: null, tipped: {}, detain: { p: 0, a: 0 }, goodBoy: 0, focusT: 0 };
+  B = { opts, resolve, home, Wb, p, a, foes: [], fx: [], texts: [], crowd: [], cheer: 0, curtain: 0, t: 0, shake: 0, over: false, fam: false, atkUp: 0, proj: [], call: null, tipped: {}, detain: { p: 0, a: 0 }, goodBoy: 0, focusT: 0, gstat: {}, streak: 0, earlies: 0 };
   opts.foes.forEach(id => addFoe(id));
   B.foes.forEach(f => { f.e.x = f.home; });
   const R4 = rng(5); for(let i = 0; i < 22; i++) B.crowd.push({ x: -1 + i / 21 * 2, c: ['#3E4A6B', '#7A3E52', '#4F6B3E', '#6B4A2E', '#2F4F5E', '#5E3E6B', '#8A5A3A'][i % 7], h: .8 + R4() * .4, p: R4() * 6, cap: opts.crowdCap && i === 4 ? opts.crowdCap : null });
@@ -58,7 +61,7 @@ function setup(opts, resolve){
 function addFoe(id, entering){
   const def = WD.FOES[id], n = B.foes.length;
   const e = WD.makeEnt({ kind: def.kind, look: def.look ? WD.CATS[def.look] : null, name: def.name, dir: -1, flip: -1, light: 'day' });
-  const f = { id, def, e, hp: def.hp, max: def.hp, dizzy: 0, pow: 0, alive: true, idx: n };
+  const f = { id, def, e, hp: def.hp, max: def.hp, dizzy: 0, pow: 0, alive: true, idx: n, air: !!def.air };
   B.foes.push(f); layoutFoes();
   if(entering){ e.x = B.Wb + 120; }
   else e.x = f.home;
@@ -94,27 +97,33 @@ function rating(q, x){ x = x === undefined ? -40 : x; const bonus = q && WD.hasP
 async function hitFoe(f, n, opts){
   opts = opts || {};
   if(!f || !f.alive) return;
-  n = Math.max(0, n + (opts.noBuff ? 0 : (B.atkUp > 0 ? 1 : 0)) - (f.def.def || 0));
+  const raw = n + (opts.noBuff ? 0 : (B.atkUp > 0 ? 1 : 0));
+  n = Math.max(0, raw - (opts.pierce ? 0 : (f.def.def || 0) + (f.brace || 0)));
+  if(!n && raw > 0){ WD.sfx('guard'); addText(f.e.x, -60 - WD.headOf(f.e) * .5, 'Blocked!', '#B9BCC2', true); await WD.wait(240); return; }
   f.hp -= n; f.e.hurt = .35; f.e.rot = -.15 * f.e.flip; WD.sfx(n >= 4 ? 'big' : 'hit'); B.shake = n >= 4 ? 10 : 7;
   addText(f.e.x, -60 - WD.headOf(f.e) * .5, '-' + n, '#E8593C', true); burst(f.e.x - 10, -30, 12, ['#FFC94A', '#FFF8EC', '#E8593C']); updHud();
   await WD.wait(240); f.e.rot = 0;
+  if(B.snatched && f.id === 'condor' && (B.snatched.hp - f.hp >= 6 || !f.air || f.hp <= 0)){ B.snatched = null; if(B.a){ B.a.nervous = false; B.a.z = 0; B.a.rot = 0; B.a.x = B.home.a; addText(B.a.x, -90, 'Free!', '#7CD86A', true); WD.sfx('heal'); } }
   if(f.hp <= 0) await foeDown(f);
 }
 async function foeDown(f){
   f.alive = false; f.hp = 0; WD.sfx('whoosh'); burst(f.e.x, -30, 22, ['#FFC94A', '#E8593C', '#FFF8EC']);
   addText(f.e.x, -90, 'Out!', '#FFF8EC', true); cheer(1);
+  if(f.loot && f.loot.length){ f.loot.forEach(id => WD.giveItem(id, 1)); addText(B.p.x, -130, 'Got your stuff back!', '#7CD86A', true); f.loot = []; }
   f.e.expr = 'dizzy'; await tw(f.e, { x: B.Wb + 160, rot: -1.2 * f.e.flip }, 600, 50); f.e.vis = false;
   updHud();
   if(B.foes.some(x => x.alive)){ layoutFoes(); live().forEach(x => { tw(x.e, { x: x.home }, 420); }); }
 }
 async function hurtAlly(who, n){
   const G = WD.G, P = G.partner ? G.party[G.partner] : null;
+  if(who === 'a' && P && n > 0 && WD.hasPin('ruana')) n = Math.max(0, n - 1);
   if(who === 'a' && P){ P.hp = Math.max(0, P.hp - n); B.a.hurt = .35; addText(B.a.x, -60, n ? '-' + n : 'Blocked!', n ? '#E8593C' : '#3E6FB5', true); if(P.hp <= 0){ B.a.nervous = true; B.a.zzz = WD.G.partner === 'chunkers'; await WD.wait(250); await tw(B.a, { rot: -1.4 }, 300); addText(B.a.x, -40, WD.partnerDef().ko, '#B39CE0'); } }
   else { G.hp = Math.max(0, G.hp - n); B.p.hurt = .35; addText(B.p.x, -100, n ? '-' + n : 'Blocked!', n ? '#E8593C' : '#3E6FB5', true); }
   if(n){ WD.sfx('hit'); B.shake = 6; }
   updHud(); await WD.wait(300);
 }
 const live = () => B.foes.filter(f => f.alive);
+const atkB = () => (WD.G && WD.G.atkB) || 0;
 const partnerUp = () => { const G = WD.G; return !!(B.a && G.party[G.partner] && G.party[G.partner].hp > 0); };
 
 /* ================= menus ================= */
@@ -131,9 +140,11 @@ function bSay(text, ms){
   return new Promise(r => { const bm = WD.$('.wd-bmenu'); bm.innerHTML = `<div class="who say">${esc(text)}</div>`; bm.hidden = false; WD.wait(ms || 1500).then(() => { bm.hidden = true; r(); }); });
 }
 WD.bSay = bSay;
-async function pickTarget(){
-  const L = live(); if(L.length === 1) return L[0];
-  const i = await menu(L.map(f => ({ label: f.def.name, sub: `${f.hp} / ${f.max} HP` })).concat([{ label: 'Back', sub: '', cls: 'back' }]), 'Pick a target');
+/* ground = a move that can't reach flying enemies */
+async function pickTarget(ground){
+  const L = live(); if(L.length === 1 && !(ground && L[0].air)) return L[0];
+  const allUp = ground && L.every(f => f.air);
+  const i = await menu(L.map(f => ({ label: f.def.name, sub: ground && f.air ? 'Flying: out of reach' : `${f.hp} / ${f.max} HP`, disabled: !!(ground && f.air) })).concat([{ label: 'Back', sub: '', cls: 'back' }]), allUp ? 'Too high! Only jumps reach flying enemies' : 'Pick a target');
   return i < L.length ? L[i] : null;
 }
 async function tip(key, text){ if(!B.opts.tips || WD.flag('tip_' + key)) return; WD.set('tip_' + key); await bSay(text, 2400); }
@@ -142,14 +153,27 @@ async function tip(key, text){ if(!B.opts.tips || WD.flag('tip_' + key)) return;
 function holdRelease(){ return new Promise(r => { cmd = { kind: 'hold', v: 0, holding: false, r, show: true }; const c = cmd; WD.cmdPress = () => { if(!c.holding){ c.holding = true; WD.sfx('open'); } }; showA(true); }); }
 function ringTime(x, y){ return new Promise(r => { cmd = { kind: 'ring', u: 0, r, show: true, x, y }; const c = cmd; WD.cmdPress = () => { if(c.done) return; c.done = true; const rad = 46 * (1 - c.u), d = Math.abs(rad - 14); finishCmd(d < 2.8 ? 2 : d < 7.5 ? 1 : 0); }; showA(true); }); }
 function mash(secs){ return new Promise(r => { cmd = { kind: 'mash', n: 0, u: 0, secs: secs || 2.4, r, show: true }; const c = cmd; WD.cmdPress = () => { c.n++; WD.sfx('yap'); }; showA(true); }); }
-function guardWindow(ms){
-  return new Promise(r => {
-    const t0 = WD.time, at = ms / 1000; const c = { kind: 'guard', res: 0, show: false };
-    cmd = c; showA(true);
-    WD.cmdPress = () => { if(c.pressed) return; c.pressed = true; const dt = (WD.time - (t0 + at)) * 1000; c.res = dt > -100 && dt < 35 ? 2 : dt > -210 && dt < 70 ? 1 : 0; if(c.res) WD.sfx('guard'); };
-    WD.wait(ms + 80).then(() => { if(cmd === c){ cmd = null; WD.cmdPress = null; } r(c.res); });
-  });
+/* Guarding. The A button goes live the moment an enemy starts its attack, so pressing early (or mashing)
+   locks you out for that hit. Windows are measured around the moment of impact. */
+const GW = WD.GUARD = { sg: [-65, 20], g: [-155, 45] };
+function armGuard(){
+  const c = { kind: 'guard', res: 0, show: false, pressed: false, at: null, early: false };
+  cmd = c; showA(true);
+  WD.cmdPress = () => { if(c.pressed) return; c.pressed = true;
+    if(c.at === null){ c.early = true; return; }
+    const dt = (WD.time - c.at) * 1000;
+    c.res = dt > GW.sg[0] && dt < GW.sg[1] ? 2 : dt > GW.g[0] && dt < GW.g[1] ? 1 : 0;
+    if(c.res) WD.sfx('guard'); else if(dt < 0) c.early = true; };
+  return c;
 }
+function strikeIn(c, ms){ c.at = WD.time + ms / 1000; }
+async function closeGuard(c, x){
+  await WD.wait(70);
+  if(cmd === c){ cmd = null; WD.cmdPress = null; }
+  if(c.early){ addText(x || B.p.x, -150, 'Too early!', '#B9BCC2'); B.earlies = (B.earlies || 0) + 1; }
+  return c.res;
+}
+const rand = (a, b) => a + Math.random() * (b - a);
 function finishCmd(q){ const c = cmd; if(!c) return; cmd = null; WD.cmdPress = null; c.r(q); }
 function showA(on){ const b = WD.$('.wd-a'); if(b) b.hidden = !on; }
 WD.tickCmd = function(dt){
@@ -163,6 +187,7 @@ WD.tickCmd = function(dt){
 async function run(){
   const opts = B.opts;
   await tw(B, { curtain: 1 }, 1000); cheer(1);
+  if(WD.hasPin('tricolor')){ hype(1); addText(B.p.x, -130, '+1 SP · Tricolor Pin', '#FFC94A'); }
   if(opts.first){
     const f = live()[0];
     if(opts.first === 'flash'){ await bSay('First strike! The flashlight blinds them!'); live().forEach(x => { x.dizzy = 1; x.e.expr = 'dizzy'; }); addText(f.e.x, -100, 'Dazzled!', '#FFC94A', true); }
@@ -173,7 +198,7 @@ async function run(){
     if(!live().length) break;
     await heroTurn(); if(!live().length) break;
     if(partnerUp()){ await partnerTurn(); if(!live().length) break; }
-    for(const f of live().slice()){ if(!f.alive) continue; await foeTurn(f); if(WD.G.hp <= 0) break; }
+    for(const f of live().slice()){ if(!f.alive) continue; await foeTurn(f); if(WD.G.hp <= 0) break; if(f.def.twice && f.alive && !f.dizzy){ await foeTurn(f); if(WD.G.hp <= 0) break; } }
     if(WD.G.hp <= 0){ const again = await defeat(); if(again === 'retry') return; if(again === 'retreat') return; }
     if(B.atkUp > 0) B.atkUp--;
   }
@@ -187,24 +212,26 @@ async function heroTurn(){
     const specials = [];
     specials.push(D ? { label: 'Alley-Oop', sub: `3 SP · launch ${G.partner ? WD.partnerDef().name : 'your partner'}, then dunk`, cost: 3, id: 'oop', need: 'partner' } : { label: 'Group FaceTime', sub: '3 SP · the whole family yells “¡Vamos!”', cost: 3, id: 'ft' });
     if(G.learned.includes('Love Attack')) specials.push({ label: 'Love Attack', sub: '2 SP · Dayla’s tackle, in her honour', cost: 2, id: 'love' });
+    if(G.learned.includes('Zoomies')) specials.push({ label: 'Zoomies', sub: '3 SP · mash A! Hits every enemy on the ground', cost: 3, id: 'zoom' });
     if(G.learned.includes('Breakfast Focus')) specials.push({ label: 'Breakfast Focus', sub: '3 SP · 3 turns: no Detention or dizzy, take 1 less damage', cost: 3, id: 'focus' });
     const itemIds = Object.keys(G.items).filter(k => G.items[k] > 0);
     const main = [
       { label: D ? 'Jump Shot' : 'Heel Stomp', sub: 'Hold A, let go in the green' },
-      { label: D ? 'Crossover' : 'Purse Swing', sub: 'Tap A when the rings meet' },
+      { label: D ? 'Crossover' : 'Purse Swing', sub: 'Tap A when the rings meet · ground only' },
       { label: 'Specials', sub: `${G.sp} SP`, cls: 'special' },
       { label: 'Items', sub: itemIds.length ? `${itemIds.reduce((s, k) => s + G.items[k], 0)} in your bag` : 'Bag is empty', disabled: !itemIds.length },
       { label: 'Family Call', sub: B.fam ? 'Already called this fight' : 'Once per battle', cls: 'call', disabled: B.fam }
     ];
     const i = await menu(main, `${WD.hero}'s turn`);
     if(i === 0){ await tip('hold', 'Press and HOLD A. Let go when the bar is in the green, right at the yellow.'); const f = await pickTarget(); if(!f) continue; await jumpShot(f); return; }
-    if(i === 1){ await tip('ring', 'Watch the yellow ring shrink. Tap A the moment it meets the white one.'); const f = await pickTarget(); if(!f) continue; await crossover(f); return; }
+    if(i === 1){ await tip('ring', 'Watch the yellow ring shrink. Tap A the moment it meets the white one.'); const f = await pickTarget(true); if(!f) continue; await crossover(f); return; }
     if(i === 2){
       const j = await menu(specials.map(s => ({ label: s.label, sub: s.sub, cls: 'special', disabled: G.sp < s.cost || (s.need === 'partner' && !partnerUp()) })).concat([{ label: 'Back', cls: 'back' }]), 'Specials');
       if(j >= specials.length) continue; const s = specials[j]; G.sp -= s.cost; updHud();
       if(s.id === 'oop'){ const f = await pickTarget(); if(!f){ G.sp += s.cost; updHud(); continue; } await alleyOop(f); }
       else if(s.id === 'ft') await groupFaceTime();
       else if(s.id === 'love'){ const f = await pickTarget(); if(!f){ G.sp += s.cost; updHud(); continue; } await loveAttack(f); }
+      else if(s.id === 'zoom') await zoomies();
       else if(s.id === 'focus'){ await bSay('Breakfast Focus! Like Dayla at her bowl: nothing can distract you now.', 1700); B.focusT = 4; B.detain.p = 0; B.p.expr = 'determined'; addText(B.p.x, -120, 'FOCUSED', '#FFC94A', 'huge'); WD.sfx('heal'); cheer(1); await WD.wait(500); }
       return;
     }
@@ -223,15 +250,17 @@ async function heroTurn(){
 async function jumpShot(f){
   const p = B.p; B.focus = 'hold'; const q = await holdRelease(); B.focus = null;
   await tw(p, { x: f.e.x - 42 }, 360); WD.sfx('jump'); await tw(p, { x: f.e.x - 8 }, 420, 70);
-  rating(q); await hitFoe(f, [1, 2, 3][q] + (WD.hasPin('eagle') ? 1 : 0));
+  rating(q); await hitFoe(f, [1, 2, 3][q] + (WD.hasPin('eagle') ? 1 : 0) + atkB());
   if(q && f.alive){ await tw(p, { x: f.e.x - 10 }, 300, 40); await hitFoe(f, q === 2 ? 2 : 1); }
   await tw(p, { x: B.home.p }, 480, 30);
+  if(!q) await punish(f, 'p');
 }
 async function crossover(f){
   const p = B.p; await tw(p, { x: f.e.x - 50 }, 420); B.focus = 'ring'; const q = await ringTime(f.e.x, -36); B.focus = null;
-  await tw(p, { x: f.e.x - 20 }, 140); rating(q); await hitFoe(f, [1, 2, 3][q]);
+  await tw(p, { x: f.e.x - 20 }, 140); rating(q); await hitFoe(f, [1, 2, 3][q] + atkB());
   if(q === 2 && f.alive){ f.dizzy = Math.max(f.dizzy, 1); f.e.expr = 'dizzy'; addText(f.e.x, -110, 'Dizzy!', '#B39CE0'); }
   p.dir = -1; await tw(p, { x: B.home.p }, 480); p.dir = 1;
+  if(!q) await punish(f, 'p');
 }
 async function alleyOop(f){
   const p = B.p, a = B.a;
@@ -309,10 +338,14 @@ async function familyCall(){
 }
 async function partnerTurn(){
   const G = WD.G;
-  if(B.detain.a > 0){ B.detain.a--; await bSay(`Detention! ${WD.partnerDef().name} has to sit this turn out.`, 1400); return; }
+  if(B.snatched){ await bSay(`${WD.partnerDef().name} is caught in the condor’s talons! Hit it hard to break free.`, 1500); return; }
+  if(B.detain.a > 0){ B.detain.a--; await bSay(B.detainWhy || `Detention! ${WD.partnerDef().name} has to sit this turn out.`, 1400); return; }
   while(true){
     const a = B.a, id = G.partner, others = Object.keys(G.party).filter(k => k !== id && WD.PARTNERS[k] && G.party[k].hp > 0);
-    const opts = id === 'chunkers' ? [
+    const opts = id === 'lunita' ? [
+      { label: 'Pinscher Pounce', sub: 'Tap A on both rings. Reaches flyers' },
+      { label: 'Frenchie Charge', sub: `1 SP · hold A: Papu & Moka hit everyone on the ground`, disabled: G.sp < 1 }
+    ] : id === 'chunkers' ? [
       { label: 'Bulldog Bash', sub: 'Hold A, let go in the green. Big hit' },
       { label: 'Good Boy Guard', sub: 'Chunkers takes the next hit for you, and blocks some' }
     ] : [
@@ -325,17 +358,19 @@ async function partnerTurn(){
     if(others.length && i === opts.length - 1){ await swapIn(others[0]); continue; }
     if(id === 'chunkers'){
       if(i === 1){ B.goodBoy = 1; a.sit = true; await bSay('Chunkers sits in front of you. Very obedient. Very solid.', 1500); addText(a.x, -70, 'Good boy!', '#FFC94A', true); cheer(1); return; }
-      const f = await pickTarget(); if(!f) continue;
+      const f = await pickTarget(true); if(!f) continue;
       await tip('bash', 'Hold A to let Chunkers wind up, then let go in the green!');
       a.sit = false; B.focus = 'hold'; const q = await holdRelease(); B.focus = null;
       await tw(a, { x: f.e.x - 70 }, 300); WD.sfx('dash'); await tw(a, { x: f.e.x - 14 }, 260, 12);
       rating(q, a.x); await hitFoe(f, [1, 3, 4][q]);
       if(q === 2 && f.alive){ f.dizzy = Math.max(f.dizzy, 1); f.e.expr = 'dizzy'; addText(f.e.x, -110, 'Bonk!', '#B39CE0'); }
       await tw(a, { x: B.home.a }, 420, 16);
+      if(!q) await punish(f, 'a');
       return;
     }
+    if(id === 'lunita'){ const r = await lunitaTurn(i); if(r === 'back') continue; return; }
     if(i === 2){ const f = await pickTarget(); if(!f) continue; a.sniff = true; WD.sfx('sniff'); await WD.wait(700); a.sniff = false; await bSay(f.def.tattle, 3600); f.sniffed = true; return; }
-    const f = await pickTarget(); if(!f) continue;
+    const f = await pickTarget(i === 0); if(!f) continue;
     if(i === 0){
       await tip('spin', 'Three rings, one after another. Tap A each time a ring meets the white circle.');
       await tw(a, { x: f.e.x - 40 }, 380);
@@ -344,6 +379,7 @@ async function partnerTurn(){
       for(let h = 0; h < hits && f.alive; h++){ WD.tween(180, u => { a.rot = u * Math.PI * 2; }); await tw(a, { x: f.e.x - 16 }, 150, 10); await hitFoe(f, 1); await tw(a, { x: f.e.x - 36 }, 120, 6); }
       a.rot = 0; if(hits >= 4){ addText(-40, -120, 'PERFECT!', '#FFC94A', 'huge'); cheer(2); } else if(hits >= 3){ addText(-40, -120, 'NICE!', '#7CD86A', 'huge'); cheer(1); }
       await tw(a, { x: B.home.a }, 400, 20);
+      if(hits <= 1) await punish(f, 'a');
     } else {
       await tip('mash', 'Mash A as fast as you can until the bar is full!');
       a.nervous = true; B.focus = 'mash'; const n = await mash(2.2); B.focus = null; a.bark = true;
@@ -355,6 +391,48 @@ async function partnerTurn(){
     return;
   }
 }
+/* Lunita: a tiny mini pinscher who can leap at flyers, plus her Frenchie brothers Papu and Moka */
+async function lunitaTurn(i){
+  const G = WD.G, a = B.a;
+  if(i === 0){
+    const f = await pickTarget(false); if(!f) return 'back';
+    await tip('pounce', 'Two rings, one after the other. Tap A on each. Lunita can reach enemies in the air!');
+    const hy = f.air ? -86 : -40;
+    await tw(a, { x: f.e.x - 46 }, 320);
+    let perf = 0;
+    for(let k = 0; k < 2 && f.alive; k++){
+      B.focus = 'ring'; const q = await ringTime(f.e.x, hy); B.focus = null;
+      if(q === 2) perf++;
+      WD.sfx('jump'); await tw(a, { x: f.e.x - 12 }, 240, f.air ? 70 : 34); rating(q, a.x);
+      await hitFoe(f, [1, 2, 2][q]); await tw(a, { x: f.e.x - 40 }, 200, 10);
+    }
+    if(f.alive && f.air && perf === 2 && f.def.groundable){ f.air = false; f.grounded = 1; f.e.z = 0; B.shake = 12; WD.sfx('big'); addText(f.e.x, -110, 'GROUNDED!', '#FFC94A', 'huge'); cheer(2); await bSay(`${f.def.name} tumbles out of the sky! Everyone can reach it now.`, 1700); }
+    await tw(a, { x: B.home.a }, 380, 20);
+    if(!perf) await punish(f, 'a');
+    return;
+  }
+  if(G.sp < 1) return 'back';
+  G.sp -= 1; updHud();
+  await tip('frenchie', 'Hold A to let Papu and Moka get a running start, then let go in the green!');
+  WD.sfx('bark'); await bSay('Lunita barks for backup! Papu and Moka come charging in!', 1200);
+  B.focus = 'hold'; const q = await holdRelease(); B.focus = null;
+  const mk = (coat, y) => WD.makeEnt({ kind: 'frenchie', coat, name: coat === 'grey' ? 'Papu' : 'Moka', x: -B.Wb - 60, y, dir: 1, flip: 1, light: 'day', move: 1 });
+  B.assist = [mk('grey', -4), mk('brown', 10)];
+  WD.sfx('dash'); rating(q, 0);
+  const hits = live().slice();
+  await Promise.all(B.assist.map((e, j) => WD.wait(j * 160).then(() => tw(e, { x: B.Wb + 120 }, 1300))));
+  for(const f of hits){ if(!f.alive) continue; if(f.air){ addText(f.e.x, -120, 'Too high!', '#B9BCC2'); continue; } await hitFoe(f, [1, 2, 3][q]); }
+  B.assist = null;
+}
+async function zoomies(){
+  const p = B.p; await bSay('ZOOMIES! Mash A! Run laps like Dayla after a bath!', 1300);
+  B.focus = 'mash'; const n = await mash(2.4); B.focus = null;
+  const laps = Math.min(3, 1 + Math.floor(n / 10));
+  for(let k = 0; k < laps; k++){ WD.sfx('dash'); await tw(p, { x: B.Wb * .95 }, 360, 10); p.dir = -1; await tw(p, { x: -B.Wb * .8 }, 360, 10); p.dir = 1; }
+  const dmg = 1 + Math.min(3, Math.floor(n / 7)); if(n >= 21) rating(2); else if(n >= 12) rating(1); else rating(0);
+  for(const f of live().slice()){ if(f.air){ addText(f.e.x, -120, 'Too high!', '#B9BCC2'); continue; } await hitFoe(f, dmg); }
+  await tw(p, { x: B.home.p }, 380, 20);
+}
 async function swapIn(id){
   const G = WD.G, old = B.a; WD.sfx('whoosh');
   await tw(old, { x: -B.Wb - 80 }, 320);
@@ -363,54 +441,133 @@ async function swapIn(id){
   buildHud(); await tw(n, { x: B.home.a }, 380); addText(n.x, -70, d.name + '!', '#FFF8EC', true);
   if(WD.W.partner && WD.W.partner.name !== d.name){ const e = WD.makePartner(id); e.follow = true; Object.assign(e, { x: WD.W.partner.x, y: WD.W.partner.y }); WD.W.partner = e; }
 }
+/* ---------- enemy brains ---------- */
+function chooseMove(f){
+  const raging = f.def.rage && f.hp <= f.max / 2;
+  const moves = raging ? f.def.rage : f.def.moves;
+  let pool = moves.filter(m => !(m.type === 'summon' && live().length >= (m.max || 2)))
+    .filter(m => !(m.type === 'heal' && f.hp > f.max * .6))
+    .filter(m => !(m.type === 'buff' && f.pow))
+    .filter(m => !(m.type === 'brace' && (f.brace || f.hp > f.max * .7)));
+  if(!pool.length) pool = moves.filter(m => m.dmg !== undefined);
+  const weight = m => {
+    let w = m.w;
+    if(f.def.learn && B.gstat[m.id] && B.gstat[m.id].n){ const g = B.gstat[m.id]; w *= 1 + Math.min(1.2, g.fail / g.n * 1.5); }
+    if(m.type === 'heal' && f.hp <= f.max * .35) w *= 2;
+    if(f.def.smart && m.id === f.lastMove && pool.length > 1) w *= .5;
+    return w;
+  };
+  const tot = pool.reduce((s, m) => s + weight(m), 0); let r = Math.random() * tot, mv = pool[0];
+  for(const m of pool){ r -= weight(m); if(r <= 0){ mv = m; break; } }
+  return mv;
+}
+function chooseTarget(f, mv){
+  if(!partnerUp()) return 'p';
+  if(B.goodBoy) return 'a';
+  const G = WD.G, P = G.party[G.partner], d = (mv.dmg || 1) + (f.pow ? 1 : 0);
+  let pa = .35;
+  if(f.def.smart || f.def.boss){ if(G.hp <= d * 2) pa = .15; else if(P.hp <= d) pa = .6; }
+  return Math.random() < pa ? 'a' : 'p';
+}
+function noteGuard(f, mv, res){ if(!mv.id) return; const g = B.gstat[mv.id] || (B.gstat[mv.id] = { n: 0, fail: 0 }); g.n++; if(res < 1) g.fail++; }
+async function tipOnce(key, text){ if(WD.flag('tip_' + key)) return; WD.set('tip_' + key); await bSay(text, 2600); }
 async function foeTurn(f){
   const e = f.e;
-  if(f.dizzy > 0){ f.dizzy--; addText(e.x, -96, 'Too dizzy to move', '#B39CE0'); await WD.wait(800); if(!f.dizzy) e.expr = 'happy'; return; }
-  const moves = (f.def.rage && f.hp <= f.max / 2) ? f.def.rage : f.def.moves;
+  f.brace = 0;
+  if(f.dizzy > 0){ f.dizzy--; if(f.charging){ f.charging = null; e.glow = false; addText(e.x, -120, 'Charge lost!', '#FFC94A', true); } addText(e.x, -96, 'Too dizzy to move', '#B39CE0'); await WD.wait(800); if(!f.dizzy) e.expr = 'happy'; return; }
+  if(f.grounded > 0){ f.grounded--; await bSay(`${f.def.name} shakes off the dust and flaps back up into the sky.`, 1500); f.air = true; WD.sfx('whoosh'); return; }
   if(f.def.rage && f.hp <= f.max / 2 && !f.raged){ f.raged = true; await bSay(`${f.def.name} is getting serious!`, 1300); e.expr = 'angry'; B.shake = 8; WD.sfx('hiss'); }
-  let pool = moves.filter(m => !(m.type === 'summon' && live().length >= 2)).filter(m => !(m.type === 'heal' && f.hp >= f.max));
-  const tot = pool.reduce((s, m) => s + m.w, 0); let r = Math.random() * tot; let mv = pool[0]; for(const m of pool){ r -= m.w; if(r <= 0){ mv = m; break; } }
-  let target = partnerUp() && Math.random() < .35 ? 'a' : 'p';
-  if(B.goodBoy && partnerUp()){ target = 'a'; }
+  let mv;
+  if(f.charging){ mv = f.charging; f.charging = null; }
+  else {
+    mv = chooseMove(f);
+    if(mv.windup){ f.charging = mv; e.glow = true; e.armRaise = -1.6; WD.sfx('whoosh'); await bSay(mv.charge || `${f.def.name} is charging up ${mv.name}! It lands next turn. Make it dizzy to stop it!`, 2000); e.armRaise = -.8; f.lastMove = mv.id; return; }
+  }
+  f.lastMove = mv.id;
+  const target = chooseTarget(f, mv);
   const tgt = target === 'p' ? B.p : B.a;
-  if(!WD.flag('tip_guard') && B.opts.tips && (mv.type === 'melee' || mv.type === 'lob')){ await tip('guard', 'Here it comes! Tap A right before the hit to Guard. Perfect timing = Superguard!'); }
+  if(!WD.flag('tip_guard') && B.opts.tips && (mv.type === 'melee' || mv.type === 'lob')){ await tip('guard', 'Here it comes! Tap A right before the hit to Guard. Perfect timing = Superguard! Don’t press early: you only get one try per hit.'); }
   const extra = f.pow ? 1 : 0;
-  if(mv.type === 'heal'){ await bSay(`${f.def.name} soaks up the sun…`, 1100); f.hp = Math.min(f.max, f.hp + mv.amt); addText(e.x, -70, '+' + mv.amt, '#7CD86A', true); WD.sfx('heal'); updHud(); await WD.wait(400); return; }
-  if(mv.type === 'buff'){ await bSay(`${f.def.name} hisses! Its next hit will be stronger.`, 1200); WD.sfx('hiss'); f.pow = 1; e.expr = 'angry'; return; }
+  if(mv.type === 'heal'){ await bSay(mv.say || `${f.def.name} soaks up the sun…`, 1100); f.hp = Math.min(f.max, f.hp + mv.amt); addText(e.x, -70, '+' + mv.amt, '#7CD86A', true); WD.sfx('heal'); updHud(); await WD.wait(400); return; }
+  if(mv.type === 'buff'){ await bSay(mv.say || `${f.def.name} hisses! Its next hit will be stronger.`, 1200); WD.sfx('hiss'); f.pow = 1; e.expr = 'angry'; return; }
+  if(mv.type === 'brace'){ await bSay(mv.say || `${f.def.name} braces itself! It takes 2 less damage until its next turn.`, 1400); WD.sfx('guard'); f.brace = 2; addText(e.x, -100, 'Braced!', '#58AEDD', true); return; }
   if(mv.type === 'summon'){ await bSay(mv.say || '“FALL IN!” The Sergeant blows his whistle!', 1200); WD.sfx('whistle'); e.armRaise = -1; await WD.wait(400); e.armRaise = 0; const nf = addFoe(mv.summon, true); updHud(); await tw(nf.e, { x: nf.home }, 700); await bSay(mv.after || 'A Cat Agent reports for duty!', 1000); return; }
+  if(mv.type === 'special' && mv.run){ await mv.run(f, B, { bSay, tw, hurtAlly, addText, armGuard, strikeIn, closeGuard, resolveHit, target, tgt, live, partnerUp, noteGuard, hitFoe, updHud, burst }); f.pow = 0; return; }
+  if(mv.noSuper){ e.glow = true; await tipOnce('red', 'That glow means trouble: a red attack can be Guarded, but not Superguarded.'); }
   await bSay(`${f.def.name}: ${mv.name}!`, 1000);
   const shots = mv.type === 'barrage' ? mv.n : 1;
   if(mv.type === 'lob' || mv.type === 'barrage' || mv.type === 'detain'){
     for(let s = 0; s < shots; s++){
+      if(!f.alive) break;
       const tg = s === 0 || B.goodBoy ? tgt : (partnerUp() && Math.random() < .35 ? B.a : B.p), tk = tg === B.p ? 'p' : 'a';
-      e.armRaise = -1.4; WD.sfx('whoosh'); if(mv.proj === 'hairball') WD.sfx('gulp');
-      const arrive = mv.type === 'barrage' ? 520 : 640;
-      const pr = { x0: e.x - 10, y0: -40 * (e.look ? e.look.size || 1 : 1), x1: tg.x + 10, y1: tk === 'p' ? -46 : -22, u: 0, kind: mv.proj };
-      B.proj.push(pr); const g = guardWindow(arrive);
+      if(tk === 'a' && !partnerUp()) continue;
+      const c = armGuard();
+      e.armRaise = -1.4;
+      if(mv.delay) await WD.wait(rand(mv.delay[0], mv.delay[1]));
+      WD.sfx('whoosh'); if(mv.proj === 'hairball') WD.sfx('gulp');
+      const arrive = mv.rhythm ? mv.rhythm[s % mv.rhythm.length] : mv.type === 'barrage' ? 520 : 640;
+      const pr = { x0: e.x - 10, y0: -40 * (e.look ? e.look.size || 1 : 1) - (e.z || 0), x1: tg.x + 10, y1: tk === 'p' ? -46 : -22, u: 0, kind: mv.proj, red: !!mv.noSuper, arc: mv.arc };
+      B.proj.push(pr); strikeIn(c, arrive);
       await WD.tween(arrive, u => { pr.u = u; });
-      let res = await g; B.proj = B.proj.filter(x => x !== pr); e.armRaise = 0;
+      B.proj = B.proj.filter(x => x !== pr); e.armRaise = 0;
+      let res = await closeGuard(c, tg.x);
+      if(mv.noSuper && res === 2){ res = 1; addText(tg.x, -150, 'Too strong to Superguard!', '#E8593C'); }
       if(B.goodBoy && tk === 'a') res = Math.max(res, 1);
-      await resolveHit(res, tk, mv.dmg + extra, f);
+      noteGuard(f, mv, res);
+      await resolveHit(res, tk, (mv.dmg || 0) + extra, f, mv);
       if(mv.type === 'detain' && res < 2){ if(tk === 'p' && B.focusT > 0) addText(tg.x, -140, 'Too focused!', '#FFC94A', true); else { B.detain[tk] = 1; addText(tg.x, -140, 'DETENTION!', '#B39CE0', true); WD.sfx('whistle'); } }
       if(WD.G.hp <= 0) break;
+      if(s < shots - 1 && mv.gap) await WD.wait(mv.gap[s % mv.gap.length]);
     }
   } else {
-    const x0 = e.x; await tw(e, { x: tg2(tgt) + 60 }, 420);
-    const g = guardWindow(540); await tw(e, { x: tgt.x + 18 }, 540, mv.id === 'slam' ? 80 : 30); let res = await g;
+    const x0 = e.x, c = armGuard();
+    await tw(e, { x: tgt.x + 70 }, 420);
+    if(mv.feint && Math.random() < mv.feint){
+      e.armRaise = -1.3; await tw(e, { x: tgt.x + 40 }, 190, 14); e.armRaise = 0; await tw(e, { x: tgt.x + 76 }, 240);
+      addText(e.x, -110, 'Fake-out!', '#FFF8EC'); await WD.wait(rand(260, 560));
+      if(!WD.flag('tip_feint') && c.early){ WD.set('tip_feint'); }
+    }
+    if(mv.delay){ e.armRaise = -1.2; await WD.wait(rand(mv.delay[0], mv.delay[1])); }
+    const strike = mv.speed || 480;
+    strikeIn(c, strike);
+    await tw(e, { x: tgt.x + 18 }, strike, mv.id === 'slam' || mv.id === 'drill' ? 80 : 30); e.armRaise = 0;
+    let res = await closeGuard(c, tgt.x);
+    if(mv.noSuper && res === 2){ res = 1; addText(tgt.x, -150, 'Too strong to Superguard!', '#E8593C'); }
     if(B.goodBoy && target === 'a') res = Math.max(res, 1);
-    if(mv.id === 'slam') B.shake = 10;
-    await resolveHit(res, target, mv.dmg + extra, f);
+    if(mv.id === 'slam' || mv.big) B.shake = 10;
+    noteGuard(f, mv, res);
+    await resolveHit(res, target, (mv.dmg || 0) + extra, f, mv);
     await tw(e, { x: x0 }, 480, 30);
   }
+  e.glow = false;
+  if(B.earlies && !WD.flag('tip_early')){ WD.set('tip_early'); await bSay('Too early! Once you press A, you’re locked in for that hit. Wait for the real swing.', 2400); }
   f.pow = 0; if(e.expr === 'angry' && !f.raged) e.expr = 'happy';
   if(B.goodBoy){ B.goodBoy = 0; if(B.a) B.a.sit = false; }
 }
-const tg2 = t => t.x;
-async function resolveHit(res, who, dmg, f){
+async function resolveHit(res, who, dmg, f, mv){
   const tg = who === 'p' ? B.p : B.a;
-  if(res === 2){ addText(tg.x, -120, 'SUPERGUARD!', '#FFC94A', 'huge'); WD.sfx('perfect'); cheer(2); hype(1); await hurtAlly(who, 0); if(f.alive) await hitFoe(f, 1, { noBuff: true }); }
-  else { const off = (who === 'p' && B.focusT > 0 ? 1 : 0); if(res === 1){ addText(tg.x, -120, 'Guard!', '#58AEDD', true); hype(1); await hurtAlly(who, Math.max(0, dmg - 1 - (WD.hasPin('pearl') ? 1 : 0) - off)); } else await hurtAlly(who, Math.max(0, dmg - off)); }
+  if(res === 2){
+    B.streak = (B.streak || 0) + 1; const st = B.streak >= 3;
+    addText(tg.x, -120, st ? 'SUPERGUARD STREAK!' : 'SUPERGUARD!', '#FFC94A', 'huge'); WD.sfx('perfect'); cheer(2); hype(st ? 2 : 1);
+    await hurtAlly(who, 0); if(f && f.alive) await hitFoe(f, (st ? 2 : 1) + (WD.hasPin('oro') ? 1 : 0), { noBuff: true, pierce: true });
+    return;
+  }
+  B.streak = 0;
+  const off = (who === 'p' && B.focusT > 0 ? 1 : 0);
+  if(res === 1){ addText(tg.x, -120, 'Guard!', '#58AEDD', true); hype(1); await hurtAlly(who, Math.max(0, dmg - 1 - (WD.hasPin('pearl') ? 1 : 0) - off)); }
+  else await hurtAlly(who, Math.max(0, dmg - off));
+  if(mv && mv.steal && res < 1 && f && f.alive){ const G = WD.G, ids = Object.keys(G.items).filter(k => G.items[k] > 0); if(ids.length){ const id = ids[Math.floor(Math.random() * ids.length)]; G.items[id]--; if(!G.items[id]) delete G.items[id]; (f.loot = f.loot || []).push(id); addText(f.e.x, -130, 'Stole ' + WD.ITEMS[id].name + '!', '#E8593C', true); WD.sfx('whoosh'); if(!WD.flag('tip_steal')){ WD.set('tip_steal'); await bSay(`${f.def.name} pinched something from your bag! Beat it to get it back.`, 2000); } } }
 }
+/* some enemies punish a botched attack with a quick counter */
+async function punish(f, who){
+  if(!f || !f.alive || !f.def.punish) return;
+  if(who === 'a' && !partnerUp()) who = 'p';
+  const e = f.e; e.armRaise = -1.2; WD.sfx('whistle');
+  addText(e.x, -110, f.def.punishText || 'Counter!', '#E8593C', true); await WD.wait(350); e.armRaise = 0;
+  await hurtAlly(who, f.def.punish);
+  if(!WD.flag('tip_punish')){ WD.set('tip_punish'); await bSay(`${f.def.name} punishes sloppy attacks. Nail your timing to avoid the counter!`, 2200); }
+}
+WD.battlePunish = punish;
 async function defeat(){
   WD.sfx('lose'); B.p.expr = 'sad'; B.p.rot = -.2;
   await bSay(`${WD.hero} is out of breath…`, 1400);
@@ -423,7 +580,7 @@ async function defeat(){
 async function victory(){
   B.over = true; showA(false); WD.$('.wd-bmenu').hidden = true;
   const G = WD.G; WD.sfx('win'); cheer(3);
-  const xp = B.foes.reduce((s, f) => s + (f.def.xp || 0), 0) + (B.opts.xpBonus || 0);
+  const xp = Math.max(1, Math.round((B.foes.reduce((s, f) => s + (f.def.xp || 0), 0) + (B.opts.xpBonus || 0)) * clamp(1.25 - .06 * G.lv, .5, 1.2)));
   burst(0, -60, 40, ['#FFC94A', '#E8593C', '#7CD86A', '#58AEDD', '#FFF8EC']);
   addText(0, -140, 'You win!', '#FFC94A', 'huge'); B.p.expr = 'joy'; if(B.a) { B.a.happy = true; B.a.nervous = false; B.a.sit = false; B.a.zzz = false; }
   await WD.tween(500, u => { B.p.z = Math.sin(u * Math.PI) * 30; if(B.a) B.a.z = Math.sin(u * Math.PI) * 24; });
@@ -435,10 +592,11 @@ async function victory(){
   await endBattle('win');
 }
 async function levelUp(){
-  const G = WD.G; G.lv++; WD.sfx('level');
-  const i = await WD.card(`<i class="k">Level up!</i><h2>${esc(WD.hero)} is Level ${G.lv}</h2><p>Pick what grows. Everything gets refilled either way.</p>`, [{ label: 'HP +5', sub: `${G.mhp} → ${G.mhp + 5}`, alt: true }, { label: 'SP +1', sub: `${G.msp} → ${G.msp + 1} stars` }, { label: 'PP +3', sub: `${G.mpp} → ${G.mpp + 3} · for wearing pins` }]);
+  const G = WD.G; G.lv++;
+  const i = WD.levelUpScreen ? await WD.levelUpScreen(G) : await WD.card(`<i class="k">Level up!</i><h2>${esc(WD.hero)} is Level ${G.lv}</h2>`, [{ label: 'HP +5', alt: true }, { label: 'SP +1' }, { label: 'PP +3' }]);
   if(i === 0) G.mhp += 5; else if(i === 1) G.msp += 1; else { G.mpp += 3; G.pp = G.mpp; }
   G.hp = G.mhp; G.sp = G.msp; Object.keys(G.party).forEach(k => { const P = G.party[k]; P.mhp += 2; P.hp = P.mhp; });
+  updHud();
 }
 function endBattle(res){
   return WD.pageTurn(() => {
@@ -494,17 +652,25 @@ SCENE.draw = function(t, dt){
   ctx.save(); ctx.globalCompositeOperation = 'lighter';
   const L0 = live()[0]; [[B.p.x, -W2 + 40], [L0 ? L0.e.x : 100, W2 - 40]].forEach(([x, sx]) => { const sg = ctx.createLinearGradient(sx, -260, x, 0); sg.addColorStop(0, 'rgba(255,240,200,.18)'); sg.addColorStop(1, 'rgba(255,240,200,.05)'); ctx.fillStyle = sg; ctx.beginPath(); ctx.moveTo(sx - 6, -260); ctx.lineTo(x - 40, 6); ctx.lineTo(x + 40, 6); ctx.lineTo(sx + 6, -260); ctx.fill(); ctx.fillStyle = 'rgba(255,236,190,.16)'; ell(ctx, x, 4, 44, 9); ctx.fill(); });
   ctx.restore();
+  // red glow: this attack can't be Superguarded / a charged attack is coming
+  B.foes.forEach(f => { if(!f.alive || !f.e.glow) return; const pu = .55 + Math.sin(t * 10) * .25; ctx.save(); ctx.globalCompositeOperation = 'lighter'; const rg = ctx.createRadialGradient(f.e.x, -40, 4, f.e.x, -40, 70); rg.addColorStop(0, `rgba(255,70,50,${.42 * pu})`); rg.addColorStop(1, 'rgba(255,70,50,0)'); ctx.fillStyle = rg; ctx.fillRect(f.e.x - 80, -130, 160, 150); ctx.restore(); ctx.fillStyle = `rgba(232,60,48,${.5 + pu * .4})`; ell(ctx, f.e.x, 4, 34, 7); ctx.fill(); });
+  B.foes.forEach(f => { if(f.alive && f.air) f.e.z = (f.def.hover || 46) + Math.sin(t * 3 + f.idx) * 6; });
+  if(B.assist) B.assist.forEach(e => WD.tickEnt(e, dt));
   // characters
-  const ents = [B.p, B.a].concat(B.foes.map(f => f.e)).filter(e => e && e.vis !== false).sort((a, b) => a.y - b.y);
+  const ents = [B.p, B.a].concat(B.foes.map(f => f.e), B.assist || []).filter(e => e && e.vis !== false).sort((a, b) => a.y - b.y);
   ents.forEach(e => WD.paintEnt(e, fx + e.x * k, fy + e.y * k, k * 1.25));
   ctx.setTransform(k, 0, 0, k, fx, fy);
   // dizzy stars
   B.foes.forEach(f => { if(!f.alive || !f.dizzy) return; for(let i = 0; i < 3; i++){ const a = t * 4 + i * 2.1; ctx.fillStyle = '#FFC94A'; star(ctx, f.e.x + Math.cos(a) * 12, -WD.headOf(f.e) * 1.25 - 6 + Math.sin(a) * 4, 3.4); } });
   if(B.focusT > 0){ ctx.fillStyle = 'rgba(255,201,74,.9)'; ctx.font = '900 10px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.fillText('FOCUS', B.p.x, -152); }
   [['p', B.p], ['a', B.a]].forEach(([k, e]) => { if(e && B.detain[k] > 0){ ctx.fillStyle = '#B39CE0'; ctx.font = '900 9px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.fillText('DETENTION', e.x, k === 'p' ? -140 : -66); } });
+  B.foes.forEach(f => { if(f.alive && f.brace){ ctx.fillStyle = '#58AEDD'; ctx.font = '900 9px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.fillText('BRACED', f.e.x, -WD.headOf(f.e) * 1.25 - 16); } if(f.alive && f.def.def){ ctx.fillStyle = 'rgba(185,188,194,.95)'; ctx.font = '900 8px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.fillText('ARMOUR ' + f.def.def, f.e.x, 16); } });
+  if(B.streak >= 2){ ctx.fillStyle = 'rgba(255,201,74,.9)'; ctx.font = '900 9px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.fillText('STREAK ×' + B.streak, B.p.x, -160); }
+  if(B.wind > 0){ ctx.strokeStyle = `rgba(230,240,255,${.6 * Math.sin(B.wind * Math.PI)})`; ctx.lineWidth = 2; for(let i = 0; i < 9; i++){ const y = -150 + i * 18, x = W2 - (B.wind * 1.4 + i * .07) % 1 * W2 * 2.2; ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x - 40, y - 8, x - 90, y); ctx.stroke(); } }
+  if(B.snatched && B.a){ const cf = B.foes.find(f => f.id === 'condor'); if(cf && cf.alive){ B.a.x = cf.e.x - 6; B.a.z = cf.e.z - 22; B.a.rot = Math.sin(t * 6) * .2; } }
   if(B.atkUp > 0){ ctx.fillStyle = 'rgba(255,201,74,.85)'; ctx.font = '900 10px Grandstander, system-ui'; ctx.textAlign = 'center'; ctx.fillText('ATK ↑', B.p.x, -142); }
   // projectiles
-  B.proj.forEach(pr => { const u = pr.u, x = lerp(pr.x0, pr.x1, u), y = lerp(pr.y0, pr.y1, u) - Math.sin(u * Math.PI) * 50; ctx.save(); ctx.translate(x, y); ctx.rotate(u * 14);
+  B.proj.forEach(pr => { const u = pr.u, x = lerp(pr.x0, pr.x1, u), y = lerp(pr.y0, pr.y1, u) - Math.sin(u * Math.PI) * 50; ctx.save(); ctx.translate(x, y); if(pr.red){ ctx.fillStyle = 'rgba(255,70,50,.45)'; ell(ctx, 0, 0, 14 + Math.sin(t * 20) * 2, 14); ctx.fill(); } ctx.rotate(u * 14);
     if(WD.PROJ && WD.PROJ[pr.kind]) WD.PROJ[pr.kind](ctx, t);
     else if(pr.kind === 'hairball'){ ctx.fillStyle = '#C06A22'; ell(ctx, 0, 0, 7, 6); ctx.fill(); ctx.strokeStyle = '#E58E3A'; ctx.lineWidth = 1.2; for(let i = 0; i < 6; i++){ const a = i; ctx.beginPath(); ctx.moveTo(Math.cos(a) * 4, Math.sin(a) * 4); ctx.lineTo(Math.cos(a) * 9, Math.sin(a) * 8); ctx.stroke(); } }
     else { ctx.fillStyle = '#121114'; rr(ctx, -9, -3, 8, 5.6, 2); ctx.fill(); rr(ctx, 1, -3, 8, 5.6, 2); ctx.fill(); ctx.fillRect(-2, -2, 4, 1.2); }

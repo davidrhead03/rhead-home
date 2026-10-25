@@ -317,6 +317,11 @@ WD.sfx = function(k){
     case 'whistle': tone('sine', 2200, t, .5, .06, 2600); tone('sine', 2250, t + .1, .35, .04); break;
     case 'honk': tone('sawtooth', 330, t, .25, .07); tone('sawtooth', 415, t, .25, .05); break;
     case 'gulp': tone('sine', 300, t, .12, .1, 140); break;
+    case 'flip': tone('triangle', 520, t, .05, .05, 760); tone('sine', 1040, t + .03, .05, .03); break;
+    case 'stamp': tone('sine', 110, t, .22, .35, 50); tone('triangle', 220, t, .1, .12, 120); [784, 1175].forEach((f, i) => tone('triangle', f, t + .05 + i * .05, .14, .05)); break;
+    case 'chime': [1047, 1319, 1568].forEach((f, i) => tone('sine', f, t + i * .05, .3, .05)); tone('triangle', 523, t, .2, .04); break;
+    case 'fanfare': [[523, 0], [523, .12], [523, .24], [659, .36], [784, .6], [659, .84], [784, .96], [1047, 1.1]].forEach(([f, o], i) => { tone('square', f, t + o, i === 7 ? .8 : .14, .055); tone('triangle', f / 2, t + o, i === 7 ? .8 : .14, .05); }); [1568, 2093, 2637].forEach((f, i) => tone('sine', f, t + 1.3 + i * .07, .4, .03)); break;
+    case 'squeak': tone('sine', 1400, t, .08, .06, 1900); tone('sine', 1900, t + .09, .1, .05, 1300); break;
     case 'munch': for(let i = 0; i < 5; i++) tone('triangle', i % 2 ? 380 : 300, t + i * .07, .05, .07, i % 2 ? 300 : 240); break;
   }
 };
@@ -360,6 +365,8 @@ const SONGS = WD.SONGS = {
     mel: [62, 0, 65, 0, 69, 0, 0, 68, 69, 0, 0, 0, 65, 0, 0, 0, 67, 0, 70, 0, 74, 0, 0, 73, 74, 0, 0, 0, 0, 0, 0, 0, 72, 0, 0, 70, 69, 0, 67, 0, 65, 0, 0, 64, 62, 0, 0, 0, 61, 0, 64, 0, 67, 0, 70, 0, 69, 0, 0, 0, 0, 0, 0, 0] },
   dean: { bpm: 140, lead: 'square', groove: 'march', chords: [[43, 55, 58, 62], [39, 55, 58, 63], [38, 54, 57, 62], [43, 55, 58, 62]],
     mel: [67, 0, 67, 70, 74, 0, 70, 0, 79, 0, 0, 0, 74, 0, 0, 0, 75, 0, 75, 74, 72, 0, 70, 0, 69, 0, 0, 0, 66, 0, 0, 0, 67, 0, 70, 0, 74, 0, 79, 0, 82, 0, 79, 0, 75, 0, 72, 0, 74, 0, 72, 0, 70, 0, 69, 0, 67, 0, 0, 0, 62, 0, 0, 0] },
+  clear: { bpm: 126, lead: 'square', groove: 'calypso', chords: [[48, 52, 55, 60], [53, 57, 60, 65], [43, 55, 59, 62], [48, 52, 55, 64]],
+    mel: [72, 0, 76, 0, 79, 0, 84, 0, 0, 0, 79, 0, 84, 0, 0, 0, 77, 0, 81, 0, 84, 0, 89, 0, 0, 0, 84, 0, 86, 0, 0, 0, 79, 0, 83, 0, 86, 0, 91, 0, 0, 0, 89, 0, 86, 0, 83, 0, 84, 0, 0, 79, 0, 0, 76, 0, 72, 0, 0, 0, 0, 0, 0, 0] },
   end: { bpm: 72, lead: 'bell', groove: 'cozy', chords: [[48, 52, 55, 60], [45, 52, 57, 60], [41, 53, 57, 60], [43, 55, 59, 62]],
     mel: [76, 0, 0, 79, 0, 0, 84, 0, 83, 0, 0, 0, 79, 0, 0, 0, 81, 0, 0, 76, 0, 0, 72, 0, 74, 0, 0, 0, 0, 0, 0, 0, 77, 0, 0, 76, 0, 0, 74, 0, 72, 0, 0, 0, 69, 0, 0, 0, 71, 0, 72, 0, 74, 0, 79, 0, 76, 0, 0, 0, 0, 0, 0, 0] }
 };
@@ -384,6 +391,7 @@ const MUS = WD.MUS = (() => {
         else if(gr === 'sneak'){ if(s % 4 === 0) tone('triangle', NOTE(ch[0] - 12), nextT, dur * .6, .17); if(s % 4 === 2) tone('triangle', NOTE(ch[0] - 5), nextT, dur * .5, .1); if(s % 8 === 6) ch.slice(1).forEach(n => tone('sine', NOTE(n), nextT, dur * .4, .022)); if(s % 2 === 1) noise(nextT, .02, .02, 9000); }
         else if(gr === 'country'){ if(s % 4 === 0) tone('triangle', NOTE(ch[0] - 12 + (s % 8 === 4 ? 7 : 0)), nextT, dur * 1.3, .16); if(s % 4 === 2) ch.slice(1).forEach(n => tone('triangle', NOTE(n), nextT, dur * .6, .028)); if(s % 4 === 2) noise(nextT, .05, .06, 3000); }
         else if(gr === 'hiphop'){ if(s === 0 || s === 6 || s === 10) tone('sine', 62, nextT, .28, .32, 40); if(s === 4 || s === 12) noise(nextT, .14, .2, 1400); if(s % 2 === 0) noise(nextT, .02, s % 4 ? .03 : .05, 9000); if(s === 0 || s === 8) tone('triangle', NOTE(ch[0] - 12), nextT, dur * 5, .1); if(s % 8 === 2) ch.slice(1).forEach(n => tone('sine', NOTE(n), nextT, dur * 3, .018)); }
+        else if(gr === 'cumbia'){ if(s % 8 === 0 || s % 8 === 4) tone('triangle', NOTE(ch[0] - 12 + (s % 8 === 4 ? 7 : 0)), nextT, dur * 1.4, .16); if(s % 4 === 2 || s % 4 === 3) ch.slice(1).forEach(n => tone('triangle', NOTE(n), nextT, dur * .4, .02)); noise(nextT, .02, s % 2 ? .02 : .035, 8000); if(s % 8 === 6) noise(nextT, .05, .05, 1500); }
         else if(gr === 'march'){ if(s % 4 === 0) tone('triangle', NOTE(ch[0] - 12), nextT, dur * 1.2, .17); if(s % 4 === 2) ch.slice(1).forEach(n => tone('square', NOTE(n), nextT, dur * .5, .016)); noise(nextT, .05, (s % 4 === 0 ? .12 : .045), 2200); if(s % 16 === 14) noise(nextT + dur / 2, .05, .08, 2200); }
         else { if(s === 0) tone('sine', NOTE(ch[0] - 12), nextT, dur * 14, .1); if(s % 4 === 0) ch.slice(1).forEach((n, i) => tone('sine', NOTE(n + 12), nextT + i * dur * .5, dur * 3, .02)); }
         const m = S0.mel[step % S0.mel.length]; if(m) lead(S0.lead, NOTE(m), nextT, dur, S0.lead === 'bell' ? .07 : .08);
@@ -458,10 +466,10 @@ function onKey(e){
   if(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '].includes(k)) e.preventDefault();
   if(down && e.repeat) return;
   // keyboard menus: arrows move between buttons, A/Enter picks the focused one
-  const ae = document.activeElement, menuBtn = ae && root && root.contains(ae) && ae.tagName === 'BUTTON' && !ae.classList.contains('wd-btn') && ae.closest('.wd-bmenu,.choices,.wd-card,.wd-panel,.wd-title,.wd-pausebox');
+  const ae = document.activeElement, menuBtn = ae && root && root.contains(ae) && ae.tagName === 'BUTTON' && !ae.classList.contains('wd-btn') && ae.closest('.wd-bmenu,.choices,.wd-card,.wd-panel,.wd-title,.wd-pausebox,.wd-lvl,.wd-clear');
   if(down && menuBtn && [' ', 'Enter', 'z', 'Z'].includes(k)){ e.preventDefault(); ae.click(); return; }
   if(down && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(k)){
-    const box = ['.wd-pausebox', '.wd-panel', '.wd-card', '.wd-bmenu', '.wd-talk .choices', '.wd-title'].map(s => root.querySelector(s)).find(el => el && !el.hidden && el.offsetParent !== null && el.querySelector('button:not([disabled])'));
+    const box = ['.wd-lvl', '.wd-clear', '.wd-pausebox', '.wd-panel', '.wd-card', '.wd-bmenu', '.wd-talk .choices', '.wd-title'].map(s => root.querySelector(s)).find(el => el && !el.hidden && el.offsetParent !== null && el.querySelector('button:not([disabled])'));
     if(box){ const bs = [...box.querySelectorAll('button:not([disabled])')]; const i = bs.indexOf(ae); const d = (k === 'ArrowLeft' || k === 'ArrowUp') ? -1 : 1; bs[(i < 0 ? 0 : (i + d + bs.length) % bs.length)].focus({ preventScroll: true }); return; }
   }
   input.keys[k] = down;
@@ -602,7 +610,7 @@ WD.saveNow = function(){
   const copy = JSON.parse(JSON.stringify(G));
   try{ localStorage.setItem(LS(), JSON.stringify(copy)); }catch(e){}
   try{ api.save(copy); }catch(e){}
-  try{ api.saveWorld({ v: 2, p_start: 1, p_done: G.flags.p_done ? 1 : 0, c1_start: G.flags.c1_arrived ? 1 : 0, c1_done: G.flags.c1_done ? 1 : 0, ch: G.chapter || 0, lv: G.lv, hero: WD.hero }); }catch(e){}
+  try{ api.saveWorld({ v: 2, p_start: 1, p_done: G.flags.p_done ? 1 : 0, c1_start: G.flags.c1_arrived ? 1 : 0, c1_done: G.flags.c1_done ? 1 : 0, c2_start: G.flags.c2_arrived ? 1 : 0, c2_done: G.flags.c2_done ? 1 : 0, ch: G.chapter || 0, lv: G.lv, hero: WD.hero }); }catch(e){}
 };
 WD.flag = k => !!(WD.G && WD.G.flags[k]);
 WD.set = (k, v) => { WD.G.flags[k] = v === undefined ? 1 : v; };
@@ -657,7 +665,7 @@ async function start(host, apiIn){
   WD.time = 0; WD.paused = false; WD.letter = 0; letterT = 0; fadeA = 0; timers.length = 0; tweens.length = 0; WD.scene = null; WD.mode = 'load';
   prevT = performance.now(); raf = requestAnimationFrame(frame);
   try{
-    for(const m of ['render', 'script', 'world', 'battle']) await WD.require(m);
+    for(const m of ['render', 'script', 'world', 'battle', 'screens']) await WD.require(m);
     await WD.require('chapters/prologue');
     if(dead) return;
     resize();

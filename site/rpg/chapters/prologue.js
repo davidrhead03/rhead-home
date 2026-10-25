@@ -846,7 +846,12 @@ async function prologueEnd(){
   WD.MUS.play('end');
   if(!G.learned.includes('Love Attack')) G.learned.push('Love Attack');
   S('p_done'); G.chapter = 1; WD.saveNow();
-  await WD.card(`<i class="k">Prologue complete</i><h2>Where’s Dayla?</h2><p>Dayla was taken by a stranger in a long coat, cats in suits are calling her “the package,” and a very rich “client” wants her. The first sighting points to United International College.</p><ul><li>Special move learned: <b>Love Attack</b> (2 SP)</li><li>Sighting #1 added to your Missing Dog poster</li><li>Dayla’s Lost Toys: ${WD.toyCount(0)[0]}/3</li></ul>`, [{ label: 'Continue', alt: true }]);
+  await WD.chapterComplete({ num: 'Prologue', title: 'Where’s Dayla?', bunting: ['#E8593C', '#FFC94A', '#7CD86A', '#58AEDD', '#E86F79'], rewards: [
+    { icon: 'love', label: 'Love Attack', sub: 'Special move · 2 SP' },
+    { partner: 'alejandro', label: 'Alejandro', sub: 'Partner · sniffs out clues' },
+    { icon: 'photo', label: 'Sighting #1', sub: 'On your Missing Dog poster' },
+    { icon: 'ball', label: `Toys ${WD.toyCount(0)[0]}/3`, sub: 'Dayla’s lost toys, Tivoli Park' }
+  ] });
   const go = await WD.card(`<i class="k">Next</i><h2>Chapter 1: The Registrar’s Riddle</h2><p>United International College, Dania Beach. Somebody is forging Dayla’s transfer papers.</p><p>Drive there now, or look around Tivoli Park first. The car is parked right here in the back lot.</p>`, [{ label: 'Drive to UIC', alt: true }, { label: 'Stay a bit' }]);
   if(go === 0){ await WD.cut(async () => {}); return WD.startChapter(1); }
   WD.MUS.play('courts'); WD.updateGoal();
@@ -870,13 +875,13 @@ TITLE.update = function(dt, t){ WD.cam.x = 900 + Math.sin(t * .08) * 600; WD.cam
 TITLE.draw = function(t, dt){ const A = WD.areas.walk; A.drawBack(t, dt); WD.setLayer(1); A.drawFront(t); WD.drawVignette(true); };
 async function showTitle(){
   const G0 = WD.loadSave();
-  if(G0 && G0.flags && G0.flags.p_done){ try{ await WD.require('chapters/ch1'); }catch(e){ console.error(e); } }
+  if(G0 && G0.flags && G0.flags.p_done){ try{ await WD.require('chapters/ch1'); if(G0.flags.int1_done || G0.flags.c2_arrived) await WD.require('chapters/ch2'); }catch(e){ console.error(e); } }
   const el = WD.$('.wd-title'); WD.setScene(TITLE, 'title'); WD.light = 'day'; WD.MUS.play('title');
   WD.showControls(false); WD.$('.wd-goal').hidden = true;
   const areaName = G0 ? (WD.areas[G0.area] || {}).name || 'Tivoli Park' : '';
-  const chip = !G0 || !G0.flags.p_done ? 'Prologue · Tivoli Park' : G0.flags.c1_done ? 'Chapter 1 ✓ · Next: Bogotá' : 'Chapter 1 · The Registrar’s Riddle';
+  const chip = !G0 || !G0.flags.p_done ? 'Prologue · Tivoli Park' : G0.flags.c2_done ? 'Chapter 2 ✓ · Next: Canada' : G0.flags.c2_arrived ? 'Chapter 2 · Abuela’s Kitchen' : G0.flags.c1_done ? 'Chapter 1 ✓ · Next: Bogotá' : 'Chapter 1 · The Registrar’s Riddle';
   el.innerHTML = `<div class="wd-logo"><h1>Where’s <span>Dayla?</span></h1><p class="chip">${esc(chip)}</p>
-    <div class="wd-pick">${G0 ? `<button class="wd-cb alt" data-go="continue">Continue<small>Lv ${G0.lv} · ${esc(areaName)}${G0.flags.c1_done ? ' · Chapter 1 ✓' : G0.flags.p_done ? ' · Prologue ✓' : ''}</small></button><button class="wd-cb" data-go="new">New game<small>Start over</small></button>` : `<button class="wd-cb alt" data-go="new">Start<small>Play as ${esc(WD.hero)}</small></button>`}</div>
+    <div class="wd-pick">${G0 ? `<button class="wd-cb alt" data-go="continue">Continue<small>Lv ${G0.lv} · ${esc(areaName)}${G0.flags.c2_done ? ' · Chapter 2 ✓' : G0.flags.c1_done ? ' · Chapter 1 ✓' : G0.flags.p_done ? ' · Prologue ✓' : ''}</small></button><button class="wd-cb" data-go="new">New game<small>Start over</small></button>` : `<button class="wd-cb alt" data-go="new">Start<small>Play as ${esc(WD.hero)}</small></button>`}</div>
     <div class="wd-hint">Playing as ${esc(WD.hero)}. ${esc(WD.spouse)} has a separate save.<br>Move with the stick or arrow keys. A (or Space) to talk and act, B (X key) for your skill. Sound on for music.</div></div>`;
   el.hidden = false;
   const tap = () => { WD.audio(); WD.MUS.play('title'); };
@@ -904,7 +909,7 @@ async function resume(G0){
   if(F('agents') && !G0.partner){ G0.partner = 'alejandro'; G0.party.alejandro = { hp: 8, mhp: 8 }; S('veci_gone'); }
   if(F('boss') && !F('photo') && G0.area !== 'courts'){ G0.area = 'courts'; G0.x = 1600; G0.y = 66; }
   G0.pins = G0.pins || []; G0.worn = G0.worn || [];
-  if(F('p_done')){ try{ await WD.require('chapters/ch1'); }catch(e){ console.error(e); } }
+  if(F('p_done')){ try{ await WD.require('chapters/ch1'); if(F('int1_done') || F('c2_arrived')) await WD.require('chapters/ch2'); }catch(e){ console.error(e); } }
   if(WD.repairSave) WD.repairSave(G0);
   makeHero();
   const A = WD.areas[G0.area] ? G0.area : 'home';

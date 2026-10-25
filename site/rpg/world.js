@@ -136,6 +136,7 @@ EXPLORE.onP = function(){
   if(it){ it.act(); return; }
   const p = W.player, other = things().find(o => o.skill === 'p' && whoOf(o) !== WD.G.partner && Math.hypot(o.x - p.x, (o.y - p.y) * 1.6) < (o.r || 52));
   if(other){ const d = WD.PARTNERS[whoOf(other)]; WD.toast(WD.G.party[whoOf(other)] ? `${d.name} could ${d.skill.label.toLowerCase()} here. Switch partners in the bag (Party tab).` : 'Hmm. Somebody else could help with this.'); return; }
+  if(WD.G.partner === 'lunita'){ WD.emote(a, '?'); WD.sfx('yap'); WD.toast('Lunita looks for a tiny gap to squeeze through. Nothing here.'); return; }
   if(WD.G.partner === 'chunkers'){ a.sit = true; WD.sfx('gulp'); setTimeout(() => { a.sit = false; }, 1200); WD.toast('Chunkers sits. Good boy. Nothing heavy to push right here.'); return; }
   a.sniff = true; W.sniffT = 1.1; WD.sfx('sniff');
   const spot = things().filter(o => o.skill === 'p' && !o.decoy && whoOf(o) === 'alejandro').sort((x, y) => Math.abs(x.x - p.x) - Math.abs(y.x - p.x))[0];
@@ -245,7 +246,7 @@ EXPLORE.draw = function(t, dt){
 WD.PHOTOS = { uic: (c, x, y, s) => WD.sightingUIC(c, x, y, s) };
 WD.CLUE_ICON = { duck: ['duck', 'Yellow duck'], print: ['print', 'Boot print'], glove: ['glove', 'Small glove'], cats: ['shades', 'Cat Agents'], sergeant: ['van', 'The van'], photo: ['photo', 'UIC photo'] };
 WD.TOYS = { ball: { name: 'Tennis Ball', ch: 0, where: 'Tivoli Park' }, rope: { name: 'Rope Tug', ch: 0, where: 'Tivoli Park' }, bone: { name: 'Squeaky Bone', ch: 0, where: 'Tivoli Park' } };
-WD.CH_NAMES = ['Tivoli Park', 'UIC'];
+WD.CH_NAMES = ['Tivoli Park', 'UIC', 'Bogotá'];
 /* pins: worn in the Party tab, each costs PP */
 WD.PINS = {
   pearl: { name: 'Pearl Pin', pp: 1, desc: 'A normal Guard blocks 1 extra damage.' },

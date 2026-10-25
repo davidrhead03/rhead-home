@@ -48,22 +48,22 @@ WD.VERSES.ps121 = { ref: 'Psalm 121:8', en: 'The LORD shall preserve thy going o
 
 /* ================= enemies ================= */
 Object.assign(WD.FOES, {
-  clipcat: { name: 'Paper-Clip Cat', kind: 'cat', look: 'clip', hp: 5, atk: 1, xp: 16,
-    moves: [{ id: 'swipe', name: 'Claw Swipe', type: 'melee', dmg: 1, w: 3 }, { id: 'fling', name: 'Clip Fling', type: 'lob', dmg: 1, w: 2, proj: 'clip' }],
-    tattle: 'A Paper-Clip Cat. Office cat on the Collector’s payroll. HP 5, Attack 1. Hoards paper clips. Nobody knows why. He doesn’t either.' },
-  stapler: { name: 'Stapler Critter', kind: 'stapler', hp: 4, atk: 1, xp: 14,
-    moves: [{ id: 'chomp', name: 'Chomp', type: 'melee', dmg: 2, w: 2 }, { id: 'spray', name: 'Staple Spray', type: 'barrage', dmg: 1, n: 2, w: 2, proj: 'staple' }],
-    tattle: 'A Stapler Critter. HP 4. Its Chomp hits for 2, so Guard that one! Staple Spray fires twice.' },
-  bat: { name: 'Tardy Bat', kind: 'bat', hp: 3, atk: 1, xp: 12,
-    moves: [{ id: 'swoop', name: 'Late Swoop', type: 'melee', dmg: 1, w: 3 }, { id: 'slip', name: 'Tardy Slip', type: 'detain', dmg: 0, w: 1, proj: 'slip' }],
-    tattle: 'A Tardy Bat. HP 3. Always late, never sorry. A Tardy Slip gives you Detention: Superguard it or lose a turn.' },
-  monitor: { name: 'Hall-Monitor Cat', kind: 'cat', look: 'monitor', hp: 5, atk: 1, xp: 16,
-    moves: [{ id: 'snap', name: 'Sash Snap', type: 'melee', dmg: 1, w: 3 }, { id: 'nr', name: 'No Running!', type: 'buff', w: 1, say: 'The Hall-Monitor Cat blows his whistle! His next hit will be stronger.' }],
-    tattle: 'A Hall-Monitor Cat. HP 5, Attack 1. Blows his whistle to power up the next hit. Has never once been late. Has never once been fun.' },
-  dean: { name: 'The Dean of Detention', kind: 'cat', look: 'dean', hp: 30, atk: 2, xp: 150, boss: true,
-    moves: [{ id: 'slipd', name: 'Detention Slip', type: 'detain', dmg: 1, w: 3, proj: 'slip' }, { id: 'quiz', name: 'Pop Quiz', type: 'barrage', dmg: 1, n: 3, w: 2, proj: 'quiz' }, { id: 'ruler', name: 'Ruler Smack', type: 'melee', dmg: 2, w: 2 }],
-    rage: [{ id: 'slipd', name: 'Detention Slip', type: 'detain', dmg: 1, w: 2, proj: 'slip' }, { id: 'quiz', name: 'Pop Quiz', type: 'barrage', dmg: 1, n: 3, w: 2, proj: 'quiz' }, { id: 'ruler', name: 'Ruler Smack', type: 'melee', dmg: 2, w: 2 }, { id: 'call', name: 'Hall Pass!', type: 'summon', summon: 'monitor', w: 3, say: '“HALL MONITORS! To my office!” The Dean rings his bell!', after: 'A Hall-Monitor Cat reports for duty!' }],
-    tattle: 'The Dean of Detention. HP 30, Attack 2. Detention Slips cost you a turn unless you Superguard. Pop Quiz is three fast hits: Guard each one. At half health he calls Hall Monitors. Chunkers’ Good Boy Guard soaks up the big hits.' }
+  clipcat: { name: 'Paper-Clip Cat', kind: 'cat', look: 'clip', hp: 8, atk: 2, xp: 18, smart: true,
+    moves: [{ id: 'swipe', name: 'Claw Swipe', type: 'melee', dmg: 2, w: 3, delay: [0, 420], feint: .3 }, { id: 'fling', name: 'Clip Fling', type: 'barrage', dmg: 1, n: 2, w: 2, proj: 'clip', rhythm: [560, 340] }],
+    tattle: 'A Paper-Clip Cat. Office cat on the Collector’s payroll. HP 8, Attack 2. His Claw Swipe sometimes fakes you out, so wait for the real one. Hoards paper clips. Nobody knows why. He doesn’t either.' },
+  stapler: { name: 'Stapler Critter', kind: 'stapler', hp: 7, atk: 2, def: 1, xp: 18,
+    moves: [{ id: 'chomp', name: 'Chomp', type: 'melee', dmg: 2, w: 2, feint: .4, speed: 420 }, { id: 'spray', name: 'Staple Spray', type: 'barrage', dmg: 1, n: 3, w: 2, proj: 'staple', rhythm: [500, 280, 660] }],
+    tattle: 'A Stapler Critter. HP 7, Armour 1: every hit does 1 less, but Superguard counters go right through. Chomp hits for 2 and loves a fake-out. Staple Spray fires three times, unevenly: ba-bap… bap.' },
+  bat: { name: 'Tardy Bat', kind: 'bat', hp: 5, atk: 1, xp: 14, twice: true,
+    moves: [{ id: 'swoop', name: 'Late Swoop', type: 'melee', dmg: 1, w: 3, delay: [0, 650] }, { id: 'slip', name: 'Tardy Slip', type: 'detain', dmg: 0, w: 1, proj: 'slip' }],
+    tattle: 'A Tardy Bat. HP 5. Always late, so it moves TWICE a turn and swoops whenever it feels like it. A Tardy Slip gives you Detention: Superguard it or lose a turn.' },
+  monitor: { name: 'Hall-Monitor Cat', kind: 'cat', look: 'monitor', hp: 9, atk: 2, xp: 22, smart: true, punish: 1, punishText: 'Write-up!',
+    moves: [{ id: 'snap', name: 'Sash Snap', type: 'melee', dmg: 2, w: 3, delay: [100, 500] }, { id: 'nr', name: 'No Running!', type: 'buff', w: 1, say: 'The Hall-Monitor Cat blows his whistle! His next hit will be stronger.' }, { id: 'brace', name: 'By the Book', type: 'brace', w: 1, say: 'The Hall-Monitor Cat holds up the rule book! He takes 2 less damage until his next turn.' }],
+    tattle: 'A Hall-Monitor Cat. HP 9, Attack 2. Botch an attack and he writes you up for 1 damage. He braces behind the rule book when hurt, so hit him with a partner or wait it out. Has never once been fun.' },
+  dean: { name: 'The Dean of Detention', kind: 'cat', look: 'dean', hp: 55, atk: 3, xp: 180, boss: true, smart: true, learn: true,
+    moves: [{ id: 'slipd', name: 'Detention Slip', type: 'detain', dmg: 2, w: 3, proj: 'slip', delay: [0, 400] }, { id: 'quiz', name: 'Pop Quiz', type: 'barrage', dmg: 2, n: 3, w: 2, proj: 'quiz', rhythm: [520, 300, 780] }, { id: 'ruler', name: 'Ruler Smack', type: 'melee', dmg: 3, w: 2, feint: .5, delay: [100, 500] }, { id: 'stamp', name: 'EXPELLED Stamp', type: 'melee', dmg: 4, w: 1, windup: true, noSuper: true, big: true, speed: 560, charge: 'The Dean raises a giant EXPELLED stamp! It comes down next turn. Make him dizzy to stop it, or get ready to Guard!' }],
+    rage: [{ id: 'slipd', name: 'Detention Slip', type: 'detain', dmg: 2, w: 2, proj: 'slip', delay: [0, 500] }, { id: 'quiz', name: 'Pop Quiz', type: 'barrage', dmg: 1, n: 5, w: 2, proj: 'quiz', rhythm: [500, 280, 280, 720, 300] }, { id: 'ruler', name: 'Ruler Smack', type: 'melee', dmg: 3, w: 2, feint: .5, delay: [100, 600] }, { id: 'stamp', name: 'EXPELLED Stamp', type: 'melee', dmg: 4, w: 2, windup: true, noSuper: true, big: true, speed: 560, charge: 'The Dean raises a giant EXPELLED stamp! It comes down next turn. Make him dizzy to stop it, or get ready to Guard!' }, { id: 'call', name: 'Hall Pass!', type: 'summon', summon: 'monitor', w: 3, say: '“HALL MONITORS! To my office!” The Dean rings his bell!', after: 'A Hall-Monitor Cat reports for duty!' }],
+    tattle: 'The Dean of Detention. HP 55, Attack 2 to 4. Detention Slips cost you a turn unless you Superguard. Pop Quiz is three hard hits in a tricky rhythm (five small ones once he’s angry). The Ruler Smack fakes you out. When he raises the EXPELLED stamp, a Perfect Crossover makes him dizzy and cancels it; otherwise Guard it (it glows red, so no Superguard). At half health he calls Hall Monitors. He notices which attack you guard worst and uses it more.' }
 });
 
 /* ================= drawing: critters ================= */
@@ -342,7 +342,7 @@ function goal1(){
   else if(!F('c1_gym_in')) g = 'Open the old gym (east end of campus)';
   else if(!F('c1_boss')) g = 'Find the agents inside the old gym';
   else if(!F('c1_photo')) g = 'Pick up what the Dean dropped';
-  else g = 'Chapter 1 complete! Look around UIC, or drive home';
+  else g = F('int1_done') ? 'Chapter 1 complete! Take the car to the airport for Bogotá' : 'Chapter 1 complete! Look around UIC, or drive home';
   WD.setGoal(g);
 }
 function goalI1(){
@@ -451,8 +451,10 @@ WD.defineArea('uic_front', {
 });
 async function carHome(){
   await WD.cut(async () => {
-    const i = await WD.choose(WD.hero, D() ? 'Head home to Tivoli Park for a bit?' : '¿Vamos a la casa un rato?', ['Drive home', 'Stay at UIC']);
+    const fly = F('int1_done');
+    const i = await WD.choose(WD.hero, fly ? (D() ? 'Where to?' : '¿Para dónde?') : (D() ? 'Head home to Tivoli Park for a bit?' : '¿Vamos a la casa un rato?'), fly ? ['Drive home', 'Airport → Bogotá', 'Stay at UIC'] : ['Drive home', 'Stay at UIC']);
     if(i === 0) await WD.gotoArea('courts', 1500, 64, { dir: -1, from: 'uic' });
+    else if(fly && i === 1) await WD.startChapter(2);
   });
 }
 function gymDoor(){
@@ -1129,7 +1131,15 @@ async function chapterEnd1(){
   WD.MUS.play('end');
   if(!G.learned.includes('Breakfast Focus')) G.learned.push('Breakfast Focus');
   S('c1_done'); G.chapter = Math.max(G.chapter, 2); WD.saveNow();
-  await WD.card(`<i class="k">Chapter 1 complete</i><h2>The Registrar’s Riddle</h2><p>The transfer papers were forged, the Dean of Detention is dismissed, and the real order points to Bogotá.</p><ul><li>Special move learned: <b>Breakfast Focus</b> (3 SP): no Detention or dizziness, and you take 1 less damage</li><li>New partner: <b>Chunkers</b></li><li>Sighting #2 added to your Missing Dog poster</li><li>UIC toys: ${WD.toyCount(1)[0]}/3 · Pins: ${(G.pins || []).length}/3</li></ul>`, [{ label: 'Continue', alt: true }]);
+  G.atkB = Math.max(G.atkB || 0, 1); WD.saveNow();
+  await WD.chapterComplete({ num: 'Chapter 1', title: 'The Registrar’s Riddle', bunting: ['#7A1426', '#E8B84A', '#FFF8EC', '#7A1426', '#58AEDD'], rewards: [
+    { icon: 'cafe', label: 'Breakfast Focus', sub: 'Special · 3 SP: no Detention, −1 damage' },
+    { partner: 'chunkers', label: 'Chunkers', sub: 'Partner · push & sit on switches' },
+    { icon: 'photo2', label: 'Sighting #2', sub: 'Dayla at the old gym' },
+    { icon: 'star', label: 'Attack +1', sub: 'Basic attacks hit 1 harder' },
+    { icon: 'pin', label: `Pins ${(G.pins || []).length}/3`, sub: 'Wear them from the bag' },
+    { icon: 'pig', label: `Toys ${WD.toyCount(1)[0]}/3`, sub: 'Dayla’s lost toys at UIC' }
+  ] });
   await startInterlude();
 }
 
@@ -1174,8 +1184,9 @@ async function afterInterlude(){
       ]);
     }
     WD.MUS.play('campus');
-    await WD.card(`<i class="k">Next</i><h2>Chapter 2: Abuela’s Kitchen</h2><p>Bogotá, Colombia. Family, food, and a giant bird on a mountain.</p><p>Chapter 2 arrives in the next update. Until then, UIC and Tivoli Park are yours: find any toys and pins you missed.</p>`, [{ label: 'Keep exploring', alt: true }]);
+    const go = await WD.card(`<i class="k">Next</i><h2>Chapter 2: Abuela’s Kitchen</h2><p>Bogotá, Colombia. Family, food, and a giant bird on a mountain.</p><p>Fly there now, or look around UIC and Tivoli Park first. The car at UIC can take you to the airport any time.</p>`, [{ label: 'Fly to Bogotá', alt: true }, { label: 'Stay a bit' }]);
     WD.cam.lock = false; WD.updateGoal(); WD.saveNow();
+    if(go === 0) return WD.startChapter(2);
   });
 }
 function drawKennel(c, t){
@@ -1300,6 +1311,7 @@ WD.repairSave = function(G0){
   const fl = G0.flags;
   if(fl.c1_boss_scene && !fl.c1_boss) fl.c1_boss_scene = 0;
   if(fl.c1_chunkers && !G0.party.chunkers){ WD.addPartner('chunkers'); }
+  if(fl.c1_done) G0.atkB = Math.max(G0.atkB || 0, 1);
   if(G0.area === 'kennel' || (fl.c1_photo && !fl.int1_done)){ G0.area = 'uic_gym'; G0.x = 1700; G0.y = 66; ['i_start', 'i_bed', 'i_shoe', 'i_love', 'i_food', 'i_tag', 'i_mail'].forEach(k => { delete fl[k]; }); }
   if(G0.area === 'uic_registrar' || G0.area === 'uic_gym'){ /* partners never stay sitting across a save */ }
 };

@@ -4388,9 +4388,9 @@ function acctCard(k){
     ${k ? `<div class="between" style="margin-top:6px;align-items:baseline"><b class="num" style="font-family:var(--display);font-size:32px">${sMoney(tot)}</b>${lastUpd ? `<span class="fine">Updated ${esc(fmtDate(parseYmd(lastUpd), { month:'short', day:'numeric' }))}</span>` : ''}</div>`
       : `<div class="row" style="margin-top:6px;gap:18px"><div><div class="fine">Checking</div><b class="num" style="font-family:var(--display);font-size:24px">${sMoney(chk)}</b></div><div><div class="fine">Savings</div><b class="num" style="font-family:var(--display);font-size:24px;color:var(--sage)">${sMoney(sav)}</b></div></div>`}
     ${S.showForm.acct ? `<form class="stack" data-form="acct" style="gap:10px;margin-top:10px"><div class="row"><label class="f grow">Account<input type="text" id="ac-name" name="name" required maxlength="40" placeholder="e.g. Chase savings, cash jar"></label><label class="f" style="width:120px">Type<select id="ac-kind" name="kind"><option value="savings">Savings</option><option value="checking" ${k === undefined && !accts().some(isChk) ? 'selected' : ''}>Checking</option></select></label></div><div class="row"><label class="f grow">Balance now<input type="number" id="ac-bal" name="bal" required min="0" step="0.01" inputmode="decimal" placeholder="$"></label></div><button class="btn primary">Add account</button></form>` : ''}
-    ${L.length ? `<div class="list" style="margin-top:8px">${L.map(a => { const h = a.hist || [], prev = h.length > 1 ? h[h.length - 2] : null, ch = prev ? (Number(a.bal) || 0) - (Number(prev.bal) || 0) : 0; return `<div class="li" style="flex-wrap:wrap"><div class="txt"><div style="font-weight:600">${k ? '' : `<span class="pill ${isChk(a) ? 'sky' : 'sage'}">${isChk(a) ? 'Checking' : 'Savings'}</span> `}${esc(a.name)}</div><div class="sub">${a.upd ? 'Updated ' + esc(fmtDate(parseYmd(a.upd), { month:'short', day:'numeric' })) + (a.by ? ' by ' + esc(nameOf(a.by)) : '') : ''}${prev && ch ? ` · <span style="color:${ch > 0 ? 'var(--sage)' : 'var(--danger)'}">${ch > 0 ? '+' : '−'}${money2(Math.abs(ch))}</span> since ${esc(fmtDate(parseYmd(prev.date), { month:'short', day:'numeric' }))}` : ''}</div></div><b class="num">${sMoney(liveBal(a))}</b>
-      ${acctMoves(a).n ? `<div class="fine" style="flex-basis:100%;margin-top:-4px">${money2(a.bal)} when you last updated it, plus ${acctMoves(a).n} change${acctMoves(a).n === 1 ? '' : 's'} logged in the app since</div>` : ''}
-      <div class="row" style="flex-basis:100%;flex-wrap:nowrap"><input type="number" id="acb-${esc(a.id)}" step="0.01" min="0" inputmode="decimal" placeholder="New balance" style="max-width:150px"><button class="btn small" data-act="acct-upd" data-id="${esc(a.id)}">Update</button><span class="grow"></span><button class="icon-btn" data-act="acct-del" data-id="${esc(a.id)}" aria-label="Remove ${esc(a.name)}">${ic('trash', 16)}</button></div></div>`; }).join('')}</div>
+    ${L.length ? `<div class="list" style="margin-top:8px">${L.map(a => { const h = a.hist || [], prev = h.length > 1 ? h[h.length - 2] : null, ch = prev ? (Number(a.bal) || 0) - (Number(prev.bal) || 0) : 0; return `<div class="li" style="flex-wrap:wrap"><div class="txt"><div style="font-weight:600">${k ? '' : `<span class="pill ${isChk(a) ? 'sky' : 'sage'}">${isChk(a) ? 'Checking' : 'Savings'}</span> `}${esc(a.name)}</div><div class="sub">${a.linked ? '🔗 Synced from the bank · ' : ''}${a.upd ? 'Updated ' + esc(fmtDate(parseYmd(a.upd), { month:'short', day:'numeric' })) + (a.by && !a.linked ? ' by ' + esc(nameOf(a.by)) : '') : ''}${prev && ch ? ` · <span style="color:${ch > 0 ? 'var(--sage)' : 'var(--danger)'}">${ch > 0 ? '+' : '−'}${money2(Math.abs(ch))}</span> since ${esc(fmtDate(parseYmd(prev.date), { month:'short', day:'numeric' }))}` : ''}</div></div><b class="num">${sMoney(liveBal(a))}</b>
+      ${acctMoves(a).n && !a.linked ? `<div class="fine" style="flex-basis:100%;margin-top:-4px">${money2(a.bal)} when you last updated it, plus ${acctMoves(a).n} change${acctMoves(a).n === 1 ? '' : 's'} logged in the app since</div>` : ''}
+      ${a.linked ? '' : `<div class="row" style="flex-basis:100%;flex-wrap:nowrap"><input type="number" id="acb-${esc(a.id)}" step="0.01" min="0" inputmode="decimal" placeholder="New balance" style="max-width:150px"><button class="btn small" data-act="acct-upd" data-id="${esc(a.id)}">Update</button><span class="grow"></span><button class="icon-btn" data-act="acct-del" data-id="${esc(a.id)}" aria-label="Remove ${esc(a.name)}">${ic('trash', 16)}</button></div>`}</div>`; }).join('')}</div>
       ${inGoals ? `<div class="fine" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line)">${money(Math.min(inGoals, tot))} of this is set aside for goals${tot > inGoals ? ` · ${money(tot - inGoals)} is free` : tot < inGoals ? ` · your goals add up to ${money(inGoals)}, more than the balance` : ''}.</div>` : ''}`
     : (S.showForm.acct ? '' : `<p class="fine" style="margin:6px 0 0">Add your ${k === 'savings' ? 'savings account (or a few)' : 'checking and savings accounts'} with what’s in them today. Update the balance whenever you check the bank.</p>`)}</section>`;
 }
@@ -4518,6 +4518,81 @@ function vMoney(){
   return `<h2 style="font-size:22px">Finance</h2>` + `<div class="seg fin-top">${[['overview','Overview'],['inout','In & out'],['pay','Payments'],['savings','Savings'],['calc','🧮']].map(([k, l]) => `<button class="${top === k ? 'on' : ''}" data-act="fintab" data-v="${k}">${l}</button>`).join('')}</div>`
     + (subs ? `<div class="fin-sub">${subs.map(([k, l]) => `<button class="${t === k ? 'on' : ''}" data-act="fintab" data-v="${k}">${l}</button>`).join('')}</div>` : '') + body;
 }
+/* ---------- linked banks (Teller, through /api/bank) ---------- */
+const bankAgo = t => { const m = Math.round((Date.now() - (Number(t) || 0)) / 6e4); return !t ? 'never' : m < 2 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' hr ago' : Math.round(m / 1440) + ' day' + (m < 2880 ? '' : 's') + ' ago'; };
+async function bankApi(kind, extra){
+  let token = '';
+  try{ token = ((await SB.auth.getSession()).data.session || {}).access_token || ''; }catch(e){}
+  const r = await fetch('/api/bank', { method:'POST', headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + token }, body: JSON.stringify(Object.assign({ kind }, extra || {})) });
+  let d = {}; try{ d = await r.json(); }catch(e){ throw new Error('Bank sync isn’t reachable right now.'); }
+  if(!r.ok || d.error) throw new Error(d.error || 'Something went wrong.');
+  return d;
+}
+let BANK_CFG = null;
+function loadTeller(){
+  if(window.TellerConnect) return Promise.resolve();
+  return new Promise((ok, no) => { const s = document.createElement('script'); s.src = 'https://cdn.teller.io/connect/connect.js'; s.onload = ok; s.onerror = () => no(new Error('Couldn’t load the bank sign-in. Check your connection.')); document.head.appendChild(s); });
+}
+async function bankConnect(repairEnr){
+  if(S.bankBusy) return;
+  S.bankBusy = repairEnr ? 'repair' : 'connect'; render();
+  try{
+    if(!BANK_CFG || !BANK_CFG.ready) BANK_CFG = await bankApi('config');
+    if(!BANK_CFG.ready){ S.bankSetup = true; toast('Bank sync needs a one-time setup first.'); return; }
+    await loadTeller();
+    const tc = window.TellerConnect.setup(Object.assign({
+      applicationId: BANK_CFG.appId, environment: BANK_CFG.env, products: ['balance', 'transactions'], selectAccount: 'disabled',
+      onSuccess: async enr => {
+        S.bankBusy = 'saving'; render(); toast('Connected! Bringing in this month…');
+        try{ const r = repairEnr ? await bankApi('repaired', { enr: repairEnr }) : await bankApi('save', { enrollment: enr, who: S.me }); toast(bankMsg(r)); }
+        catch(e){ toast(e.message); }
+        S.bankBusy = null; render();
+      },
+      onExit: () => { if(S.bankBusy !== 'saving'){ S.bankBusy = null; render(); } }
+    }, repairEnr ? { enrollmentId: repairEnr } : {}));
+    tc.open();
+    return;
+  }catch(e){ toast(e.message); }
+  S.bankBusy = null; render();
+}
+const bankMsg = r => (r.added || r.income) ? `Added ${r.added ? r.added + ' expense' + (r.added === 1 ? '' : 's') : ''}${r.added && r.income ? ' and ' : ''}${r.income ? r.income + ' paycheck' + (r.income === 1 ? '' : 's') : ''} 🏦` : 'All caught up, nothing new 🏦';
+async function bankSync(){
+  if(S.bankBusy) return; S.bankBusy = 'sync'; render();
+  try{ toast(bankMsg(await bankApi('sync'))); }catch(e){ toast(e.message); }
+  S.bankBusy = null; render();
+}
+async function bankRemove(enr){
+  if(S.confirm !== 'bank:' + enr){ S.confirm = 'bank:' + enr; render(); toast('Tap again to disconnect this bank'); setTimeout(() => { if(S.confirm === 'bank:' + enr){ S.confirm = null; render(); } }, 4000); return; }
+  S.confirm = null; S.bankBusy = 'remove'; render();
+  try{ await bankApi('remove', { enr }); toast('Bank disconnected. What it already added stays.'); }catch(e){ toast(e.message); }
+  S.bankBusy = null; render();
+}
+async function bankMode(id, mode){
+  const b = meta('bank') || {}, prefs = Object.assign({}, b.prefs || {});
+  prefs[id] = Object.assign({}, prefs[id] || {}, { mode });
+  if(await updDoc('meta', 'bank', { prefs })) toast(mode === 'biz' ? 'Kept out of the home budget' : mode === 'off' ? 'Won’t bring this one in' : 'Goes into the home budget');
+}
+function bankCard(){
+  const b = meta('bank') || {}, links = b.links || [], A = b.accounts || [], busy = S.bankBusy;
+  const acctRow = a => {
+    const card = a.type === 'credit', bal = a.ledger;
+    return `<div class="li" style="flex-wrap:wrap;padding-left:6px"><div class="txt"><div style="font-weight:600">${esc(a.name || a.sub || 'Account')}${a.last4 ? ` <span class="muted" style="font-weight:400">••${esc(a.last4)}</span>` : ''}</div>
+      <div class="sub">${card ? 'Credit card' : a.sub === 'savings' ? 'Savings' : 'Checking'}${bal != null ? ` · ${card ? 'owed ' : ''}${money2(Math.abs(bal))}` : ''}</div></div>
+      <select data-live="bank-mode" data-id="${esc(a.id)}" aria-label="Where ${esc(a.name || 'this account')} goes" style="width:auto;max-width:160px;font-size:13.5px">
+        <option value="home" ${a.mode === 'home' ? 'selected' : ''}>Home budget</option><option value="biz" ${a.mode === 'biz' ? 'selected' : ''}>Rhead business</option><option value="off" ${a.mode === 'off' ? 'selected' : ''}>Don’t bring in</option></select></div>`;
+  };
+  const linkBlock = l => {
+    const st = l.status === 'repair' ? `<span class="pill" style="background:var(--danger);color:#fff">Needs sign-in</span>` : l.status === 'error' ? `<span class="pill">Didn’t sync</span>` : '';
+    return `<div style="padding:10px 0;border-top:1px solid var(--line)"><div class="between"><div><b>🏦 ${esc(l.inst || 'Bank')}</b> ${st}<div class="fine">${esc(nameOf(l.who))}’s · synced ${esc(bankAgo(l.synced))}</div></div>
+      <div class="row" style="gap:6px">${l.status === 'repair' ? `<button class="btn small primary" data-act="bank-fix" data-id="${esc(l.enr)}" ${busy ? 'disabled' : ''}>Sign in again</button>` : ''}<button class="btn small ${S.confirm === 'bank:' + l.enr ? 'danger' : 'soft'}" data-act="bank-rm" data-id="${esc(l.enr)}" ${busy ? 'disabled' : ''}>${S.confirm === 'bank:' + l.enr ? 'Tap to disconnect' : 'Remove'}</button></div></div>
+      ${l.status === 'error' && l.err ? `<p class="fine" style="margin:4px 0 0">${esc(l.err)}</p>` : ''}
+      <div class="list">${A.filter(a => a.enr === l.enr).map(acctRow).join('')}</div></div>`;
+  };
+  return `<section class="card"><div class="between"><span class="eyebrow">Linked banks</span><button class="btn small primary" data-act="bank-connect" ${busy ? 'disabled' : ''}>${busy === 'connect' || busy === 'saving' ? 'Connecting…' : '+ Connect bank'}</button></div>
+    ${links.length ? links.map(linkBlock).join('') + `<div class="between" style="border-top:1px solid var(--line);padding-top:10px"><span class="fine">New purchases come in by themselves every few hours.${b.last ? ' Last check ' + esc(bankAgo(b.last)) + '.' : ''}</span><button class="btn small" data-act="bank-sync" ${busy ? 'disabled' : ''}>${busy === 'sync' ? 'Syncing…' : 'Sync now'}</button></div>`
+      : `<p class="fine" style="margin:6px 0 0">Connect SoFi, Chase, a credit card or any bank, and purchases and paychecks fill in by themselves. You sign in on your bank’s own secure screen; the app never sees your password. Each of you connects your own accounts.</p>`}
+    ${S.bankSetup ? `<p class="fine" style="margin:8px 0 0;padding:8px 10px;border-radius:10px;background:var(--soft, rgba(0,0,0,.04))">Almost there: the bank link needs its one-time setup (a free Teller account, plus two keys in Cloudflare). Claude has the steps.</p>` : ''}</section>`;
+}
 function vFinOverview(){
   const mk = monthKey(new Date()), spend = monthSpend(mk), total = spend.reduce((s, x) => s + (Number(x.amt) || 0), 0);
   const limTotal = Object.values(limits()).reduce((s, v) => s + (Number(v) || 0), 0);
@@ -4533,6 +4608,7 @@ function vFinOverview(){
     <button class="tile" data-act="fintab" data-v="debts"><span>Debt left</span><b>${money(S.data.debts.reduce((x, d) => x + debtBal(d), 0))}</b><span>${S.data.debts.filter(d => debtBal(d) > 0).length} to pay off</span></button>
   </section>
   ${acctCard()}
+  ${bankCard()}
   ${cashFlowCard(mk)}
   ${spendForm()}
   <section class="card"><div class="between"><h2>Next bills</h2><button class="btn small soft" data-act="fintab" data-v="bills">All bills</button></div><div class="list" style="margin-top:4px">${unpaid.slice(0, 4).map(([b, s]) => `<div class="li"><span class="pill ${s.cls}">${esc(s.label)}</span><div class="txt">${esc(b.name)}</div><b class="num">${billMoney(b)}</b></div>`).join('') || empty('All paid up', 'No unpaid bills this month.')}</div></section>
@@ -4550,7 +4626,7 @@ function vBudget(){
     <div class="stack" style="gap:8px;margin-top:12px">${catBars(mk)}</div>
     <div class="row" style="margin-top:12px">${toggleForm('limits', 'Set monthly limits')}</div>
     ${S.showForm.limits ? `<form class="stack" data-form="limits" style="gap:8px;margin-top:10px">${SPEND_CATS.map((c, i) => `<label class="between" style="gap:10px"><span>${esc(c)}</span><input type="number" id="lim-${i}" name="lim-${i}" min="0" step="1" inputmode="decimal" placeholder="No limit" value="${esc(L[c] || '')}" style="width:130px"></label>`).join('')}<button class="btn primary">Save limits</button></form>` : ''}
-    <div class="list" style="margin-top:10px">${spend.slice(0, 40).map(s => `<div class="li"><span class="pill">${esc(fmtDate(parseYmd(s.date), { month:'short', day:'numeric' }))}</span><div class="txt">${esc(s.note || s.cat)}<div class="sub">${esc(s.cat)} · ${esc(nameOf(s.by))}</div></div><b class="num">${money2(s.amt)}</b>${delBtn('spend', s.id, 'expense')}</div>`).join('') || empty('No spending logged', 'Add purchases above to see where the money goes.')}</div>
+    <div class="list" style="margin-top:10px">${spend.slice(0, 40).map(s => `<div class="li"><span class="pill">${esc(fmtDate(parseYmd(s.date), { month:'short', day:'numeric' }))}</span><div class="txt">${esc(s.note || s.cat)}<div class="sub">${esc(s.cat)} · ${esc(nameOf(s.by))}${s.bank ? ' · 🔗 ' + esc(s.bank.inst) : ''}</div></div><b class="num">${money2(s.amt)}</b>${delBtn('spend', s.id, 'expense')}</div>`).join('') || empty('No spending logged', 'Add purchases above to see where the money goes.')}</div>
   </section>`;
 }
 const billActive = (b, mk) => !b.ends || (mk || monthKey(new Date())) <= b.ends;
@@ -7205,6 +7281,10 @@ document.addEventListener('click', async ev => {
     case 'task-tog': { const p = get('projects', id); if(!p) break; updDoc('projects', id, { tasks: (p.tasks || []).map((x, i) => i === Number(t.dataset.i) ? { t: x.t, d: !x.d } : x) }); break; }
     case 'task-del': { const p = get('projects', id); if(!p) break; updDoc('projects', id, { tasks: (p.tasks || []).filter((x, i) => i !== Number(t.dataset.i)) }); break; }
     case 'fintab': S.finTab = t.dataset.v; if(FIN_SUBS[S.finTab]) S.finTab = ls.get('finsub:' + S.finTab, FIN_LAST[S.finTab]); else if(FIN_TOP[S.finTab] && FIN_TOP[S.finTab] !== S.finTab) ls.set('finsub:' + FIN_TOP[S.finTab], S.finTab); ls.set('fintab', S.finTab); render(); window.scrollTo(0, 0); break;
+    case 'bank-connect': bankConnect(); break;
+    case 'bank-fix': bankConnect(id); break;
+    case 'bank-sync': bankSync(); break;
+    case 'bank-rm': bankRemove(id); break;
     case 'acct-upd': {
       const inp = document.getElementById('acb-' + id), bal = parseFloat(inp && inp.value);
       if(!(bal >= 0) || inp.value === ''){ toast('Type the new balance first'); break; }
@@ -7572,6 +7652,7 @@ document.addEventListener('input', ev => {
 document.addEventListener('change', ev => {
   const t = ev.target;
   if(t.dataset.avf) render();
+  if(t.dataset.live === 'bank-mode'){ bankMode(t.dataset.id, t.value); return; }
   if(t.dataset.live === 'msg-file' && t.files && t.files[0]){ const f = t.files[0]; t.value = ''; sendChatImage(f); return; }
   if(t.dataset.live === 'bg-photo' && t.files && t.files[0] && S.assets){ (async () => { try{ toast('Uploading photo…'); const id = await uploadPhoto(t.files[0]); SET.bgPhoto = id; SET.bgWash = SET.bgWash || 'soft'; ls.set('settings', SET); applySettings(); render(); toast('Background updated ✨'); }catch(e){ toast('Couldn’t upload that photo'); } })(); return; }
   if(t.dataset.live === 'dayla-up' && t.files && t.files.length && S.assets){

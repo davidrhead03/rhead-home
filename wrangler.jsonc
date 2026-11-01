@@ -1,6 +1,14 @@
 {
   // Cloudflare publishes the "site" folder as the Rhead Home app.
+  // worker/index.js only answers /api/* (bank sync); everything else is the app.
   "name": "rhead-home",
   "compatibility_date": "2025-09-01",
-  "assets": { "directory": "./site" }
+  "main": "worker/index.js",
+  "assets": { "directory": "./site", "binding": "ASSETS", "run_worker_first": ["/api/*"] },
+  // Pull new bank transactions every 6 hours.
+  "triggers": { "crons": ["17 */6 * * *"] },
+  // Keep secrets/variables added in the Cloudflare dashboard.
+  "keep_vars": true
+  // After uploading the Teller certificate, add:
+  // "mtls_certificates": [{ "binding": "TELLER_CERT", "certificate_id": "<id>" }]
 }

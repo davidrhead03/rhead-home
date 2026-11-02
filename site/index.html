@@ -910,6 +910,11 @@ nav.tabs button.on svg{color:var(--cocoa)}
 .dayla .dmood{margin-top:8px;font-size:12.5px;color:var(--muted)}.dayla .dmood b{color:var(--cocoa);font-weight:600}.dayla .dmsg-go{margin-top:8px;padding:5px 12px;font-size:13px}
 
 /* ---------- seasonal decorations ---------- */
+body[data-season=christmas] .logo::before{content:"";position:absolute;left:-7px;top:-12px;width:34px;height:27px;background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2040%2032%22%3E%3Cpath%20d%3D%22M4%2026%20C8%2012%2018%204%2030%206%20C35%207%2037%2012%2036%2017%20L33%2016%20C33%2012%2030%2010%2026%2011%20C18%2013%2013%2019%2012%2027%20Z%22%20fill%3D%22%23C62A30%22/%3E%3Crect%20x%3D%221%22%20y%3D%2223%22%20width%3D%2225%22%20height%3D%227%22%20rx%3D%223.5%22%20fill%3D%22%23fff%22/%3E%3Ccircle%20cx%3D%2235%22%20cy%3D%2218%22%20r%3D%224%22%20fill%3D%22%23fff%22/%3E%3C/svg%3E") no-repeat center/contain;transform:rotate(-14deg);z-index:2;filter:drop-shadow(0 1px 1px rgba(0,0,0,.25));pointer-events:none}
+body[data-season=christmas] .xmas-card{background:linear-gradient(135deg,#B8232B 0%,#8E1C24 100%);color:#fff;border:0;position:relative;overflow:hidden}
+body[data-season=christmas] .xmas-card .fine{color:rgba(255,255,255,.85)}
+.xmas-card .snowline{position:absolute;left:0;right:0;top:0;height:10px;background:radial-gradient(circle at 8px 0,#fff 8px,transparent 8.5px) 0 0/22px 10px repeat-x;opacity:.95}
+body[data-season=christmas] main > section.card:not(.xmas-card):first-of-type{box-shadow:inset 0 3px 0 rgba(255,255,255,.9),var(--shadow)}
 #deco{position:absolute;left:0;right:0;bottom:-11px;height:18px;pointer-events:none;z-index:1}
 #deco svg{display:block;width:100%;height:18px}
 #deco .tw{animation:twinkle 2.4s ease-in-out infinite}
@@ -3413,7 +3418,9 @@ function vHome(){
     daily: () => { const slides = [B.verse(), B.weather(), B.word(), B.fact(), B.place()].filter(x => x && x.trim()); if(!slides.length) return ''; const n = slides.length, idx = Math.min(S.dailyIdx || 0, n - 1);
       return `<section class="daily"><div class="between" style="padding:0 4px"><span class="eyebrow">Today’s cards</span><span class="fine">Swipe ›</span></div><div class="swipe" id="daily-swipe">${slides.map(h => `<div class="slide">${h}</div>`).join('')}</div><div class="dots">${slides.map((_, i) => `<button class="${i === idx ? 'on' : ''}" data-act="daily-go" data-i="${i}" aria-label="Card ${i + 1}"></button>`).join('')}</div></section>`; }
   };
-  return homeOrder().filter(k => B[k]).map(k => B[k]()).join('\n');
+  const xmas = (se => { if(!se || se.k !== 'christmas') return ''; const t = new Date(), y = t.getMonth() === 11 && t.getDate() > 25 ? t.getFullYear() + 1 : t.getFullYear(), days = Math.round((new Date(y, 11, 25) - new Date(t.getFullYear(), t.getMonth(), t.getDate())) / 864e5);
+    return `<section class="card xmas-card"><div class="snowline"></div><div class="between" style="margin-top:6px;align-items:center"><div><div style="font-weight:800;font-size:19px">${days === 0 ? 'Merry Christmas! 🎄' : days === 1 ? 'Christmas is tomorrow! 🎄' : `🎄 ${days} days until Christmas`}</div><div class="fine">${days > 1 ? (days <= 7 ? 'Almost here. Wrap those gifts! 🎁' : 'The most wonderful time of the year ✨') : 'Love, David, Laura & Dayla ❤️'}</div></div><span style="font-size:34px">${days <= 1 ? '🎅' : '⛄'}</span></div></section>`; })(curSeason());
+  return xmas + homeOrder().filter(k => B[k]).map(k => B[k]()).join('\n');
 }
 function vLists(){
   return seg('liststab', S.listsTab, [['shop','Shopping'],['wish','Wishlist']]) + (S.listsTab === 'shop' ? vShop() : vWish());
@@ -7288,7 +7295,7 @@ function seasonOf(d){
   if(at(0, 31)) return { k:'gotcha', p:['🐾'], g:'paws', b:'🐾', l:'Gotcha Day' };
   if(m === 10 && dn >= dayNum(tg) - 4 && dn <= dayNum(tg) + 1) return { k:'thanks', p:['🍂','🍁'], g:'leaves', b:'🦃', l:'Thanksgiving' };
   // Christmas season starts early (Nov 2), with Thanksgiving week in the middle
-  if((m === 10 && day >= 2) || (md >= 1101 && md <= 1126)) return { k:'christmas', p:['❄','❅','❆','✦'], col:'#8DBCE0', g:'lights', b:'🎄', l:'Christmas season' };
+  if((m === 10 && day >= 2) || (md >= 1101 && md <= 1126)) return { k:'christmas', p:['❄','❅','❆','✦','❄','❅','❆','🎄'], col:'#8DBCE0', g:'lights', b:'🎄', l:'Christmas season', n:16 };
   if(md >= 1127 || md <= 2) return { k:'newyear', p:['✨','🎉','✦'], col:'#E2B44A', g:'confetti', b:'🎆', l:'New Year' };
   if(md >= 108 && md <= 114) return { k:'valentine', p:['♥','💕','♥'], col:'#E58BAA', g:'hearts', b:'💝', l:'Valentine’s week' };
   if(dn >= dayNum(addDays(E, -7)) && dn <= dayNum(addDays(E, 1))) return { k:'easter', p:['🌸','🌷','✿'], col:'#F4A6B8', g:'flowers', b:'🌷', l:'Easter' };
@@ -7319,16 +7326,17 @@ function curSeason(){ if(SET.season === false) return null; let d = new Date(); 
 function applySeason(){
   const se = curSeason(), dec = document.getElementById('deco');
   const key = se ? se.k : 'off';
+  document.body.dataset.season = key;
   if(dec && SEASON_KEY !== key) dec.innerHTML = se ? garlandSVG(se.g) : '';
   let lay = document.getElementById('season');
   const showFx = se && S.tab === 'home' && !S.page && !reduceMotion();
   if(!showFx){ if(lay) lay.remove(); SEASON_KEY = key; return; }
   if(!lay || SEASON_KEY !== key){
     if(lay) lay.remove(); lay = document.createElement('div'); lay.id = 'season'; lay.setAttribute('aria-hidden', 'true');
-    const N = 9; let h = '';
+    const N = se.n || 9; let h = '';
     for(let i = 0; i < N; i++){ const r = k => (Math.sin((i + 1) * 12.9898 * k) * 43758.5453) % 1, rr = k => Math.abs(r(k));
       const ch = se.p[i % se.p.length], sz = 12 + rr(1) * 11, d = 11 + rr(2) * 9, dl = -rr(3) * d;
-      h += `<i style="left:${(i + .2 + rr(4) * .6) * (100 / N)}%;--d:${d.toFixed(1)}s;--dl:${dl.toFixed(1)}s;--r:${Math.round(rr(5) * 300 - 150)}deg;font-size:${sz.toFixed(0)}px;opacity:${(.45 + rr(6) * .35).toFixed(2)};${se.col ? 'color:' + se.col : ''}"><b>${ch}</b></i>`; }
+      h += `<i style="left:${(i + .2 + rr(4) * .6) * (100 / N)}%;--d:${d.toFixed(1)}s;--dl:${dl.toFixed(1)}s;--r:${Math.round(rr(5) * 300 - 150)}deg;font-size:${sz.toFixed(0)}px;opacity:${(.45 + rr(6) * .35).toFixed(2)};${ch === '✦' ? 'color:#E2B44A' : se.col ? 'color:' + se.col : ''}"><b>${ch}</b></i>`; }
     lay.innerHTML = h; document.body.appendChild(lay);
   }
   SEASON_KEY = key;

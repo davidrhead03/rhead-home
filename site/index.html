@@ -3453,15 +3453,24 @@ const AISLE_KW = (() => { const out = []; AISLES.forEach(([k, , , words]) => {
   phrases.forEach(p => { if(rest.includes(' ' + p + ' ')){ out.push([fold(p), k]); rest = rest.replace(' ' + p + ' ', ' '); } });
   rest.split(' ').filter(Boolean).forEach(w => out.push([fold(w), k]));
 }); return out; })();
+// Extra "what kind of thing is it" words (juice, sauce, chips…) so the main word wins over the flavor word.
+const AISLE_TYPES = { drinks:'juice jugo smoothie lemonade', pantry:'sauce powder seasoning soup jam spread dressing mix seeds applesauce', bakery:'bread pie loaf cupcakes', snacks:'chips bar bars', dairy:'yogurt milk', frozen:'nuggets' };
+const AISLE_KW2 = AISLE_KW.concat(Object.entries(AISLE_TYPES).flatMap(([k, w]) => w.split(' ').map(x => [fold(x), k])));
 function guessAisle(text){
-  const t = ' ' + fold(text) + ' ';
-  const learned = ((meta('itemcats') || {}).map || {})[fold(text)];
+  const f = fold(text), t = ' ' + f + ' ';
+  const learned = ((meta('itemcats') || {}).map || {})[f];
   if(learned) return learned;
-  let best = null, len = 0;
-  for(const [kw, k] of AISLE_KW){
-    if(kw.length <= len) continue;
-    // whole word, or the start of a word (strawberr → strawberries)
-    if(t.includes(' ' + kw + ' ') || (kw.length >= 5 && t.includes(' ' + kw)) || t.includes(' ' + kw + 's ') || t.includes(' ' + kw + 'es ')){ best = k; len = kw.length; }
+  if(/ (frozen|congelad[oa]s?) /.test(t)) return 'frozen';
+  // English puts the main word last ("orange juice"), Spanish first ("jugo de naranja")
+  const spanish = / (de|del|para) /.test(t);
+  let best = null, bestPos = -1, bestLen = 0;
+  for(const [kw, k] of AISLE_KW2){
+    let at = -1;
+    for(const v of [' ' + kw + ' ', ' ' + kw + 's ', ' ' + kw + 'es ']){ const i = t.indexOf(v); if(i >= 0){ at = i; break; } }
+    if(at < 0 && kw.length >= 5){ const i = t.indexOf(' ' + kw); if(i >= 0) at = i; }
+    if(at < 0) continue;
+    const end = at + kw.length, pos = spanish ? -at : end;
+    if(pos > bestPos || (pos === bestPos && kw.length > bestLen)){ best = k; bestPos = pos; bestLen = kw.length; }
   }
   return best || 'other';
 }
@@ -3478,6 +3487,7 @@ function vShop(){
   ${S.showForm.newlist ? `<form class="card row" data-form="newlist"><input class="grow" type="text" id="nl-name" name="name" placeholder="New list name, e.g. Walmart" required maxlength="30"><button class="btn primary">Add list</button>${names.length > 1 ? `<button type="button" class="btn small danger" data-act="list-remove">Remove “${esc(S.listSel)}”</button>` : ''}</form>` : ''}
   <form class="card" data-form="item"><div class="row"><input class="grow" type="text" id="item-text" name="text" placeholder="Add to ${esc(S.listSel)}…" required maxlength="80" autocomplete="off"><input type="text" id="item-qty" name="qty" placeholder="Qty" style="width:74px" maxlength="12"><button class="btn primary">Add</button></div></form>
   <section class="card"><div class="between"><h2>${esc(S.listSel)}</h2><span class="muted num">${left.length} to get</span></div>
+    ${left.length ? `<p class="fine" style="margin:2px 0 0">Sorted by store section. Wrong section? Tap the item to move it; the app remembers.</p>` : ''}
     <div class="list" style="margin-top:4px">${left.length ? grouped(left) : empty('All set', 'Nothing left on this list.')}</div>
     ${got.length ? `<div class="between" style="margin-top:12px"><span class="eyebrow">In the cart · ${got.length}</span><button class="btn small" data-act="clear-done">Clear checked</button></div><div class="list">${got.map(row).join('')}</div>` : ''}
   </section>`;

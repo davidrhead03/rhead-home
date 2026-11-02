@@ -7286,12 +7286,14 @@ function seasonOf(d){
   if(at(8, 5)) return { k:'daylabday', p:['🎉','🦴','✨'], g:'confetti', b:'🎂', l:'Dayla’s birthday' };
   if(at(6, 10) || at(8, 20)) return { k:'bday', p:['🎉','✨','🎈'], g:'confetti', b:'🎂', l:'Birthday' };
   if(at(0, 31)) return { k:'gotcha', p:['🐾'], g:'paws', b:'🐾', l:'Gotcha Day' };
-  if(md >= 1101 && md <= 1126) return { k:'christmas', p:['❄','❅','❆','✦'], col:'#8DBCE0', g:'lights', b:'🎄', l:'Christmas season' };
+  if(m === 10 && dn >= dayNum(tg) - 4 && dn <= dayNum(tg) + 1) return { k:'thanks', p:['🍂','🍁'], g:'leaves', b:'🦃', l:'Thanksgiving' };
+  // Christmas season starts early (Nov 2), with Thanksgiving week in the middle
+  if((m === 10 && day >= 2) || (md >= 1101 && md <= 1126)) return { k:'christmas', p:['❄','❅','❆','✦'], col:'#8DBCE0', g:'lights', b:'🎄', l:'Christmas season' };
   if(md >= 1127 || md <= 2) return { k:'newyear', p:['✨','🎉','✦'], col:'#E2B44A', g:'confetti', b:'🎆', l:'New Year' };
   if(md >= 108 && md <= 114) return { k:'valentine', p:['♥','💕','♥'], col:'#E58BAA', g:'hearts', b:'💝', l:'Valentine’s week' };
   if(dn >= dayNum(addDays(E, -7)) && dn <= dayNum(addDays(E, 1))) return { k:'easter', p:['🌸','🌷','✿'], col:'#F4A6B8', g:'flowers', b:'🌷', l:'Easter' };
   if(md >= 530 && md <= 604) return { k:'fireworks', p:['✨','🎆','✦'], col:'#C8323C', g:'confetti', b:'🎆', l:'Canada Day & the 4th' };
-  if(m === 10 && dn >= dayNum(tg) - 4 && dn <= dayNum(tg) + 1) return { k:'thanks', p:['🍂','🍁'], g:'leaves', b:'🦃', l:'Thanksgiving' };
+
   if(m === 9) return { k:'fall', p:['🍂','🍁','🍂'], g:'pumpkins', b:'🎃', l:'Fall' };
   if(m === 10) return { k:'autumn', p:['🍂','🍁'], g:'leaves', b:'🍁', l:'Autumn' };
   if(m <= 1) return { k:'winter', p:['❄','❅'], col:'#9CC7E8', g:'', b:'☕', l:'Winter' };

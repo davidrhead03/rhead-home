@@ -681,6 +681,9 @@ html::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;bac
 .fnode.me .fav-dot{background:none}
 .fnode.me .fav-dot > *{width:42px!important;height:42px!important;font-size:17px}
 .fline{width:2px;height:14px;background:var(--line);margin:6px auto}
+.aisle-h{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);padding:12px 0 2px}
+.aisle-h span{margin-left:auto;font-weight:600;letter-spacing:0}
+.aisle-h:first-child{padding-top:4px}
 .occ-emo{font-size:26px;width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:var(--blush-soft);flex:none}
 .kbar.occ{background:var(--blush)}.kbar.car{background:var(--sky)}
 .car-rem{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
@@ -3425,17 +3428,57 @@ function vHome(){
 function vLists(){
   return seg('liststab', S.listsTab, [['shop','Shopping'],['wish','Wishlist']]) + (S.listsTab === 'shop' ? vShop() : vWish());
 }
+/* ---------- shopping list: sort items into store sections ---------- */
+// Sections in the order you usually walk a store. Keywords in English and Spanish; the longest match wins
+// (so "ice cream" is Frozen, not Dairy, and "chicken broth" is Pantry, not Meat).
+const AISLES = [
+  ['produce','🥬','Produce','apple manzana banana banano platano plantain orange naranja lemon limon lime grape uva strawberr fresa blueberr raspberr berries mango pineapple pina watermelon sandia melon peach durazno pear pera kiwi papaya avocado aguacate tomato tomate potato papa sweet potato batata onion cebolla garlic ajo pepper pimenton jalapeno lettuce lechuga spinach espinaca kale broccoli brocoli cauliflower carrot zanahoria celery apio cucumber pepino zucchini squash mushroom champinon corn on the cob mazorca cilantro parsley perejil basil albahaca ginger jengibre herbs salad ensalada cabbage repollo green beans yuca cassava coconut coco fruit fruta vegetable verdura'],
+  ['bakery','🥖','Bakery & bread','bread pan bagel bun buns roll rolls tortilla arepa croissant muffin donut cake pastel torta pita naan baguette english muffin hamburger buns hot dog buns'],
+  ['meat','🥩','Meat & seafood','chicken pollo beef carne res steak ground beef carne molida pork cerdo bacon tocino sausage salchicha chorizo ham jamon turkey pavo lamb fish pescado salmon salmon tilapia tuna steak shrimp camaron seafood mariscos ribs costillas wings alitas hot dogs deli meat pepperoni'],
+  ['dairy','🥛','Dairy & eggs','milk leche eggs huevos egg huevo cheese queso butter mantequilla yogurt yogur cream crema sour cream half and half creamer kefir cottage cheese cream cheese whipped cream oat milk almond milk'],
+  ['frozen','🧊','Frozen','frozen congelado ice cream helado ice hielo popsicle paleta frozen pizza frozen vegetables frozen fruit waffles nuggets fries papas fritas'],
+  ['pantry','🥫','Pantry','rice arroz pasta spaghetti noodles fideos beans frijoles lentils lentejas flour harina sugar azucar salt sal oil aceite olive oil vinegar vinagre cereal oatmeal avena oats granola peanut butter mantequilla de mani jelly jam mermelada honey miel sauce salsa ketchup mustard mostaza mayo mayonesa soy sauce spice especias cinnamon canela broth caldo chicken broth soup sopa canned lata tuna can atun baking soda baking powder vanilla syrup pancake mix maseca masa coffee cafe tea te bouillon maggi sazon adobo goya'],
+  ['snacks','🍿','Snacks','chips papitas cookies galletas crackers popcorn palomitas pretzels candy dulces chocolate nuts nueces almonds almendras trail mix granola bar protein bar snack gum chicle'],
+  ['drinks','🥤','Drinks','water agua sparkling soda gaseosa juice jugo coke coca cola pepsi sprite gatorade powerade energy drink red bull monster coconut water kombucha beer cerveza wine vino lemonade limonada'],
+  ['household','🧽','Household & cleaning','paper towels toilet paper papel higienico napkins servilletas trash bags bolsas de basura dish soap jabon de platos detergent detergente laundry fabric softener suavizante bleach cloro clorox lysol cleaner limpiador sponge esponja foil aluminio plastic wrap ziploc bags batteries baterias light bulb bombillo candles velas air freshener ambientador dishwasher pods swiffer'],
+  ['personal','🧴','Personal care','shampoo champu conditioner acondicionador body wash soap jabon toothpaste crema dental toothbrush cepillo de dientes floss deodorant desodorante razor maquina de afeitar lotion crema corporal sunscreen bloqueador makeup maquillaje tampons pads toallas sanitarias cotton algodon q-tips medicine medicina tylenol advil ibuprofen vitamins vitaminas band-aid curitas contact solution'],
+  ['pet','🐾','Dayla','dog food comida de perro dog treats treats dog dayla puppy pads poop bags chew toy bully stick pet perro'],
+  ['other','🛒','Other','']
+];
+const fold = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+const AISLE_KW = (() => { const out = []; AISLES.forEach(([k, , , words]) => {
+  // multi-word phrases first: split on double spaces is awkward, so list them explicitly
+  const phrases = ['sweet potato','corn on the cob','green beans','english muffin','hamburger buns','hot dog buns','ground beef','carne molida','tuna steak','hot dogs','deli meat','sour cream','half and half','cottage cheese','cream cheese','whipped cream','oat milk','almond milk','ice cream','frozen pizza','frozen vegetables','frozen fruit','papas fritas','olive oil','peanut butter','mantequilla de mani','soy sauce','chicken broth','baking soda','baking powder','pancake mix','tuna can','trail mix','granola bar','protein bar','coca cola','energy drink','red bull','coconut water','paper towels','toilet paper','papel higienico','trash bags','bolsas de basura','dish soap','jabon de platos','fabric softener','plastic wrap','ziploc bags','light bulb','air freshener','dishwasher pods','body wash','crema dental','cepillo de dientes','maquina de afeitar','crema corporal','toallas sanitarias','contact solution','dog food','comida de perro','dog treats','puppy pads','poop bags','chew toy','bully stick'];
+  let rest = ' ' + words + ' ';
+  phrases.forEach(p => { if(rest.includes(' ' + p + ' ')){ out.push([fold(p), k]); rest = rest.replace(' ' + p + ' ', ' '); } });
+  rest.split(' ').filter(Boolean).forEach(w => out.push([fold(w), k]));
+}); return out; })();
+function guessAisle(text){
+  const t = ' ' + fold(text) + ' ';
+  const learned = ((meta('itemcats') || {}).map || {})[fold(text)];
+  if(learned) return learned;
+  let best = null, len = 0;
+  for(const [kw, k] of AISLE_KW){
+    if(kw.length <= len) continue;
+    // whole word, or the start of a word (strawberr → strawberries)
+    if(t.includes(' ' + kw + ' ') || (kw.length >= 5 && t.includes(' ' + kw)) || t.includes(' ' + kw + 's ') || t.includes(' ' + kw + 'es ')){ best = k; len = kw.length; }
+  }
+  return best || 'other';
+}
+const aisleOf = i => i.sec || guessAisle(i.text);
 function vShop(){
   const names = listNames(); if(!names.includes(S.listSel)) S.listSel = names[0];
   const items = S.data.items.filter(i => i.list === S.listSel).sort((a, b) => (a.done - b.done) || (a.at - b.at));
   const left = items.filter(i => !i.done), got = items.filter(i => i.done);
-  const row = i => `<div class="li ${i.done ? 'done' : ''}"><button class="check ${i.done ? 'on' : ''}" data-act="item-tog" data-id="${esc(i.id)}" aria-label="${i.done ? 'Uncheck' : 'Check off'} ${esc(i.text)}">${ic('check', 15)}</button><div class="txt">${esc(i.text)}${i.qty ? ` <span class="pill">${esc(i.qty)}</span>` : ''}</div>${mini(i.by)}${delBtn('items', i.id, i.text)}</div>`;
+  const row = i => `<div class="li ${i.done ? 'done' : ''}" style="flex-wrap:wrap"><button class="check ${i.done ? 'on' : ''}" data-act="item-tog" data-id="${esc(i.id)}" aria-label="${i.done ? 'Uncheck' : 'Check off'} ${esc(i.text)}">${ic('check', 15)}</button><button class="txt" data-act="item-sec-open" data-id="${esc(i.id)}" style="border:0;background:none;padding:0;text-align:left;color:inherit;font:inherit;cursor:pointer">${esc(i.text)}${i.qty ? ` <span class="pill">${esc(i.qty)}</span>` : ''}</button>${mini(i.by)}${delBtn('items', i.id, i.text)}
+    ${S.itemSecOpen === i.id ? `<div class="row" style="flex-basis:100%;margin:6px 0 2px 38px;gap:8px;flex-wrap:nowrap"><span class="fine" style="flex:none">Section</span><select data-live="item-sec" data-id="${esc(i.id)}" class="grow">${AISLES.map(a => `<option value="${a[0]}" ${aisleOf(i) === a[0] ? 'selected' : ''}>${a[1]} ${esc(a[2])}</option>`).join('')}</select></div>` : ''}</div>`;
+  const grouped = L => AISLES.map(([k, e, name]) => { const g = L.filter(i => aisleOf(i) === k); return g.length ? `<div class="aisle-h">${e} ${esc(name)}<span>${g.length}</span></div>${g.map(row).join('')}` : ''; }).join('');
   return `
   <div class="chips">${names.map(n => `<button class="chip ${n === S.listSel ? 'on' : ''}" data-act="list" data-v="${esc(n)}">${esc(n)}<span class="n">${S.data.items.filter(i => i.list === n && !i.done).length}</span></button>`).join('')}<button class="chip" data-act="toggleform" data-key="newlist">+ List</button></div>
   ${S.showForm.newlist ? `<form class="card row" data-form="newlist"><input class="grow" type="text" id="nl-name" name="name" placeholder="New list name, e.g. Walmart" required maxlength="30"><button class="btn primary">Add list</button>${names.length > 1 ? `<button type="button" class="btn small danger" data-act="list-remove">Remove “${esc(S.listSel)}”</button>` : ''}</form>` : ''}
   <form class="card" data-form="item"><div class="row"><input class="grow" type="text" id="item-text" name="text" placeholder="Add to ${esc(S.listSel)}…" required maxlength="80" autocomplete="off"><input type="text" id="item-qty" name="qty" placeholder="Qty" style="width:74px" maxlength="12"><button class="btn primary">Add</button></div></form>
   <section class="card"><div class="between"><h2>${esc(S.listSel)}</h2><span class="muted num">${left.length} to get</span></div>
-    <div class="list" style="margin-top:4px">${left.length ? left.map(row).join('') : empty('All set', 'Nothing left on this list.')}</div>
+    <div class="list" style="margin-top:4px">${left.length ? grouped(left) : empty('All set', 'Nothing left on this list.')}</div>
     ${got.length ? `<div class="between" style="margin-top:12px"><span class="eyebrow">In the cart · ${got.length}</span><button class="btn small" data-act="clear-done">Clear checked</button></div><div class="list">${got.map(row).join('')}</div>` : ''}
   </section>`;
 }
@@ -7489,6 +7532,7 @@ document.addEventListener('click', async ev => {
     case 'bank-connect': bankConnect(); break;
     case 'bank-fix': bankConnect(id); break;
     case 'bank-sync': bankSync(); break;
+    case 'item-sec-open': S.itemSecOpen = S.itemSecOpen === id ? null : id; render(); break;
     case 'fam-side': S.famSide = t.dataset.v; S.famOpen = null; render(); break;
     case 'fam-open': S.famOpen = id || null; render(); if(id) setTimeout(() => { const el = document.querySelector('.fam-detail'); if(el) el.scrollIntoView({ behavior:'smooth', block:'start' }); }, 60); break;
     case 'clock-edit': S.clockEdit = !S.clockEdit; render(); break;
@@ -7867,6 +7911,10 @@ document.addEventListener('change', ev => {
   const t = ev.target;
   if(t.dataset.avf) render();
   if(t.dataset.live === 'bank-mode'){ bankMode(t.dataset.id, t.value); return; }
+  if(t.dataset.live === 'item-sec'){ const it = get('items', t.dataset.id), sec = t.value, A = AISLES.find(a => a[0] === sec);
+    // remember it, so this item always goes to that section from now on
+    updDoc('items', t.dataset.id, { sec }).then(ok => { if(!ok || !it) return; const m = Object.assign({}, (meta('itemcats') || {}).map || {}); m[fold(it.text)] = sec; setDoc('meta/itemcats', { map: m }); S.itemSecOpen = null; render(); toast(`${it.text} → ${A ? A[2] : sec}. I’ll remember that.`); });
+    return; }
   if(t.dataset.live === 'sp-cat'){
     const x = get('spend', t.dataset.id), cat = t.value;
     updDoc('spend', t.dataset.id, { cat }).then(ok => { if(!ok) return;

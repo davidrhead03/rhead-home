@@ -4587,6 +4587,55 @@ async function bankMode(id, mode){
   prefs[id] = Object.assign({}, prefs[id] || {}, { mode });
   if(await updDoc('meta', 'bank', { prefs })){ toast(mode === 'biz' ? 'Kept out of the home budget' : mode === 'off' ? 'Hidden. It won’t show or be counted.' : 'Goes into the home budget'); bankSync(); }
 }
+/* ---------- one-tap tidy up after linking a bank ---------- */
+const VAULT = /^(taxes|our home|trips?)$/i;
+function bankTidyPlan(){
+  const b = meta('bank') || {}, A = b.accounts || [];
+  if(!(b.links || []).length) return null;
+  const prefs = b.prefs || {};
+  const vaults = A.filter(a => VAULT.test((a.name || '').trim()) && (prefs[a.id] || {}).mode !== 'off' && a.mode !== 'off');
+  const linked = accts().filter(a => a.linked), manual = accts().filter(a => !a.linked);
+  const oldAccts = linked.length ? manual.filter(a => linked.some(l => l.kind === a.kind)) : [];
+  const near = (d1, d2) => Math.abs((parseYmd(d1) - parseYmd(d2)) / 864e5) <= 3;
+  const since = ymd(new Date()).slice(0, 8) + '01';
+  const dupes = [];
+  [['spend', 'expense'], ['income', 'paycheck']].forEach(([col, label]) => {
+    const bank = S.data[col].filter(x => x.bank), used = new Set();
+    S.data[col].filter(x => !x.bank && (x.date || '') >= since).forEach(x => {
+      const m = bank.find(y => !used.has(y.id) && Math.abs((Number(y.amt) || 0) - (Number(x.amt) || 0)) < 0.01 && near(x.date, y.date));
+      if(m){ used.add(m.id); dupes.push({ col, id: x.id, label, text: `${x.note || x.source || x.cat || label} · ${money2(x.amt)} · ${fmtDate(parseYmd(x.date), { month:'short', day:'numeric' })}` }); }
+    });
+  });
+  return (vaults.length || oldAccts.length || dupes.length) ? { vaults, oldAccts, dupes } : null;
+}
+function bankTidyBox(){
+  const p = bankTidyPlan(); if(!p) return '';
+  const li = t => `<li style="margin:2px 0">${t}</li>`;
+  return `<div style="margin-top:10px;padding:12px;border-radius:14px;border:1.5px solid var(--sage);background:rgba(79,135,97,.07)">
+    <b>🧹 Tidy up after linking</b>
+    <ul class="fine" style="margin:6px 0 10px;padding-left:18px">
+      ${p.vaults.length ? li(`Hide the vaults: <b>${esc(p.vaults.map(a => a.name).join(', '))}</b>`) : ''}
+      ${p.oldAccts.length ? li(`Remove hand-typed balances now replaced by the bank: <b>${esc(p.oldAccts.map(a => a.name).join(', '))}</b>`) : ''}
+      ${p.dupes.length ? li(`Delete ${p.dupes.length} hand-typed entr${p.dupes.length === 1 ? 'y' : 'ies'} the bank also brought in:<br>${p.dupes.map(d => esc(d.text)).join('<br>')}`) : ''}
+    </ul>
+    <button class="btn primary small" data-act="bank-tidy" ${S.bankBusy ? 'disabled' : ''}>Tidy up</button></div>`;
+}
+async function bankTidy(){
+  const p = bankTidyPlan(); if(!p || S.bankBusy) return;
+  S.bankBusy = 'tidy'; render();
+  try{
+    if(p.vaults.length){
+      const b = meta('bank') || {}, prefs = Object.assign({}, b.prefs || {});
+      p.vaults.forEach(a => { prefs[a.id] = Object.assign({}, prefs[a.id] || {}, { mode:'off' }); });
+      await updDoc('meta', 'bank', { prefs });
+    }
+    if(p.oldAccts.length){ const gone = new Set(p.oldAccts.map(a => a.id)); await setDoc('meta/accts', { list: accts().filter(a => !gone.has(a.id)) }); }
+    for(const d of p.dupes) await delDoc(d.col, d.id);
+    S.bankBusy = null;
+    if(p.vaults.length) await bankSync(); else render();
+    toast('All tidy ✓');
+  }catch(e){ S.bankBusy = null; render(); toast('Couldn’t finish tidying. Try again.'); }
+}
 function bankCard(){
   const b = meta('bank') || {}, links = b.links || [], A = b.accounts || [], busy = S.bankBusy;
   const acctRow = a => {
@@ -4607,6 +4656,7 @@ function bankCard(){
   return `<section class="card"><div class="between"><span class="eyebrow">Linked banks</span><button class="btn small primary" data-act="bank-connect" ${busy ? 'disabled' : ''}>${busy === 'connect' || busy === 'saving' ? 'Connecting…' : '+ Connect bank'}</button></div>
     ${links.length ? links.map(linkBlock).join('') + `<div class="between" style="border-top:1px solid var(--line);padding-top:10px"><span class="fine">New purchases come in by themselves every few hours.${b.last ? ' Last check ' + esc(bankAgo(b.last)) + '.' : ''}</span><button class="btn small" data-act="bank-sync" ${busy ? 'disabled' : ''}>${busy === 'sync' ? 'Syncing…' : 'Sync now'}</button></div>`
       : `<p class="fine" style="margin:6px 0 0">Connect SoFi, Chase, a credit card or any bank, and purchases and paychecks fill in by themselves. You sign in on your bank’s own secure screen; the app never sees your password. Each of you connects your own accounts.</p>`}
+    ${bankTidyBox()}
     ${S.bankSetup ? `<p class="fine" style="margin:8px 0 0;padding:8px 10px;border-radius:10px;background:var(--soft, rgba(0,0,0,.04))">Almost there: the bank link needs its one-time setup (a free Plaid account, plus a few keys in Cloudflare). Claude has the steps.</p>` : ''}</section>`;
 }
 function vFinOverview(){
@@ -7300,6 +7350,7 @@ document.addEventListener('click', async ev => {
     case 'bank-connect': bankConnect(); break;
     case 'bank-fix': bankConnect(id); break;
     case 'bank-sync': bankSync(); break;
+    case 'bank-tidy': bankTidy(); break;
     case 'bank-showoff': S.bankShowOff = S.bankShowOff === id ? null : id; render(); break;
     case 'bank-rm': bankRemove(id); break;
     case 'acct-upd': {

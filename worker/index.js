@@ -104,14 +104,18 @@ function classify(t, acct) {
 /* ---------- syncing ---------- */
 async function syncLink(env, db, link, prefs, now) {
   const out = { added: 0, income: 0, accounts: [] };
-  const ar = await plaid(env, '/accounts/get', { access_token: link.access_token });
+  // live balances straight from the bank; fall back to Plaid's saved copy if the bank is slow
+  let ar;
+  try { ar = await plaid(env, '/accounts/balance/get', { access_token: link.access_token }); }
+  catch (e) { if (needsRepair(e)) throw e; ar = await plaid(env, '/accounts/get', { access_token: link.access_token }); }
   const byId = {};
   for (const a of ar.accounts || []) {
     const p = prefs[a.account_id] || {};
     const info = {
       id: a.account_id, enr: link.item_id, who: link.who, inst: link.institution || 'Bank',
       name: a.official_name || a.name || '', type: a.type, sub: a.subtype || '', last4: a.mask || '', mode: p.mode || 'home',
-      ledger: a.balances && a.balances.current != null ? Number(a.balances.current) : null,
+      // checking/savings: the "available" number your bank app shows; cards: what you owe
+      ledger: a.balances ? (a.type === 'depository' && a.balances.available != null ? Number(a.balances.available) : a.balances.current != null ? Number(a.balances.current) : null) : null,
       avail: a.balances && a.balances.available != null ? Number(a.balances.available) : null, upd: ymdNY(now),
     };
     byId[a.account_id] = info;

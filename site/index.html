@@ -4378,7 +4378,7 @@ function acctMoves(a){
   let xf = 0, nx = 0; S.data.xfers.forEach(x => { if((Number(x.at) || 0) <= t0) return; const v = Number(x.amt) || 0; if((x.to || savAcct()) === a.id){ xf += v; nx++; } else if((x.from || def) === a.id){ xf -= v; nx++; } });
   return { inc:sum(inc) + Math.max(0, xf), out:sum(out) + Math.max(0, -xf), bills, n:inc.length + out.length + nb + nx };
 }
-const liveBal = a => { const m = acctMoves(a); return Math.round(((Number(a.bal) || 0) + m.inc - m.out - m.bills) * 100) / 100; };
+const liveBal = a => { if(a.linked) return Math.round((Number(a.bal) || 0) * 100) / 100; const m = acctMoves(a); return Math.round(((Number(a.bal) || 0) + m.inc - m.out - m.bills) * 100) / 100; };
 const acctTotal = k => accts().filter(a => !k || (k === 'checking') === isChk(a)).reduce((t, a) => t + liveBal(a), 0);
 const sMoney = n => (n < 0 ? '−' : '') + money2(Math.abs(n));
 function acctCard(k){

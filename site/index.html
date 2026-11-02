@@ -4585,7 +4585,7 @@ async function bankRemove(enr){
 async function bankMode(id, mode){
   const b = meta('bank') || {}, prefs = Object.assign({}, b.prefs || {});
   prefs[id] = Object.assign({}, prefs[id] || {}, { mode });
-  if(await updDoc('meta', 'bank', { prefs })) toast(mode === 'biz' ? 'Kept out of the home budget' : mode === 'off' ? 'Won’t bring this one in' : 'Goes into the home budget');
+  if(await updDoc('meta', 'bank', { prefs })){ toast(mode === 'biz' ? 'Kept out of the home budget' : mode === 'off' ? 'Hidden. It won’t show or be counted.' : 'Goes into the home budget'); bankSync(); }
 }
 function bankCard(){
   const b = meta('bank') || {}, links = b.links || [], A = b.accounts || [], busy = S.bankBusy;
@@ -4594,14 +4594,15 @@ function bankCard(){
     return `<div class="li" style="flex-wrap:wrap;padding-left:6px"><div class="txt"><div style="font-weight:600">${esc(a.name || a.sub || 'Account')}${a.last4 ? ` <span class="muted" style="font-weight:400">••${esc(a.last4)}</span>` : ''}</div>
       <div class="sub">${card ? 'Credit card' : a.sub === 'savings' ? 'Savings' : 'Checking'}${bal != null ? ` · ${card ? 'owed ' : ''}${money2(Math.abs(bal))}` : ''}</div></div>
       <select data-live="bank-mode" data-id="${esc(a.id)}" aria-label="Where ${esc(a.name || 'this account')} goes" style="width:auto;max-width:160px;font-size:13.5px">
-        <option value="home" ${a.mode === 'home' ? 'selected' : ''}>Home budget</option><option value="biz" ${a.mode === 'biz' ? 'selected' : ''}>Rhead business</option><option value="off" ${a.mode === 'off' ? 'selected' : ''}>Don’t bring in</option></select></div>`;
+        <option value="home" ${a.mode === 'home' ? 'selected' : ''}>Home budget</option><option value="biz" ${a.mode === 'biz' ? 'selected' : ''}>Rhead business</option><option value="off" ${a.mode === 'off' ? 'selected' : ''}>Hide (don’t bring in)</option></select></div>`;
   };
   const linkBlock = l => {
     const st = l.status === 'repair' ? `<span class="pill" style="background:var(--danger);color:#fff">Needs sign-in</span>` : l.status === 'error' ? `<span class="pill">Didn’t sync</span>` : '';
     return `<div style="padding:10px 0;border-top:1px solid var(--line)"><div class="between"><div><b>🏦 ${esc(l.inst || 'Bank')}</b> ${st}<div class="fine">${esc(nameOf(l.who))}’s · synced ${esc(bankAgo(l.synced))}</div></div>
       <div class="row" style="gap:6px">${l.status === 'repair' ? `<button class="btn small primary" data-act="bank-fix" data-id="${esc(l.enr)}" ${busy ? 'disabled' : ''}>Sign in again</button>` : ''}<button class="btn small ${S.confirm === 'bank:' + l.enr ? 'danger' : 'soft'}" data-act="bank-rm" data-id="${esc(l.enr)}" ${busy ? 'disabled' : ''}>${S.confirm === 'bank:' + l.enr ? 'Tap to disconnect' : 'Remove'}</button></div></div>
       ${l.status === 'error' && l.err ? `<p class="fine" style="margin:4px 0 0">${esc(l.err)}</p>` : ''}
-      <div class="list">${A.filter(a => a.enr === l.enr).map(acctRow).join('')}</div></div>`;
+      <div class="list">${A.filter(a => a.enr === l.enr && (a.mode !== 'off' || S.bankShowOff === l.enr)).map(acctRow).join('')}</div>
+      ${(() => { const off = A.filter(a => a.enr === l.enr && a.mode === 'off'); return off.length ? `<button class="btn small soft" style="margin-top:6px" data-act="bank-showoff" data-id="${esc(l.enr)}">${S.bankShowOff === l.enr ? 'Done' : `Hidden: ${esc(off.map(a => a.name || a.sub).join(', '))}`}</button>` : ''; })()}</div>`;
   };
   return `<section class="card"><div class="between"><span class="eyebrow">Linked banks</span><button class="btn small primary" data-act="bank-connect" ${busy ? 'disabled' : ''}>${busy === 'connect' || busy === 'saving' ? 'Connecting…' : '+ Connect bank'}</button></div>
     ${links.length ? links.map(linkBlock).join('') + `<div class="between" style="border-top:1px solid var(--line);padding-top:10px"><span class="fine">New purchases come in by themselves every few hours.${b.last ? ' Last check ' + esc(bankAgo(b.last)) + '.' : ''}</span><button class="btn small" data-act="bank-sync" ${busy ? 'disabled' : ''}>${busy === 'sync' ? 'Syncing…' : 'Sync now'}</button></div>`
@@ -7299,6 +7300,7 @@ document.addEventListener('click', async ev => {
     case 'bank-connect': bankConnect(); break;
     case 'bank-fix': bankConnect(id); break;
     case 'bank-sync': bankSync(); break;
+    case 'bank-showoff': S.bankShowOff = S.bankShowOff === id ? null : id; render(); break;
     case 'bank-rm': bankRemove(id); break;
     case 'acct-upd': {
       const inp = document.getElementById('acb-' + id), bal = parseFloat(inp && inp.value);

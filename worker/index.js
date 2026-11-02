@@ -101,6 +101,52 @@ function classify(t, acct) {
   return null; // transfers in, refunds
 }
 
+/* ---------- bank payments check off bills ---------- */
+const WORDS = s => String(s || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(w => w.length >= 3 && !['the', 'and', 'bill', 'payment', 'pay', 'monthly', 'llc', 'inc', 'com', 'online', 'card'].includes(w));
+const nameHit = (bill, text) => { const t = ' ' + String(text || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ') + ' '; return WORDS(bill.name).some(w => t.includes(' ' + w) || (w.length >= 5 && t.includes(w))); };
+function dueGap(bill, date) {
+  const [y, m, d] = date.split('-').map(Number), last = new Date(y, m, 0).getDate();
+  const due = new Date(y, m - 1, Math.min(Number(bill.due) || 1, last));
+  return Math.abs((new Date(y, m - 1, d) - due) / 864e5);
+}
+async function matchBills(db, fresh, cardPays, now) {
+  const cands = fresh.filter(d => d.col === 'spend').map(d => ({ doc: d, amt: d.data.amt, date: d.data.date, text: d.data.note + ' ' + (d.data.bank && d.data.bank.desc || '') }))
+    .concat(cardPays.map(c => ({ doc: null, amt: c.amt, date: c.date, text: c.text })));
+  if (!cands.length) return;
+  const rows = await db.select('docs', 'col=eq.bills&select=id,data');
+  const bills = (rows || []).map(r => ({ id: r.id, ...r.data }));
+  const touched = new Map(), debtPays = [];
+  for (const c of cands) {
+    const mk = c.date.slice(0, 7);
+    let best = null, bestScore = 0;
+    for (const b of bills) {
+      if (b.ends && mk > b.ends) continue;
+      if ((b.paid || []).includes(mk)) continue;
+      const amt = Number(b.amount) || 0, hit = nameHit(b, c.text), close = dueGap(b, c.date) <= 6;
+      let score = 0;
+      if (!b.variable && Math.abs(c.amt - amt) <= 1) score = hit ? 3 : close ? 2 : 0;   // same amount + (name or near due date)
+      else if (b.variable && hit && (!amt || (c.amt >= amt * 0.4 && c.amt <= amt * 2.5))) score = 2; // power/water: name match, amount in a sane range
+      else if (!c.doc && hit) score = 2;                                                   // card payoff: name match is enough
+      if (score > bestScore) { best = b; bestScore = score; }
+    }
+    if (!best) continue;
+    best.paid = (best.paid || []).filter(x => x !== mk).concat(mk).slice(-24);
+    best.paidAt = { ...(best.paidAt || {}), [mk]: now };
+    best.paidBy = { ...(best.paidBy || {}), [mk]: 'bank' };
+    if (best.variable) best.amounts = { ...(best.amounts || {}), [mk]: c.amt };
+    touched.set(best.id, best);
+    if (c.doc) c.doc.data.bill = best.id;
+    if (best.debt) debtPays.push({ debt: best.debt, pay: { amt: c.amt, date: c.date, by: 'bank', bill: best.id, mk } });
+  }
+  for (const b of touched.values()) { const { id, ...data } = b; await db.upsert('docs', [{ col: 'bills', id, data }], 'col,id'); }
+  for (const dp of debtPays) {
+    const r = (await db.select('docs', 'col=eq.debts&id=' + eq(dp.debt) + '&select=data'))[0];
+    if (!r) continue;
+    const pays = (r.data.pays || []).filter(p => !(p.bill === dp.pay.bill && p.mk === dp.pay.mk)).concat(dp.pay);
+    await db.upsert('docs', [{ col: 'debts', id: dp.debt, data: { ...r.data, pays } }], 'col,id');
+  }
+}
+
 /* ---------- syncing ---------- */
 async function syncLink(env, db, link, prefs, now, oldAccts) {
   const out = { added: 0, income: 0, accounts: [] };
@@ -135,7 +181,7 @@ async function syncLink(env, db, link, prefs, now, oldAccts) {
     cursor = r.next_cursor; more = r.has_more;
   }
   const since = link.since || ymdNY(now).slice(0, 8) + '01'; // never bring in anything older than the month you linked
-  const docs = [], seen = [];
+  const docs = [], seen = [], cardPays = [];
   for (const t of added) {
     const a = byId[t.account_id];
     if (!a || t.date < since) continue;
@@ -143,7 +189,12 @@ async function syncLink(env, db, link, prefs, now, oldAccts) {
     const c = classify(t, a);
     if (t.pending) continue; // it comes back as posted later with its own id
     seen.push({ tx_id: t.transaction_id });
-    if (!c) continue;
+    if (!c) {
+      // paying off a card isn't spending, but it can still check off a "Discover" bill
+      const det = (t.personal_finance_category || {}).detailed || '';
+      if (a.type === 'depository' && Number(t.amount) > 0 && det === 'LOAN_PAYMENTS_CREDIT_CARD_PAYMENT') cardPays.push({ tx: t.transaction_id, amt: round2(Number(t.amount)), date: t.date, text: (t.merchant_name || '') + ' ' + (t.name || '') });
+      continue;
+    }
     const base = { date: t.date, acct: 'bk_' + a.id, by: link.who, at: now, bank: { inst: a.inst, last4: a.last4, desc: String(t.name || '').slice(0, 120) } };
     if (c.kind === 'spend') docs.push({ col: 'spend', id: 'bk_' + t.transaction_id, data: { ...base, amt: c.amt, cat: c.cat, note: c.note } });
     else docs.push({ col: 'income', id: 'bk_' + t.transaction_id, data: { ...base, who: link.who, amt: c.amt, source: c.source } });
@@ -156,6 +207,7 @@ async function syncLink(env, db, link, prefs, now, oldAccts) {
       (r || []).forEach(x => old.add(x.tx_id));
     }
     const fresh = docs.filter(d => !old.has(d.id.slice(3)));
+    await matchBills(db, fresh, cardPays.filter(c => !old.has(c.tx)), now);
     await db.insert('docs', fresh, 'col,id');
     await db.insert('bank_seen', ids.filter(x => !old.has(x)).map(tx_id => ({ tx_id })), 'tx_id');
     out.added = fresh.filter(d => d.col === 'spend').length;

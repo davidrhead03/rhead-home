@@ -693,8 +693,7 @@ input[type=tel],input[type=email]{width:100%;background:var(--surface2);border:1
 .dots{display:flex;justify-content:center;gap:6px;margin-top:-4px}
 .dots button{width:7px;height:7px;border-radius:50%;border:0;padding:0;background:var(--line);cursor:pointer;transition:width .2s,background .2s}
 .dots button.on{width:20px;border-radius:5px;background:var(--cocoa)}
-.fin-top button{flex:1 1 0;min-width:0;padding-left:2px;padding-right:2px;font-size:14px}
-.fin-top button:last-child{flex:0 0 44px}
+.fin-top button{flex:1 1 0;min-width:0;padding-left:1px;padding-right:1px;font-size:13.5px}
 .fin-sub{display:flex;gap:6px;margin-top:-4px}
 .fin-sub button{flex:1;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:8px 6px;font:inherit;font-size:14px;font-weight:700;color:inherit;cursor:pointer}
 .fin-sub button.on{background:var(--ink);color:var(--bg);border-color:transparent;box-shadow:var(--shadow)}
@@ -1577,7 +1576,7 @@ const S = {
   calc: { expr: '', last: '' }, confirm: null, showForm: {}, avFor: null, avDraft: null, schedWho: null,
   logRows: [{ n:'', s:'', r:'', w:'' }], logPre: null, canada: ls.get('canada', true)
 };
-if(!['overview','income','budget','savings','bills','subs','debts','calc'].includes(S.finTab)) S.finTab = 'overview';
+if(!['overview','income','budget','savings','bills','subs','debts','calc','accounts'].includes(S.finTab)) S.finTab = 'overview';
 if(!['month','week','plan','sched'].includes(S.cal.view)) S.cal.view = 'month';
 if(S.me){ S.draft = ls.get('wkdraft:' + S.me, null); S.draftClearedAt = ls.get('wkcleared:' + S.me, 0); }
 const COLS = {
@@ -4400,10 +4399,10 @@ function vSavings(){
   const now = savedThis(per) + planExtra(periodStart(per), periodNext(per, periodStart(per))), p = amt ? Math.min(100, Math.round(now / amt * 100)) : 0, streak = amt ? saveStreak(per, amt) : 0;
   const totalSaved = S.data.goals.reduce((s, g) => s + (Number(g.saved) || 0), 0);
   const recent = allDeposits().filter(dp => !dp.xfer).concat(S.data.xfers.map(x => ({ amt:x.amt, date:x.date, by:x.by, at:x.at, goal: (get('goals', x.goal) || {}).name || 'Savings', xid:x.id, spent: !!x.spent }))).sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.at || 0) - (a.at || 0)).slice(0, 10);
-  const moveCard = accts().length ? `<form class="card stack" data-form="xfer" style="gap:10px"><div class="between"><span class="eyebrow">Move money</span><span class="fine">${esc((accts().find(isChk) || {}).name || 'Checking')} → ${esc((accts().find(a => !isChk(a)) || {}).name || 'Savings')}</span></div>
+  const moveCard = !accts().length ? '' : !S.showForm.xfer ? `<div class="row" style="justify-content:flex-end">${toggleForm('xfer', 'Log a transfer to a goal')}</div>` : `<form class="card stack" data-form="xfer" style="gap:10px"><div class="between"><span class="eyebrow">Move money</span>${toggleForm('xfer', '')}<span class="fine">${esc((accts().find(isChk) || {}).name || 'Checking')} → ${esc((accts().find(a => !isChk(a)) || {}).name || 'Savings')}</span></div>
       <div class="row"><input type="number" id="xf-amt" name="amt" required min="0.01" step="0.01" inputmode="decimal" placeholder="$ Amount" style="width:120px"><select id="xf-dir" name="dir" class="grow"><option value="in">Into savings</option><option value="out">Back to checking</option></select></div>
       <div class="row">${S.data.goals.length ? `<select id="xf-goal" name="goal" class="grow"><option value="">No specific goal</option>${S.data.goals.map(g => `<option value="${esc(g.id)}">For: ${esc(g.name)}</option>`).join('')}</select>` : ''}<input type="date" id="xf-date" name="date" value="${ymd(new Date())}" style="width:auto"><button class="btn primary">Move</button></div>
-      <p class="fine" style="margin:0">Money you move into savings counts toward your saving target. Money you take out for a goal doesn’t count against it.</p></form>` : '';
+      <p class="fine" style="margin:0">Money you move into savings counts toward your saving target. Money you take out for a goal doesn’t count against it.</p></form>`;
   return acctCard('savings') + moveCard + `<section class="card" style="background:var(--sage-soft);border-color:transparent"><div class="between"><span class="eyebrow" style="color:var(--sage)">Our saving target</span>${amt ? `<button class="btn small" data-act="toggleform" data-key="saveplan" style="background:var(--surface)">${S.showForm.saveplan ? 'Close' : 'Change'}</button>` : ''}</div>
     ${amt && !S.showForm.saveplan ? `<div class="between" style="margin-top:8px;align-items:baseline"><b class="num" style="font-family:var(--display);font-size:28px">${money2(now)}</b><span class="muted">of ${money(amt)} ${perLabel(per)}</span></div><div class="bar" style="margin-top:8px;background:var(--surface)"><i style="width:${p}%"></i></div>
       <div class="between" style="margin-top:6px"><span class="fine">${now >= amt ? 'Target reached! 🎉' : money2(amt - now) + ' to go'}</span>${streak ? `<span class="pill sage">🔥 ${streak} ${per}${streak === 1 ? '' : 's'} in a row</span>` : ''}</div>`
@@ -4470,15 +4469,15 @@ function cashFlowCard(mk){
   const c = cashFlow(mk);
   if(!c.useInc && !c.bills && !c.spent) return '';
   const max = Math.max(c.useInc, c.bills + c.spent + Math.max(0, c.saved), 1);
-  return `<section class="card"><div class="between"><h2>Money in vs. out</h2><span class="muted" style="font-size:13px">${esc(new Date(Number(mk.slice(0, 4)), Number(mk.slice(5)) - 1, 1).toLocaleDateString('en-US', { month:'long' }))}</span></div>
+  return `<section class="card"><div class="between"><h2>This month</h2><span class="muted" style="font-size:13px">${esc(new Date(Number(mk.slice(0, 4)), Number(mk.slice(5)) - 1, 1).toLocaleDateString('en-US', { month:'long' }))}</span></div>
     <div class="stack" style="gap:8px;margin-top:10px">
       <div><div class="between" style="font-size:14px"><span>Income${c.est ? ' (expected)' : ''}</span><b class="num" style="color:var(--sage)">${c.est ? '~' : ''}${money2(c.useInc)}</b></div><div class="bar"><i style="width:${c.useInc / max * 100}%"></i></div></div>
-      <div><div class="between" style="font-size:14px"><span>Bills</span><b class="num">−${money2(c.bills)}</b></div><div class="bar"><i style="width:${c.bills / max * 100}%;background:var(--gold)"></i></div></div>
-      <div><div class="between" style="font-size:14px"><span>Spending</span><b class="num">−${money2(c.spent)}</b></div><div class="bar"><i style="width:${c.spent / max * 100}%;background:var(--cocoa)"></i></div></div>
+      <div><div class="between" style="font-size:14px"><span>Bills this month</span><b class="num">−${money2(c.bills)}</b></div><div class="bar"><i style="width:${c.bills / max * 100}%;background:var(--gold)"></i></div></div>
+      <div><div class="between" style="font-size:14px"><span>Everyday spending</span><b class="num">−${money2(c.spent)}</b></div><div class="bar"><i style="width:${c.spent / max * 100}%;background:var(--cocoa)"></i></div></div>
       ${c.saved ? `<div><div class="between" style="font-size:14px"><span>${c.saved > 0 ? 'Put into savings' : 'Taken from savings'}</span><b class="num" style="${c.saved < 0 ? 'color:var(--sage)' : ''}">${c.saved > 0 ? '−' : '+'}${money2(Math.abs(c.saved))}</b></div><div class="bar"><i style="width:${Math.abs(c.saved) / max * 100}%;background:var(--sky)"></i></div></div>` : ''}
     </div>
     <div class="between" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line)"><b>Left over</b><b class="num" style="font-family:var(--display);font-size:24px;color:${c.left >= 0 ? 'var(--sage)' : 'var(--danger)'}">${c.left < 0 ? '−' : ''}${money2(Math.abs(c.left))}</b></div>
-    ${!c.inc ? `<p class="fine" style="margin:6px 0 0">${c.exp ? 'Log each paycheck in the Income tab to see what’s left.' : 'Add your income in the Income tab to see what’s left.'}</p>` : ''}</section>`;
+    ${!c.inc ? `<p class="fine" style="margin:6px 0 0">Paychecks show up here once they hit your bank.</p>` : ''}</section>`;
 }
 function vIncome(){
   const mk = S.incMonth, [yy, mm] = mk.split('-').map(Number), list = monthIncome(mk).slice().sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.at - a.at);
@@ -4488,17 +4487,20 @@ function vIncome(){
   <section class="card" style="background:var(--sage-soft);border-color:transparent"><div class="between"><span class="eyebrow" style="color:var(--sage)">Received this month</span><b class="num" style="font-family:var(--display);font-size:28px">${money2(tot)}</b></div>
     ${exp ? `<div class="bar" style="margin-top:10px;background:var(--surface)"><i style="width:${Math.min(100, tot / exp * 100)}%"></i></div><div class="fine" style="margin-top:4px">${money(tot)} of about ${money(exp)} expected</div>` : ''}
     <div class="row" style="margin-top:10px;gap:16px">${['david','laura'].map(w => `<span class="row" style="gap:6px">${mini(w)}<span>${nameOf(w)}</span><b class="num">${money(by(w))}</b></span>`).join('')}</div></section>
-  <form class="card stack" data-form="income" style="gap:10px"><div class="eyebrow">Log a paycheck or income</div>
+  <div class="between"><p class="fine" style="margin:0;flex:1">Paychecks into a linked bank come in by themselves.</p>${toggleForm('income', '+ Add')}</div>
+  ${S.showForm.income ? `<form class="card stack" data-form="income" style="gap:10px"><div class="eyebrow">Add income by hand</div>
     <div class="row"><input type="number" id="in-amt" name="amt" required min="0.01" step="0.01" inputmode="decimal" placeholder="$ Amount" style="width:130px"><select id="in-who" name="who" class="grow"><option value="${S.me || 'david'}">${nameOf(S.me || 'david')}</option><option value="${other(S.me || 'david')}">${nameOf(other(S.me || 'david'))}</option></select></div>
     <div class="row"><input class="grow" type="text" id="in-src" name="source" list="inc-srcs" maxlength="50" placeholder="From (job, side hustle, gift…)"><datalist id="inc-srcs">${srcNames.map(n => `<option value="${esc(n)}">`).join('')}</datalist><input type="date" id="in-date" name="date" value="${ymd(new Date())}" style="width:auto"></div>
-    ${accts().length > 1 ? `<select id="in-acct" name="acct" class="grow">${accts().map(a => `<option value="${esc(a.id)}" ${a.id === defAcct() ? 'selected' : ''}>Into ${esc(a.name)}</option>`).join('')}</select>` : ''}
-    <button class="btn primary">Add income</button></form>
-  <section class="card"><div class="list">${list.map(x => `<div class="li">${mini(x.who)}<div class="txt">${esc(x.source || 'Income')}<div class="sub">${esc(nameOf(x.who))} · ${esc(fmtDate(parseYmd(x.date), { month:'short', day:'numeric' }))}</div></div><b class="num" style="color:var(--sage)">+${money2(x.amt)}</b>${delBtn('income', x.id, 'income')}</div>`).join('') || empty('No income logged this month', 'Add each paycheck when it hits your account.')}</div></section>
+    ${accts().length > 1 ? `<div class="row"><select id="in-acct" name="acct" class="grow">${accts().map(a => `<option value="${esc(a.id)}" ${a.id === defAcct() ? 'selected' : ''}>Into ${esc(a.name)}</option>`).join('')}</select></div>` : ''}
+    <button class="btn primary">Add income</button></form>` : ''}
+  <section class="card"><div class="list">${list.map(x => `<div class="li">${mini(x.who)}<div class="txt">${esc(x.source || 'Income')}<div class="sub">${esc(nameOf(x.who))} · ${esc(fmtDate(parseYmd(x.date), { month:'short', day:'numeric' }))}</div></div><b class="num" style="color:var(--sage)">+${money2(x.amt)}</b>${delBtn('income', x.id, 'income')}</div>`).join('') || empty('No income yet this month', 'Paychecks show up here when they hit your bank.')}</div></section>
   ${cashFlowCard(mk)}`;
 }
 
 /* finance */
-function monthSpend(mk){ return S.data.spend.filter(s => (s.date || '').slice(0, 7) === mk); }
+function monthSpendAll(mk){ return S.data.spend.filter(s => (s.date || '').slice(0, 7) === mk); }
+// bank payments matched to a bill are counted under Bills, not Spending
+function monthSpend(mk){ return monthSpendAll(mk).filter(s => !s.bill); }
 const limits = () => (meta('budget') || {}).limits || {};
 function spendForm(){
   return `<form class="card stack" data-form="spend" style="gap:10px"><div class="eyebrow">Add an expense</div><div class="row"><input type="number" id="s-amt" name="amt" required min="0.01" step="0.01" inputmode="decimal" placeholder="$ Amount" style="width:120px"><select id="s-cat" name="cat" class="grow">${SPEND_CATS.map(c => `<option>${c}</option>`).join('')}</select></div><div class="row"><input class="grow" type="text" id="s-note" name="note" maxlength="80" placeholder="What was it? (optional)"><input type="date" id="s-date" name="date" value="${ymd(new Date())}" style="width:auto"></div><div class="row">${accts().length > 1 ? `<select id="s-acct" name="acct" class="grow">${accts().map(a => `<option value="${esc(a.id)}" ${a.id === defAcct() ? 'selected' : ''}>From ${esc(a.name)}</option>`).join('')}</select>` : ''}<button class="btn primary">Add</button></div></form>`;
@@ -4510,13 +4512,13 @@ function catBars(mk, onlyTop){
   const maxV = Math.max(1, ...cats.map(x => Math.max(x[1], x[2])));
   return cats.map(([c, v, lim]) => { const pct = lim ? v / lim : v / maxV, cls = lim ? (pct > 1 ? 'over' : pct > .85 ? 'warn' : '') : ''; return `<div><div class="between" style="font-size:14px"><span>${esc(c)}</span><span class="num">${money2(v)}${lim ? ` <span class="muted">of ${money(lim)}</span>` : ''}</span></div><div class="bar ${cls}"><i style="width:${Math.max(2, Math.min(100, pct * 100))}%;${lim ? '' : 'background:var(--cocoa)'}"></i></div></div>`; }).join('');
 }
-const FIN_TOP = { overview:'overview', budget:'inout', income:'inout', bills:'pay', subs:'pay', debts:'pay', savings:'savings', calc:'calc' };
+const FIN_TOP = { overview:'overview', budget:'inout', income:'inout', bills:'pay', subs:'pay', debts:'pay', savings:'savings', accounts:'accounts', calc:'calc' };
 const FIN_SUBS = { inout:[['budget','💳 Spent'],['income','💵 Income']], pay:[['bills','🧾 Bills'],['subs','🔁 Subs'],['debts','📉 Debts']] };
 const FIN_LAST = { inout:'budget', pay:'bills' };
 function vMoney(){
   const t = S.finTab, top = FIN_TOP[t] || 'overview', subs = FIN_SUBS[top];
-  const body = t === 'subs' ? vSubs() : t === 'budget' ? vBudget() : t === 'savings' ? vSavings() : t === 'income' ? vIncome() : t === 'bills' ? vBills() : t === 'debts' ? vDebts() : t === 'calc' ? vCalc() : vFinOverview();
-  return `<h2 style="font-size:22px">Finance</h2>` + `<div class="seg fin-top">${[['overview','Overview'],['inout','In & out'],['pay','Payments'],['savings','Savings'],['calc','🧮']].map(([k, l]) => `<button class="${top === k ? 'on' : ''}" data-act="fintab" data-v="${k}">${l}</button>`).join('')}</div>`
+  const body = t === 'subs' ? vSubs() : t === 'budget' ? vBudget() : t === 'savings' ? vSavings() : t === 'income' ? vIncome() : t === 'bills' ? vBills() : t === 'debts' ? vDebts() : t === 'calc' ? vCalc() : t === 'accounts' ? vAccounts() : vFinOverview();
+  return `<div class="between"><h2 style="font-size:22px">Finance</h2><button class="icon-btn ${t === 'calc' ? 'on' : ''}" data-act="fintab" data-v="${t === 'calc' ? 'overview' : 'calc'}" aria-label="${t === 'calc' ? 'Close calculator' : 'Calculator'}" style="font-size:20px">${t === 'calc' ? ic('x', 18) : '🧮'}</button></div>` + (t === 'calc' ? '' : `<div class="seg fin-top">${[['overview','Overview'],['inout','In & out'],['pay','Bills'],['savings','Savings'],['accounts','Accounts']].map(([k, l]) => `<button class="${top === k ? 'on' : ''}" data-act="fintab" data-v="${k}">${l}</button>`).join('')}</div>`)
     + (subs ? `<div class="fin-sub">${subs.map(([k, l]) => `<button class="${t === k ? 'on' : ''}" data-act="fintab" data-v="${k}">${l}</button>`).join('')}</div>` : '') + body;
 }
 /* ---------- linked banks (Teller, through /api/bank) ---------- */
@@ -4660,40 +4662,48 @@ function bankCard(){
     ${bankTidyBox()}
     ${S.bankSetup ? `<p class="fine" style="margin:8px 0 0;padding:8px 10px;border-radius:10px;background:var(--soft, rgba(0,0,0,.04))">Almost there: the bank link needs its one-time setup (a free Plaid account, plus a few keys in Cloudflare). Claude has the steps.</p>` : ''}</section>`;
 }
+function moneyNowCard(){
+  const b = meta('bank') || {}, L = accts(), links = b.links || [];
+  if(!L.length && !links.length) return `<section class="card"><span class="eyebrow">Money right now</span><p class="fine" style="margin:6px 0 10px">Connect your bank so balances, purchases and paychecks fill in by themselves.</p><button class="btn primary small" data-act="fintab" data-v="accounts">Connect a bank</button></section>`;
+  const chk = acctTotal('checking'), sav = acctTotal('savings');
+  const cards = (b.accounts || []).filter(a => a.type === 'credit' && a.mode === 'home' && a.ledger != null), owed = cards.reduce((t, a) => t + (Number(a.ledger) || 0), 0);
+  const pend = L.filter(a => a.linked).flatMap(a => a.pend || []).reduce((t, x) => t + (Number(x.amt) || 0), 0);
+  const bad = links.filter(l => l.status !== 'ok');
+  const cell = (label, v, col) => `<div><div class="fine">${label}</div><b class="num" style="font-family:var(--display);font-size:22px;${col ? 'color:' + col : ''}">${v}</b></div>`;
+  return `<section class="card"><div class="between"><span class="eyebrow">Money right now</span><button class="btn small soft" data-act="fintab" data-v="accounts">Accounts</button></div>
+    <div class="row" style="margin-top:8px;gap:18px">${cell('Checking', sMoney(chk))}${cell('Savings', sMoney(sav), 'var(--sage)')}${cards.length ? cell('Cards owed', money2(owed), 'var(--danger)') : ''}</div>
+    ${pend > 0 ? `<p class="fine" style="margin:8px 0 0">⏳ ${money2(pend)} still pending in checking.</p>` : ''}
+    ${bad.length ? `<p class="fine" style="margin:8px 0 0;color:var(--danger)">⚠️ ${esc(bad.map(l => l.inst).join(', '))} needs attention. <button class="btn small" data-act="fintab" data-v="accounts" style="margin-left:4px">Fix</button></p>` : ''}
+    ${links.length ? `<div class="between" style="margin-top:10px;padding-top:8px;border-top:1px solid var(--line)"><span class="fine">🔗 Synced from your bank ${esc(bankAgo(b.last))}</span><button class="btn small" data-act="bank-sync" ${S.bankBusy ? 'disabled' : ''}>${S.bankBusy === 'sync' ? 'Syncing…' : 'Sync now'}</button></div>` : ''}</section>`;
+}
 function vFinOverview(){
-  const mk = monthKey(new Date()), spend = monthSpend(mk), total = spend.reduce((s, x) => s + (Number(x.amt) || 0), 0);
-  const limTotal = Object.values(limits()).reduce((s, v) => s + (Number(v) || 0), 0);
+  const mk = monthKey(new Date());
   const unpaid = activeBills().map(b => [b, billStatus(b)]).filter(x => !x[1].paid).sort((a, b) => a[1].diff - b[1].diff);
-  const unpaidAmt = unpaid.reduce((s, x) => s + billAmt(x[0]).amt, 0);
-  const saved = S.data.goals.reduce((s, g) => s + (Number(g.saved) || 0), 0);
   const bars = catBars(mk, 4);
-  const incNow = monthIncome(mk).reduce((x, i) => x + (Number(i.amt) || 0), 0);
-  return `<section class="tiles" style="grid-template-columns:repeat(2,minmax(0,1fr))">
-    <button class="tile" data-act="fintab" data-v="income"><span>Income in ${esc(new Date().toLocaleDateString('en-US', { month:'long' }))}</span><b>${money(incNow)}</b><span>${expectedMonthly() ? 'of ~' + money(expectedMonthly()) + ' expected' : 'tap to add'}</span></button>
-    <button class="tile" data-act="fintab" data-v="budget"><span>Spent in ${esc(new Date().toLocaleDateString('en-US', { month:'long' }))}</span><b>${money(total)}</b><span>${limTotal ? 'of ' + money(limTotal) + ' budget' : 'no budget set'}</span></button>
-    <button class="tile" data-act="fintab" data-v="bills"><span>Bills left</span><b>${money(unpaidAmt)}</b><span>${unpaid.length} unpaid</span></button>
-    <button class="tile" data-act="fintab" data-v="debts"><span>Debt left</span><b>${money(S.data.debts.reduce((x, d) => x + debtBal(d), 0))}</b><span>${S.data.debts.filter(d => debtBal(d) > 0).length} to pay off</span></button>
-  </section>
-  ${acctCard()}
-  ${bankCard()}
+  return `${moneyNowCard()}
   ${cashFlowCard(mk)}
-  ${spendForm()}
-  <section class="card"><div class="between"><h2>Next bills</h2><button class="btn small soft" data-act="fintab" data-v="bills">All bills</button></div><div class="list" style="margin-top:4px">${unpaid.slice(0, 4).map(([b, s]) => `<div class="li"><span class="pill ${s.cls}">${esc(s.label)}</span><div class="txt">${esc(b.name)}</div><b class="num">${billMoney(b)}</b></div>`).join('') || empty('All paid up', 'No unpaid bills this month.')}</div></section>
-  <section class="card"><div class="between"><h2>Where it's going</h2><button class="btn small soft" data-act="fintab" data-v="budget">Budget</button></div><div class="stack" style="gap:8px;margin-top:10px">${bars || '<p class="muted" style="margin:0">Add expenses to see your categories.</p>'}</div></section>`;
+  <section class="card"><div class="between"><h2>Bills still to pay</h2><button class="btn small soft" data-act="fintab" data-v="bills">All bills</button></div><div class="list" style="margin-top:4px">${unpaid.slice(0, 4).map(([b, s]) => `<div class="li"><span class="pill ${s.cls}">${esc(s.label)}</span><div class="txt">${esc(b.name)}</div><b class="num">${billMoney(b)}</b></div>`).join('') || empty('All paid up', 'No unpaid bills this month.')}</div></section>
+  <section class="card"><div class="between"><h2>Where it's going</h2><button class="btn small soft" data-act="fintab" data-v="budget">Spending</button></div><div class="stack" style="gap:8px;margin-top:10px">${bars || '<p class="muted" style="margin:0">Purchases will show up here by category.</p>'}</div></section>`;
+}
+function vAccounts(){
+  return `<p class="fine" style="margin:0">Your bank balances and connected banks. Linked accounts update by themselves.</p>${acctCard()}${bankCard()}`;
 }
 function vBudget(){
   const mk = S.budgetMonth, [yy, mm] = mk.split('-').map(Number);
   const spend = monthSpend(mk), total = spend.reduce((s, x) => s + (Number(x.amt) || 0), 0);
   const L = limits(), limTotal = Object.values(L).reduce((s, v) => s + (Number(v) || 0), 0);
-  return `<p class="fine" style="margin:0">Budget is for everyday spending that isn’t a bill: groceries, gas, eating out, Dayla, shopping. Log purchases here, and set a monthly limit per category if you want the app to warn you before you overspend.</p>
+  const all = monthSpendAll(mk);
+  return `
   <div class="between"><h2 style="font-size:20px">Spending</h2><div class="row" style="gap:2px"><button class="icon-btn" data-act="bmonth" data-d="-1" aria-label="Previous month">${ic('back', 18)}</button><b style="min-width:84px;text-align:center">${new Date(yy, mm - 1, 1).toLocaleDateString('en-US', { month:'short', year:'numeric' })}</b><button class="icon-btn" data-act="bmonth" data-d="1" aria-label="Next month" style="transform:scaleX(-1)">${ic('back', 18)}</button></div></div>
-  ${spendForm()}
+  <div class="between"><p class="fine" style="margin:0;flex:1">Everyday spending (not bills). Bank purchases come in by themselves; tap one to change its category.</p>${toggleForm('spend', '+ Add')}</div>
+  ${S.showForm.spend ? spendForm() : ''}
   <section class="card"><div class="between"><span class="eyebrow">Spent this month</span><b class="num" style="font-size:22px;font-family:var(--display)">${money2(total)}${limTotal ? `<span class="muted" style="font-size:14px;font-family:var(--body)"> of ${money(limTotal)}</span>` : ''}</b></div>
     ${limTotal ? `<div class="bar ${total > limTotal ? 'over' : total > limTotal * .85 ? 'warn' : ''}" style="margin-top:8px"><i style="width:${Math.min(100, total / limTotal * 100)}%"></i></div>` : ''}
     <div class="stack" style="gap:8px;margin-top:12px">${catBars(mk)}</div>
     <div class="row" style="margin-top:12px">${toggleForm('limits', 'Set monthly limits')}</div>
     ${S.showForm.limits ? `<form class="stack" data-form="limits" style="gap:8px;margin-top:10px">${SPEND_CATS.map((c, i) => `<label class="between" style="gap:10px"><span>${esc(c)}</span><input type="number" id="lim-${i}" name="lim-${i}" min="0" step="1" inputmode="decimal" placeholder="No limit" value="${esc(L[c] || '')}" style="width:130px"></label>`).join('')}<button class="btn primary">Save limits</button></form>` : ''}
-    <div class="list" style="margin-top:10px">${spend.slice(0, 40).map(s => `<div class="li"><span class="pill">${esc(fmtDate(parseYmd(s.date), { month:'short', day:'numeric' }))}</span><div class="txt">${esc(s.note || s.cat)}<div class="sub">${esc(s.cat)} · ${esc(nameOf(s.by))}${s.bank ? ' · 🔗 ' + esc(s.bank.inst) : ''}</div></div><b class="num">${money2(s.amt)}</b>${delBtn('spend', s.id, 'expense')}</div>`).join('') || empty('No spending logged', 'Add purchases above to see where the money goes.')}</div>
+    <div class="list" style="margin-top:10px">${all.slice().sort((x, y) => (y.date || '').localeCompare(x.date || '') || (y.at || 0) - (x.at || 0)).slice(0, 60).map(s => { const bill = s.bill && get('bills', s.bill); return `<div class="li" style="flex-wrap:wrap;${s.bill ? 'opacity:.62' : ''}"><span class="pill">${esc(fmtDate(parseYmd(s.date), { month:'short', day:'numeric' }))}</span><button class="txt" data-act="sp-open" data-id="${esc(s.id)}" style="border:0;background:none;padding:0;text-align:left;cursor:pointer;color:inherit;font:inherit">${esc(s.note || s.cat)}<div class="sub">${s.bill ? `🧾 Counted in Bills${bill ? ' · ' + esc(bill.name) : ''}` : esc(s.cat)} · ${esc(nameOf(s.by))}${s.bank ? ' · 🔗 ' + esc(s.bank.inst) : ''}</div></button><b class="num">${money2(s.amt)}</b>${delBtn('spend', s.id, 'expense')}
+      ${S.spOpen === s.id ? `<div class="row" style="flex-basis:100%;margin:6px 0 2px;gap:8px;flex-wrap:nowrap"><span class="fine" style="flex:none">Category</span><select data-live="sp-cat" data-id="${esc(s.id)}" class="grow">${SPEND_CATS.map(c => `<option ${c === s.cat ? 'selected' : ''}>${c}</option>`).join('')}</select>${s.bill ? `<button class="btn small" data-act="sp-unbill" data-id="${esc(s.id)}">Not a bill</button>` : ''}</div>` : ''}</div>`; }).join('') || empty('No spending yet this month', 'Purchases from your bank will show up here.')}</div>
   </section>`;
 }
 const billActive = (b, mk) => !b.ends || (mk || monthKey(new Date())) <= b.ends;
@@ -4734,20 +4744,20 @@ function vBills(){
   const anyEst = activeBills(mk).some(b => billAmt(b, mk).est);
   const needAmt = activeBills(mk).filter(b => b.variable && billAmt(b, mk).est);
   return `<section class="tiles" style="grid-template-columns:repeat(2,minmax(0,1fr))"><div class="tile"><span>This month</span><b>${anyEst ? '~' : ''}${money(total)}</b></div><div class="tile"><span>Still to pay in ${esc(new Date().toLocaleDateString('en-US', { month:'long' }))}</span><b>${anyEst ? '~' : ''}${money(unpaid)}</b></div></section>
-  ${needAmt.length ? `<div class="banner">${needAmt.length === 1 ? esc(needAmt[0].name) + ' needs' : needAmt.length + ' bills need'} this month's amount. When the bill email comes, type the amount in below. Until then it uses last month's amount as an estimate (~).</div>` : ''}
+  ${needAmt.length ? `<div class="banner">${needAmt.length === 1 ? esc(needAmt[0].name) + ' needs' : needAmt.length + ' bills need'} this month's amount. It fills in by itself when the payment shows up in your bank, or type it in below. Until then it uses last month's amount as an estimate (~).</div>` : ''}
   <div class="row" style="justify-content:flex-end">${toggleForm('bill', '+ Bill')}</div>
   ${S.showForm.bill ? billForm(null) : ''}
   <section class="card"><div class="list">${rows.length ? rows.map(([b, s]) => {
     const x = billAmt(b, mk), open = S.billOpen === b.id;
     if(S.billEdit === b.id) return billForm(b);
     return `<div class="li ${s.paid ? 'done' : ''}" style="flex-wrap:wrap"><button class="check ${s.paid ? 'on' : ''}" data-act="bill-paid" data-id="${esc(b.id)}" aria-label="Mark ${esc(b.name)} paid this month">${ic('check', 15)}</button>
-      <button class="txt" data-act="bill-open" data-id="${esc(b.id)}" style="border:0;background:none;padding:0;text-align:left;cursor:pointer;color:inherit"><div style="font-weight:600">${esc(b.name)}</div><div class="sub">Due the ${ordinal(Number(b.due) || 1)}${b.auto ? ' · Autopay' : ''}${b.variable ? ' · Changes monthly' : ''}${b.ends ? ` · <b style="color:var(--sage)">${paymentsLeft(b) === 1 ? 'Last payment!' : paymentsLeft(b) + ' payments left'}</b>` : ''}${b.debt && get('debts', b.debt) ? ' · Pays down ' + esc(get('debts', b.debt).name) : ''} · ${open ? 'Hide history' : 'History'}</div></button>
+      <button class="txt" data-act="bill-open" data-id="${esc(b.id)}" style="border:0;background:none;padding:0;text-align:left;cursor:pointer;color:inherit"><div style="font-weight:600">${esc(b.name)}</div><div class="sub">${s.paid && (b.paidBy || {})[mk] === 'bank' ? '<b style="color:var(--sage)">✓ Paid from bank</b> · ' : ''}Due the ${ordinal(Number(b.due) || 1)}${b.auto ? ' · Autopay' : ''}${b.variable ? ' · Changes monthly' : ''}${b.ends ? ` · <b style="color:var(--sage)">${paymentsLeft(b) === 1 ? 'Last payment!' : paymentsLeft(b) + ' payments left'}</b>` : ''}${b.debt && get('debts', b.debt) ? ' · Pays down ' + esc(get('debts', b.debt).name) : ''} · ${open ? 'Hide history' : 'History'}</div></button>
       <div style="text-align:right"><b class="num">${x.est ? `<span class="muted">~${money2(x.amt)}</span>` : money2(x.amt)}</b><div><span class="pill ${s.cls}">${esc(s.label)}</span></div></div>
       <button type="button" class="icon-btn" data-act="bill-edit" data-id="${esc(b.id)}" aria-label="Edit ${esc(b.name)}">${ic('pencil', 18)}</button>
       ${b.variable ? `<div class="row" style="flex-basis:100%;margin-left:38px;flex-wrap:nowrap"><input type="number" id="ba-${esc(b.id)}" step="0.01" inputmode="decimal" placeholder="${esc(new Date().toLocaleDateString('en-US', { month:'long' }))} amount" value="${x.est ? '' : esc(x.amt)}" style="max-width:170px"><button class="btn small ${x.est ? 'primary' : ''}" data-act="bill-amt" data-id="${esc(b.id)}">${x.est ? 'Save amount' : 'Update'}</button></div>` : ''}
     </div>${open ? billHistory(b) : ''}`; }).join('') : empty('No bills yet', 'Add rent, power, water, phones and subscriptions. They show on the calendar too.')}</div></section>
   ${done.length ? `<details class="more"><summary>Finished bills · ${done.length}</summary><div class="list">${done.map(b => `<div class="li done"><div class="txt">${esc(b.name)}<div class="sub">Last payment ${esc(monthName(b.ends))}</div></div><span class="pill sage">Done 🎉</span>${delBtn('bills', b.id, b.name)}</div>`).join('')}</div></details>` : ''}
-  <p class="fine">Bills repeat every month by themselves. Checking one off only marks this month as paid; next month it starts unpaid again. For bills that change, like power or water, type in the new amount when the email arrives.</p>`;
+  <p class="fine">Bills repeat every month. When the payment shows up in a linked bank, the bill checks itself off (and power or water gets this month’s real amount). You can still tap the circle to check one off by hand.</p>`;
 }
 function evalExpr(src){
   const toks = src.replace(/×/g, '*').replace(/÷/g, '/').match(/\d*\.?\d+|[+\-*/()%]/g) || [];
@@ -7351,6 +7361,8 @@ document.addEventListener('click', async ev => {
     case 'bank-connect': bankConnect(); break;
     case 'bank-fix': bankConnect(id); break;
     case 'bank-sync': bankSync(); break;
+    case 'sp-open': S.spOpen = S.spOpen === id ? null : id; render(); break;
+    case 'sp-unbill': { const x = get('spend', id); if(x && await updDoc('spend', id, { bill: null })){ toast('Moved back to spending'); } break; }
     case 'bank-tidy': bankTidy(); break;
     case 'bank-showoff': S.bankShowOff = S.bankShowOff === id ? null : id; render(); break;
     case 'bank-rm': bankRemove(id); break;
@@ -7722,6 +7734,7 @@ document.addEventListener('change', ev => {
   const t = ev.target;
   if(t.dataset.avf) render();
   if(t.dataset.live === 'bank-mode'){ bankMode(t.dataset.id, t.value); return; }
+  if(t.dataset.live === 'sp-cat'){ updDoc('spend', t.dataset.id, { cat: t.value }).then(ok => ok && toast('Category changed to ' + t.value)); return; }
   if(t.dataset.live === 'msg-file' && t.files && t.files[0]){ const f = t.files[0]; t.value = ''; sendChatImage(f); return; }
   if(t.dataset.live === 'bg-photo' && t.files && t.files[0] && S.assets){ (async () => { try{ toast('Uploading photo…'); const id = await uploadPhoto(t.files[0]); SET.bgPhoto = id; SET.bgWash = SET.bgWash || 'soft'; ls.set('settings', SET); applySettings(); render(); toast('Background updated ✨'); }catch(e){ toast('Couldn’t upload that photo'); } })(); return; }
   if(t.dataset.live === 'dayla-up' && t.files && t.files.length && S.assets){

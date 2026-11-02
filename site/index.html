@@ -664,6 +664,23 @@ html::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;bac
 .parade-i b{font-size:11.5px;line-height:1.2}
 .parade-i small{font-size:11px;color:var(--muted)}
 
+.clock-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+.clock{background:var(--surface2,rgba(0,0,0,.03));border-radius:14px;padding:10px 12px;min-width:0}
+.ftree{overflow-x:auto;text-align:center}
+.flbl{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:4px 0 6px}
+.frow{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+.fcouple{display:flex;align-items:flex-start;gap:2px;background:var(--surface2,rgba(0,0,0,.03));border-radius:16px;padding:6px}
+.fcouple.us{background:var(--blush-soft)}
+.fheart{color:var(--blush);font-size:14px;align-self:center;margin:0 -2px}
+.fnode{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:72px;max-width:96px;padding:4px;border:0;background:none;color:inherit;font:inherit;cursor:pointer;border-radius:12px}
+.fnode.on{background:var(--surface);box-shadow:var(--shadow)}
+.fnode b{font-size:13.5px;line-height:1.15}
+.fnode .fine{font-size:11.5px;line-height:1.2}
+.fnode .fav-dot{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:17px;color:#fff;background:var(--sky);overflow:hidden}
+.fnode .fav-dot.laura{background:var(--blush)}
+.fnode.me .fav-dot{background:none}
+.fnode.me .fav-dot > *{width:42px!important;height:42px!important;font-size:17px}
+.fline{width:2px;height:14px;background:var(--line);margin:6px auto}
 .occ-emo{font-size:26px;width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:var(--blush-soft);flex:none}
 .kbar.occ{background:var(--blush)}.kbar.car{background:var(--sky)}
 .car-rem{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
@@ -1581,7 +1598,7 @@ if(!['month','week','plan','sched'].includes(S.cal.view)) S.cal.view = 'month';
 if(S.me){ S.draft = ls.get('wkdraft:' + S.me, null); S.draftClearedAt = ls.get('wkcleared:' + S.me, 0); }
 const COLS = {
   items:null, wish:null, events:null, recipes:null, ideas:null, plans:null, prayers:null, projects:null,
-  goals:null, memories:null, bills:null, people:null, meta:null, scheds:null, routine:null, pchk:null, drafts:null, bnotes:null, lifegoals:null, debts:null, spanish:null, dphotos:null, inspo:null, incsrc:null, chal:null, games:null, subs:null, trips:null, doodles:null, pins:null, xfers:null, todos:null, gifts:null, occasions:null, hinfo:null, cars:null, phrases:null,
+  goals:null, memories:null, family:null, bills:null, people:null, meta:null, scheds:null, routine:null, pchk:null, drafts:null, bnotes:null, lifegoals:null, debts:null, spanish:null, dphotos:null, inspo:null, incsrc:null, chal:null, games:null, subs:null, trips:null, doodles:null, pins:null, xfers:null, todos:null, gifts:null, occasions:null, hinfo:null, cars:null, phrases:null,
   reps: q => q.orderBy('at', 'desc').limit(800),
   income: q => q.orderBy('at', 'desc').limit(500),
   msgs: q => q.orderBy('at', 'desc').limit(1000),
@@ -2924,6 +2941,7 @@ const ICON = {
   target:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r=".8"/>',
   lang:'<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v9a1.5 1.5 0 0 1-1.5 1.5H9l-5 4z"/><path d="M8.5 8.5h7M8.5 12h4.5"/>',
   paw:'<circle cx="7" cy="10" r="1.8"/><circle cx="10.5" cy="6.5" r="1.8"/><circle cx="15" cy="6.5" r="1.8"/><circle cx="18" cy="10" r="1.8"/><path d="M8 17c0-3 2-5 4.5-5S17 14 17 17c0 2-2 2.5-4.5 2S8 19 8 17z"/>',
+  family:'<circle cx="12" cy="6" r="2.6"/><circle cx="5.5" cy="15" r="2.3"/><circle cx="18.5" cy="15" r="2.3"/><path d="M12 8.6v3.4M12 12H5.5v.7M12 12h6.5v.7M2.5 21c.3-2 1.5-3 3-3s2.7 1 3 3M15.5 21c.3-2 1.5-3 3-3s2.7 1 3 3"/>',
   globe:'<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.6 3.7 5.4 3.7 8.5s-1.2 5.9-3.7 8.5c-2.5-2.6-3.7-5.4-3.7-8.5s1.2-5.9 3.7-8.5z"/>',
   plane:'<path d="M3 12.5l18-8-5.5 16-3.6-6.2z"/><path d="M11.9 14.3 21 4.5"/>',
   music:'<path d="M9 18V6l10-2v12"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="16" r="2"/>',
@@ -3332,9 +3350,10 @@ const PLACES = [
   ['recipes','Recipes','recipe','--gold-soft','--gold'],['projects','Our home','sofa','--gold-soft','--gold'],['memories','Memories','photo','--sky-soft','--sky'],
   ['games','Games','game','--blush-soft','--blush'],['map','Love map','globe','--cocoa-soft','--cocoa'],['trips','Trips','plane','--sky-soft','--sky'],
   ['tasks','Tasks','todo','--sage-soft','--sage'],['dayla','Dayla','paw','--gold-soft','--gold'],['trophies','Trophies','trophy','--gold-soft','--gold'],['wrapped','Wrapped','sparkle','--blush-soft','--blush'],
-  ['gifts','Gifts','gift','--blush-soft','--blush'],['house','House info','houseinfo','--cocoa-soft','--cocoa'],['cars','Car log','car','--sky-soft','--sky'],['translate','Translator','translate','--sage-soft','--sage']
+  ['gifts','Gifts','gift','--blush-soft','--blush'],['house','House info','houseinfo','--cocoa-soft','--cocoa'],['cars','Car log','car','--sky-soft','--sky'],['translate','Translator','translate','--sage-soft','--sage'],
+  ['family','Family','family','--sky-soft','--sky']
 ];
-const PLACE_GROUPS = [['Us',['dates','notes','memories','map']],['Plans',['trips','goals','gifts','recipes']],['Home',['projects','house','cars','tasks']],['Every day',['workouts','faith','spanish','translate']],['Fun',['games','dayla','trophies','wrapped']]];
+const PLACE_GROUPS = [['Us',['dates','notes','memories','map','family']],['Plans',['trips','goals','gifts','recipes']],['Home',['projects','house','cars','tasks']],['Every day',['workouts','faith','spanish','translate']],['Fun',['games','dayla','trophies','wrapped']]];
 const HOME_BLOCKS = [['note','Love note (when there’s a new one)'],['dayla','Dayla’s message'],['favs','Favorite apps + search'],['myday','My day'],['today','Coming up: bills due soon and other plans'],['trip','Next trip countdown'],['daily','Daily cards (verse, weather, word, fact, place)'],['married','Married counter']];
 if(SET.homeV !== 6){ delete SET.homeOrder; SET.challenge = false; SET.homeV = 6; try{ ls.set('settings', SET); }catch(e){} }
 const FAV_DEFAULT = ['faith','workouts','goals','projects','trips','games','tasks'];
@@ -6472,6 +6491,99 @@ function occForm(){
     <p class="fine" style="margin:0">It comes back every year and shows on the calendar.</p>
     <button class="btn primary">Save</button></form>`;
 }
+/* ---------- Family: world clock + family tree ---------- */
+const FAM_CITIES = [['home','Home · Deerfield Beach','America/New_York'],['surrey','Surrey, BC','America/Vancouver'],['vancouver','Vancouver','America/Vancouver'],['bogota','Bogotá','America/Bogota'],['medellin','Medellín','America/Bogota'],['cali','Cali','America/Bogota'],['barranquilla','Barranquilla','America/Bogota'],['yekaterinburg','Yekaterinburg','Asia/Yekaterinburg'],['moscow','Moscow','Europe/Moscow'],['louisiana','Louisiana','America/Chicago'],['miami','Miami','America/New_York'],['newyork','New York','America/New_York'],['toronto','Toronto','America/Toronto'],['chicago','Chicago','America/Chicago'],['denver','Denver','America/Denver'],['losangeles','Los Angeles','America/Los_Angeles'],['mexico','Mexico City','America/Mexico_City'],['saopaulo','São Paulo','America/Sao_Paulo'],['madrid','Madrid','Europe/Madrid'],['london','London','Europe/London'],['honolulu','Honolulu','Pacific/Honolulu']];
+const cityOf = k => FAM_CITIES.find(c => c[0] === k);
+const HOME_TZ = 'America/New_York';
+function tzInfo(tz){
+  const d = new Date(), at = z => new Date(d.toLocaleString('en-US', { timeZone: z }));
+  const diff = Math.round((at(tz) - at(HOME_TZ)) / 36e5 * 2) / 2, h = at(tz).getHours();
+  return { time: d.toLocaleTimeString('en-US', { timeZone: tz, hour:'numeric', minute:'2-digit' }), day: d.toLocaleDateString('en-US', { timeZone: tz, weekday:'short' }), diff, h,
+    sky: h >= 6 && h < 18 ? '☀️' : h >= 18 && h < 21 ? '🌆' : '🌙', late: h >= 22 || h < 7 };
+}
+const diffTxt = n => !n ? 'Same time as you' : `${n > 0 ? '+' : '−'}${Math.abs(n)}h ${n > 0 ? 'ahead' : 'behind'}`;
+const FAM_SEED = [
+  ['baba','david',1,'Baba','Grandma','deda','','Olga’s mom, from Yekaterinburg. Loves cooking, her garden and walks.'],
+  ['deda','david',1,'Deda','Grandpa','baba','','Olga’s dad, from Yekaterinburg. Always with Baba, loves the park.'],
+  ['steven','david',2,'Steven','Dad','roberta','surrey','Loves working out, movies and hiking.'],
+  ['roberta','david',2,'Roberta','Stepmom','steven','surrey','Brazilian. Loves to travel.'],
+  ['olga','david',2,'Olga','Mom','joseph','',''],
+  ['joseph','david',2,'Joseph','Stepdad','olga','','From Louisiana. Navy veteran.'],
+  ['joshua','david',3,'Joshua','Little brother','','','Loves Minecraft, squishies and his VR headset.'],
+  ['elsa','laura',1,'Mami Elsa','Grandma','titin','','Loves to cook and take care of everyone.'],
+  ['titin','laura',1,'Titin','Step-grandpa','elsa','','Drives taxis. Funny, and tries his best in English.'],
+  ['carolina','laura',2,'Carolina','Mom','','','From Bogotá. Loves taking people shopping.'],
+  ['diego','laura',2,'Diego','Dad','diana','','Loves basketball and soccer.'],
+  ['diana','laura',2,'Diana','Stepmom','diego','','Reads the Bible, loves kids.'],
+  ['juandi','laura',3,'Juandi','Brother','','','Plays soccer, wants to play in the USA. Likes Pokémon.']
+];
+let FAM_SEEDING = false;
+async function seedFamily(){
+  if(FAM_SEEDING || S.data.family.length || meta('family-seeded') || !S.db) return;
+  FAM_SEEDING = true;
+  for(const [id, side, gen, name, rel, w, lives, note] of FAM_SEED) await setDoc('family/' + id, { side, gen, name, rel, with: w, lives, note, bday:'', phone:'', at: Date.now() });
+  await setDoc('meta/family-seeded', { at: Date.now() });
+  FAM_SEEDING = false; render();
+}
+const famClocks = () => { const m = meta('clocks'); return m && Array.isArray(m.list) ? m.list : ['surrey','bogota','yekaterinburg']; };
+function clockCard(){
+  const fam = S.data.family, keys = Array.from(new Set(fam.map(p => p.lives).filter(Boolean).concat(famClocks()))).filter(k => k !== 'home' && cityOf(k));
+  const who = k => fam.filter(p => p.lives === k).map(p => p.name);
+  const me = tzInfo(HOME_TZ), edit = S.clockEdit;
+  return `<section class="card"><div class="between"><span class="eyebrow">World clock</span><button class="btn small ${edit ? 'primary' : 'soft'}" data-act="clock-edit">${edit ? 'Done' : 'Edit'}</button></div>
+    <div class="between" style="margin-top:6px;align-items:baseline"><div><div class="fine">🏠 Home · Deerfield Beach</div><b class="num" style="font-family:var(--display);font-size:30px">${me.time}</b></div><span style="font-size:26px">${me.sky}</span></div>
+    <div class="clock-grid">${keys.map(k => { const c = cityOf(k), t = tzInfo(c[2]), w = who(k), fixed = !famClocks().includes(k); return `<div class="clock">
+      <div class="between"><span class="fine" style="font-weight:700;color:var(--ink)">${esc(c[1])}</span><span>${t.sky}</span></div>
+      <b class="num" style="font-size:20px">${t.time}</b>${t.day !== me.day ? ` <span class="pill" style="font-size:11px">${t.day}</span>` : ''}
+      <div class="fine">${diffTxt(t.diff)}${t.late ? ' · probably asleep' : ''}</div>
+      ${w.length ? `<div class="fine" style="margin-top:2px">👪 ${esc(w.join(', '))}</div>` : ''}
+      ${edit && !fixed ? `<button class="btn small" data-act="clock-rm" data-v="${k}" style="margin-top:6px">Remove</button>` : ''}</div>`; }).join('')}</div>
+    ${edit ? `<div class="row" style="margin-top:10px;flex-wrap:nowrap"><select id="clock-add" class="grow">${FAM_CITIES.filter(c => c[0] !== 'home' && !keys.includes(c[0])).map(c => `<option value="${c[0]}">${esc(c[1])}</option>`).join('')}</select><button class="btn small primary" data-act="clock-add">Add</button></div><p class="fine" style="margin:6px 0 0">Places where family lives show up by themselves. Set where someone lives by tapping them in the tree.</p>` : ''}</section>`;
+}
+function famNode(p, me){
+  const c = p && p.lives && cityOf(p.lives), t = c && c[2] !== HOME_TZ ? tzInfo(c[2]) : null;
+  if(me) return `<div class="fnode me"><span class="fav-dot ${me}">${mini(me)}</span><b>${esc(nameOf(me))}</b><span class="fine">${me === S.me ? 'You' : (me === 'laura' ? 'Wife' : 'Husband')}</span></div>`;
+  return `<button class="fnode ${S.famOpen === p.id ? 'on' : ''}" data-act="fam-open" data-id="${esc(p.id)}"><span class="fav-dot ${p.side}">${esc((p.name || '?').trim()[0] || '?')}</span><b>${esc(p.name)}</b><span class="fine">${esc(p.rel || '')}</span>${t ? `<span class="fine">${t.sky} ${t.time}</span>` : ''}</button>`;
+}
+function famRow(list, extra){
+  const done = new Set(), groups = [];
+  list.forEach(p => { if(done.has(p.id)) return; done.add(p.id); const w = p.with && list.find(x => x.id === p.with && !done.has(x.id)); if(w){ done.add(w.id); groups.push(`<div class="fcouple">${famNode(p)}<span class="fheart">♥</span>${famNode(w)}</div>`); } else groups.push(`<div class="fcouple">${famNode(p)}</div>`); });
+  if(extra) groups.unshift(extra);
+  return `<div class="frow">${groups.join('')}</div>`;
+}
+function famDetail(p){
+  const c = p.lives && cityOf(p.lives), t = c ? tzInfo(c[2]) : null, digits = String(p.phone || '').replace(/[^\d+]/g, ''), wa = digits.replace(/^\+/, '');
+  const same = S.data.family.filter(x => x.side === p.side && x.gen === p.gen && x.id !== p.id);
+  return `<section class="card stack fam-detail" style="gap:10px;border:1.5px solid var(--line)">
+    <div class="between"><div><h2 style="margin:0">${esc(p.name)}</h2><div class="muted">${esc(p.rel || '')}${p.side ? ' · ' + esc(nameOf(p.side)) + '’s family' : ''}</div></div><button class="icon-btn" data-act="fam-open" data-id="" aria-label="Close">${ic('x', 18)}</button></div>
+    ${t ? `<div class="banner" style="margin:0">${t.sky} It’s <b>${t.time}</b> in ${esc(c[1])} (${diffTxt(t.diff).toLowerCase()})${t.late ? ', so they’re probably asleep' : ''}.</div>` : ''}
+    ${p.note ? `<p class="fine" style="margin:0">${esc(p.note)}</p>` : ''}
+    ${digits ? `<div class="row" style="gap:8px"><a class="btn small primary" href="tel:${esc(digits)}">📞 Call</a><a class="btn small" href="facetime:${esc(digits)}">📹 FaceTime</a><a class="btn small" href="https://wa.me/${esc(wa)}" target="_blank" rel="noopener">💬 WhatsApp</a></div>` : ''}
+    <form class="stack" data-form="fam-edit" data-id="${esc(p.id)}" style="gap:8px">
+      <div class="row"><label class="f grow">Name<input type="text" name="name" required maxlength="40" value="${esc(p.name)}"></label><label class="f grow">Who they are<input type="text" name="rel" maxlength="30" value="${esc(p.rel || '')}" placeholder="Aunt, cousin…"></label></div>
+      <div class="row"><label class="f grow">Lives in<select name="lives"><option value="">Not set</option>${FAM_CITIES.map(x => `<option value="${x[0]}" ${p.lives === x[0] ? 'selected' : ''}>${esc(x[0] === 'home' ? 'Near us (same time)' : x[1])}</option>`).join('')}</select></label><label class="f grow">Birthday<input type="date" name="bday" value="${esc(p.bday || '')}"></label></div>
+      <div class="row"><label class="f grow">Phone (with country code)<input type="tel" name="phone" maxlength="24" value="${esc(p.phone || '')}" placeholder="+57 300 123 4567"></label><label class="f grow">Partner<select name="with"><option value="">None</option>${same.map(x => `<option value="${esc(x.id)}" ${p.with === x.id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select></label></div>
+      <label class="f">Notes<input type="text" name="note" maxlength="160" value="${esc(p.note || '')}"></label>
+      <div class="row"><button class="btn primary small">Save</button><span class="grow"></span>${delBtn('family', p.id, p.name)}</div></form></section>`;
+}
+function vFamily(){
+  if(!S.data.family.length && !meta('family-seeded')) setTimeout(seedFamily, 0);
+  const side = S.famSide || 'david', L = S.data.family.filter(p => p.side === side), g = n => L.filter(p => Number(p.gen) === n);
+  const open = S.famOpen && get('family', S.famOpen);
+  const genLbl = ['', 'Grandparents', 'Parents', side === 'david' ? 'David & siblings' : 'Laura & siblings'];
+  return pageHead('Family', 'Both sides, and what time it is for everyone') + clockCard()
+    + `<div class="seg">${[['david','David’s family'],['laura','Laura’s family']].map(([k, l]) => `<button class="${side === k ? 'on' : ''}" data-act="fam-side" data-v="${k}">${l}</button>`).join('')}</div>`
+    + `<section class="card ftree">${[1, 2].map(n => g(n).length ? `<div class="flbl">${genLbl[n]}</div>${famRow(g(n))}<div class="fline"></div>` : '').join('')}
+      <div class="flbl">${genLbl[3]}</div>${famRow(g(3), famNode(null, side))}
+      <div class="fline"></div><div class="frow"><div class="fcouple us"><div class="fnode me"><span style="font-size:22px">💍</span><b>David ♥ Laura</b><span class="fine">+ Dayla 🐾</span></div></div></div></section>`
+    + (open ? famDetail(open) : '')
+    + `<div class="row" style="justify-content:flex-end">${toggleForm('fam', '+ Add someone')}</div>`
+    + (S.showForm.fam ? `<form class="card stack" data-form="fam-add" style="gap:10px"><div class="eyebrow">Add to ${esc(nameOf(side))}’s family</div>
+        <div class="row"><label class="f grow">Name<input type="text" name="name" required maxlength="40"></label><label class="f grow">Who they are<input type="text" name="rel" maxlength="30" placeholder="Aunt, cousin, uncle…"></label></div>
+        <div class="row"><label class="f grow">Generation<select name="gen"><option value="1">Grandparents</option><option value="2" selected>Parents, aunts & uncles</option><option value="3">Siblings & cousins</option></select></label><label class="f grow">Lives in<select name="lives"><option value="">Not set</option>${FAM_CITIES.map(x => `<option value="${x[0]}">${esc(x[0] === 'home' ? 'Near us (same time)' : x[1])}</option>`).join('')}</select></label></div>
+        <button class="btn primary">Add</button></form>` : '')
+    + `<p class="fine">Tap anyone to add where they live, their birthday and phone number. Birthdays go on the calendar, and with a phone number you can call, FaceTime or WhatsApp them from here.</p>`;
+}
 function vGifts(){
   const tab = S.giftTab || 'up', vis = visGifts(), hiddenN = S.data.gifts.length - vis.length;
   let body = '';
@@ -7031,7 +7143,7 @@ function vQuickAdd(){
 }
 
 try{ window.__rh = { avatarSVG, av, randomAv, rhStats, trophyUnlocks, gSearch, get S(){ return S; }, wdWord, TRIVIA, ymd, FEATURED, placeArt, sdkToday }; }catch(e){}
-const PAGES = { apps:vApps, gifts:vGifts, house:vHouse, cars:vCars, translate:vTranslate, trophies:vTrophies, wrapped:vWrapped, search:vSearch, add:vQuickAdd, map:vLoveMap, trips:vTrips, tasks:vTasks, games:vGames, dayla:vDayla, goals:vGoals, spanish:vSpanish, dates:vDates, recipes:vRecipes, workouts:vWorkouts, faith:vFaith, projects:vProjects, memories:vMemories, notes:vNotes, avatars:vAvatars, settings:vSettings };
+const PAGES = { family:vFamily, apps:vApps, gifts:vGifts, house:vHouse, cars:vCars, translate:vTranslate, trophies:vTrophies, wrapped:vWrapped, search:vSearch, add:vQuickAdd, map:vLoveMap, trips:vTrips, tasks:vTasks, games:vGames, dayla:vDayla, goals:vGoals, spanish:vSpanish, dates:vDates, recipes:vRecipes, workouts:vWorkouts, faith:vFaith, projects:vProjects, memories:vMemories, notes:vNotes, avatars:vAvatars, settings:vSettings };
 function render(){
   avN = 0;
   const main = $('#main');
@@ -7368,6 +7480,11 @@ document.addEventListener('click', async ev => {
     case 'bank-connect': bankConnect(); break;
     case 'bank-fix': bankConnect(id); break;
     case 'bank-sync': bankSync(); break;
+    case 'fam-side': S.famSide = t.dataset.v; S.famOpen = null; render(); break;
+    case 'fam-open': S.famOpen = id || null; render(); if(id) setTimeout(() => { const el = document.querySelector('.fam-detail'); if(el) el.scrollIntoView({ behavior:'smooth', block:'start' }); }, 60); break;
+    case 'clock-edit': S.clockEdit = !S.clockEdit; render(); break;
+    case 'clock-add': { const sel = document.getElementById('clock-add'); if(sel && sel.value) await setDoc('meta/clocks', { list: famClocks().concat(sel.value) }); break; }
+    case 'clock-rm': await setDoc('meta/clocks', { list: famClocks().filter(k => k !== t.dataset.v) }); break;
     case 'sp-open': S.spOpen = S.spOpen === id ? null : id; render(); break;
     case 'sp-unbill': { const x = get('spend', id); if(x && await updDoc('spend', id, { bill: null })){ toast('Moved back to spending'); } break; }
     case 'bank-tidy': bankTidy(); break;
@@ -7867,6 +7984,15 @@ document.addEventListener('submit', async ev => {
     case 'trip-spent': { const tr = get('trips', fid); if(tr) await updDoc('trips', fid, { spent: (tr.spent || []).concat({ amt: parseFloat(v('amt')) || 0, note: v('note'), by: S.me, at: Date.now() }) }); break; }
     case 'pict-guess': pictGuess(v('g')); break;
     case 'gift': { if(!v('title')) break; if(await addDoc('gifts', { title:v('title'), who:v('who'), price: parseFloat(v('price')) || 0, occ:v('occ'), url: safeUrl(v('url')), note:v('note'), secret: !!fd.get('secret'), status:'idea' })){ S.showForm.gift = false; S.giftAdd = null; render(); toast(fd.get('secret') ? 'Saved. It’s a secret 🤫' : 'Gift idea saved 🎁'); } break; }
+    case 'fam-add': { const name = v('name'); if(!name) break; if(await addDoc('family', { side: S.famSide || 'david', gen: Number(v('gen')) || 2, name, rel: v('rel'), lives: v('lives'), with:'', bday:'', phone:'', note:'' })){ S.showForm.fam = false; render(); toast(name + ' added 👪'); } break; }
+    case 'fam-edit': { const p = get('family', fid); if(!p) break; const w = v('with'), patch = { name: v('name') || p.name, rel: v('rel'), lives: v('lives'), bday: v('bday'), phone: v('phone'), note: v('note'), with: w };
+      if(await updDoc('family', fid, patch)){
+        // keep couples paired both ways
+        if(w !== (p.with || '')){ if(p.with && get('family', p.with)) await updDoc('family', p.with, { with:'' }); if(w) await updDoc('family', w, { with: fid }); }
+        // a birthday goes on the calendar once
+        if(patch.bday && !S.data.occasions.some(o => (o.kind || 'Birthday') === 'Birthday' && lc(o.person) === lc(patch.name))) await addDoc('occasions', { person: patch.name, kind:'Birthday', date: patch.bday, noYear:false, title:'', note:'' });
+        toast('Saved ✓'); render(); }
+      break; }
     case 'occ': { const person = v('person'), date = v('date'); if(!person || !date) break; if(await addDoc('occasions', { person, kind: v('kind') || 'Birthday', date, noYear: !!fd.get('noyear'), title: v('title'), note: v('note') })){ S.showForm.occ = false; render(); toast('Saved. It’s on the calendar every year 🎂'); } break; }
     case 'hinfo': { const k = f.dataset.kind, keys = k === 'contact' ? ['name','role','phone','email','note'] : k === 'appliance' ? ['name','brand','model','serial','bought','warranty','store','url','note'] : ['label','value'], data = { kind:k }; keys.forEach(x => data[x] = x === 'url' ? safeUrl(v(x)) : v(x)); if(fid ? await updDoc('hinfo', fid, data) : await addDoc('hinfo', data)){ S.hiEdit = null; S.showForm.hic = S.showForm.hia = S.showForm.hin = false; render(); toast('Saved'); } break; }
     case 'car': case 'car-edit': { const odo = parseInt(v('odo')); const data = { name: v('name') || 'Our car', year: v('year'), make: v('make'), model: v('model'), oilEvery: parseInt(v('oil')) || 5000, rotEvery: parseInt(v('rot')) || 6000, regDue: v('reg'), insDue: v('ins') }; if(odo >= 0){ data.odo = odo; data.odoAt = Date.now(); } if(kind === 'car'){ data.log = []; if(await addDoc('cars', data)){ S.showForm.car = false; S.carSel = null; render(); toast('Car added 🚗'); } } else if(await updDoc('cars', fid, data)){ S.carEdit = null; render(); toast('Saved'); } break; }

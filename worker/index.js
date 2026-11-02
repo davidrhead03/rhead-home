@@ -166,7 +166,7 @@ async function syncLink(env, db, link, prefs, now, oldAccts) {
       avail: a.balances && a.balances.available != null ? Number(a.balances.available) : null, upd: ymdNY(now),
     };
     byId[a.account_id] = info;
-    if (a.type === 'depository' || a.type === 'credit') out.accounts.push(info);
+    if (a.type === 'depository' || a.type === 'credit' || a.type === 'loan') out.accounts.push(info);
   }
   // new transactions since last time (Plaid keeps our place with a cursor)
   // banks linked before pending tracking existed: start over once so today's pending purchases show
@@ -185,6 +185,7 @@ async function syncLink(env, db, link, prefs, now, oldAccts) {
   for (const t of added) {
     const a = byId[t.account_id];
     if (!a || t.date < since) continue;
+    if (a.type === 'loan') { seen.push({ tx_id: t.transaction_id }); continue; } // loan lines (Affirm etc.) aren't spending
     if (a.mode !== 'home') { seen.push({ tx_id: t.transaction_id }); continue; }
     const c = classify(t, a);
     if (t.pending) continue; // it comes back as posted later with its own id

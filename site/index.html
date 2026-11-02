@@ -3997,6 +3997,13 @@ function simulateDebts(debts, extra, method){
   }
   return Infinity;
 }
+// credit cards and loans from linked banks: their balance comes straight from the bank
+const bankDebts = () => ((meta('bank') || {}).accounts || []).filter(a => (a.type === 'credit' || a.type === 'loan') && a.mode !== 'off' && a.ledger != null);
+function bankDebtsCard(){
+  const L = bankDebts(); if(!L.length) return '';
+  return `<section class="card"><div class="between"><span class="eyebrow">From your bank</span><span class="fine">Updates by itself</span></div>
+    <div class="list" style="margin-top:4px">${L.map(a => `<div class="li"><div class="txt"><div style="font-weight:600">${esc((a.name || '').toLowerCase().startsWith((a.inst || '').toLowerCase()) ? a.name : (a.inst + ' ' + (a.name || a.sub)))}${a.last4 ? ` <span class="muted" style="font-weight:400">••${esc(a.last4)}</span>` : ''}</div><div class="sub">${a.type === 'loan' ? 'Loan' : 'Credit card'}${a.mode === 'biz' ? ' · Rhead business' : ''} · 🔗 ${esc(bankAgo((meta('bank') || {}).last))}</div></div><b class="num" style="color:${Number(a.ledger) > 0 ? 'var(--danger)' : 'var(--sage)'}">${money2(Math.max(0, Number(a.ledger) || 0))}</b></div>`).join('')}</div></section>`;
+}
 function vDebts(){
   const plan = meta('debtplan') || {}, method = plan.method || 'snowball', extra = Number(plan.extra) || 0;
   const ds = S.data.debts.map(d => Object.assign({}, d, { bal: debtBal(d) }));
@@ -4011,10 +4018,12 @@ function vDebts(){
     ${d.bal > 0 ? `<div class="row" style="margin-top:10px;flex-wrap:nowrap"><input type="number" id="dp-${esc(d.id)}" step="0.01" inputmode="decimal" placeholder="Payment $" style="width:120px;flex:none"><button class="btn small primary" data-act="debt-pay" data-id="${esc(d.id)}">Log payment</button></div>` : ''}
     ${last.length ? `<div class="list" style="margin-top:8px">${last.map(x => `<div class="li" style="padding:6px 0"><div class="txt sub">${esc(fmtDate(parseYmd(x.date), { month:'short', day:'numeric', year:'numeric' }))} · ${esc(nameOf(x.by))}</div><b class="num" style="font-size:14px">−${money2(x.amt)}</b></div>`).join('')}</div>` : ''}
     <div class="row" style="justify-content:space-between;margin-top:6px">${(d.pays || []).length ? `<button class="btn small" data-act="debt-undo" data-id="${esc(d.id)}">Undo last payment</button>` : '<span></span>'}${delBtn('debts', d.id, d.name)}</div></section>`; };
-  return `<section class="card" style="background:var(--sage-soft);border-color:transparent"><div class="between"><span class="eyebrow" style="color:var(--sage)">Total debt left</span><b class="num" style="font-family:var(--display);font-size:28px">${money2(bal)}</b></div>
+  const bankOwed = bankDebts().reduce((t, a) => t + Math.max(0, Number(a.ledger) || 0), 0);
+  return `<section class="card" style="background:var(--sage-soft);border-color:transparent"><div class="between"><span class="eyebrow" style="color:var(--sage)">Total debt left</span><b class="num" style="font-family:var(--display);font-size:28px">${money2(bal + bankOwed)}</b></div>${bankOwed ? `<div class="fine" style="margin-top:4px">${money2(bankOwed)} on linked cards and loans${bal ? ' · ' + money2(bal) + ' tracked by hand' : ''}</div>` : ''}
     <div class="bar" style="margin-top:10px;background:var(--surface)"><i style="width:${pct}%"></i></div>
     <div class="between" style="margin-top:6px"><span class="fine">${money(paid)} paid off of ${money(start)}</span><b class="num" style="color:var(--sage)">${pct}%</b></div>
     ${act.length ? `<div style="margin-top:10px;font-weight:600">Debt-free: ${esc(monthsLabel(months))}</div>` : ds.length ? '<div style="margin-top:10px;font-weight:600">Debt-free! Praise God 🎉</div>' : ''}</section>
+  ${bankDebtsCard()}
   <section class="card stack" style="gap:10px"><h2>Our plan</h2>${seg('debt-method', method, [['snowball','Snowball'],['avalanche','Avalanche']])}
     <p class="fine" style="margin:0">${method === 'snowball' ? 'Snowball: pay the smallest balance first for quick wins, then roll that payment into the next one.' : 'Avalanche: pay the highest interest rate first. It saves the most money in interest.'}</p>
     <div class="row" style="flex-wrap:nowrap"><label class="f grow">Extra paid each month, on top of the minimums<input type="number" id="debt-extra" step="1" inputmode="decimal" value="${extra || ''}" placeholder="$0"></label><button class="btn small primary" data-act="debt-extra" style="align-self:flex-end">Save</button></div></section>

@@ -4539,7 +4539,7 @@ async function bankConnect(repairEnr, pend){
   S.bankBusy = repairEnr || (pend && pend.enr) ? 'repair' : 'connect'; render();
   try{
     if(!BANK_CFG || !BANK_CFG.ready) BANK_CFG = await bankApi('config');
-    if(!BANK_CFG.ready){ S.bankSetup = true; toast('Bank sync needs a one-time setup first.'); throw 0; }
+    if(!BANK_CFG.ready){ S.bankSetup = true; toast('Bank sync can’t find: ' + ((BANK_CFG.missing || []).join(', ') || 'its keys') + '. Check Cloudflare.'); throw 0; }
     await loadPlaid();
     const enr = pend ? pend.enr : (repairEnr || ''), who = (pend && pend.who) || S.me;
     const token = pend ? pend.link_token : (await bankApi('linktoken', { enr, who })).link_token;

@@ -1,33 +1,29 @@
 // =============================================================
-//  Rhead Home: bank sync (Cloudflare Worker, runs beside the app)
-//  - /api/bank  : the app asks it to connect, sync or remove a bank
-//  - every 6 hrs: pulls new transactions + balances on its own
-//  Bank access tokens live only in Supabase table "bank_links",
-//  which the app itself can't read. The app only ever sees names,
-//  last 4 digits, balances and transactions.
+//  Rhead Home: bank sync with Plaid (Cloudflare Worker beside the app)
+//  - POST /api/bank : the app asks it to connect, sync or remove a bank
+//  - every 6 hours  : pulls new transactions + balances on its own
+//  Bank access tokens live only in Supabase table "bank_links", which the
+//  app itself can't read. The app only sees names, last 4 digits,
+//  balances and transactions.
 //
 //  Needs (Cloudflare > rhead-home > Settings > Variables and Secrets):
-//    TELLER_APP_ID   your Teller application id (app_...)
-//    SUPABASE_SECRET your Supabase secret key (sb_secret_...)
-//  and the Teller certificate uploaded as mTLS binding "TELLER_CERT".
+//    PLAID_CLIENT_ID   from Plaid Dashboard > Developers > Keys
+//    PLAID_SECRET      the Production secret from the same page
+//    SUPABASE_SECRET   Supabase secret key (sb_secret_...)
+//    PLAID_ENV         optional: "sandbox" for testing (default production)
 // =============================================================
 
 const SB_URL = 'https://rxtqhjukfwnrwvcdjivx.supabase.co';
-const TELLER = 'https://api.teller.io';
+const APP_URL = 'https://rhead-home.davidrhead03.workers.dev/';
 const TZ = 'America/New_York';
 const WHO = ['david', 'laura'];
-const DAY = 864e5;
 
 const json = (b, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
 const ymdNY = (t = Date.now()) => new Date(t).toLocaleDateString('en-CA', { timeZone: TZ });
 const round2 = n => Math.round(n * 100) / 100;
 
 function missing(env) {
-  const m = [];
-  if (!env.TELLER_APP_ID) m.push('TELLER_APP_ID');
-  if (!env.SUPABASE_SECRET) m.push('SUPABASE_SECRET');
-  if (!env.TELLER_CERT && !env.TELLER_FETCH) m.push('TELLER_CERT');
-  return m;
+  return ['PLAID_CLIENT_ID', 'PLAID_SECRET', 'SUPABASE_SECRET'].filter(k => !env[k]);
 }
 
 /* ---------- Supabase (service access) ---------- */
@@ -56,120 +52,120 @@ async function getMeta(db, id) {
   return (r && r[0] && r[0].data) || null;
 }
 const putMeta = (db, id, data) => db.upsert('docs', [{ col: 'meta', id, data }], 'col,id');
+const eq = v => 'eq.' + encodeURIComponent(v);
 
-/* ---------- Teller ---------- */
-class BankErr extends Error { constructor(msg, status, code) { super(msg); this.status = status; this.code = code || ''; } }
-async function teller(env, token, path) {
-  const f = env.TELLER_FETCH || ((u, i) => env.TELLER_CERT.fetch(u, i));
-  const r = await f(TELLER + path, { headers: { Authorization: 'Basic ' + btoa(token + ':') } });
-  if (r.ok) return r.json();
-  let code = '', msg = '';
-  try { const e = (await r.json()).error || {}; code = e.code || ''; msg = e.message || ''; } catch (e) {}
-  throw new BankErr(msg || `bank said ${r.status}`, r.status, code);
+/* ---------- Plaid ---------- */
+class BankErr extends Error { constructor(msg, code) { super(msg); this.code = code || ''; } }
+async function plaid(env, path, body) {
+  const base = env.PLAID_ENV === 'sandbox' ? 'https://sandbox.plaid.com' : 'https://production.plaid.com';
+  const f = env.PLAID_FETCH || fetch;
+  const r = await f(base + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ client_id: env.PLAID_CLIENT_ID, secret: env.PLAID_SECRET, ...body }) });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok || d.error_code) throw new BankErr(d.display_message || d.error_message || `Plaid said ${r.status}`, d.error_code || '');
+  return d;
 }
-const needsRepair = e => e instanceof BankErr && (/disconnect|enrollment|mfa|credential|login/i.test(e.code + ' ' + e.message) || e.status === 401 || e.status === 403);
+const REPAIR = new Set(['ITEM_LOGIN_REQUIRED', 'PENDING_EXPIRATION', 'PENDING_DISCONNECT', 'ITEM_LOCKED', 'INVALID_CREDENTIALS', 'INVALID_MFA', 'USER_PERMISSION_REVOKED', 'ACCESS_NOT_GRANTED', 'NO_ACCOUNTS']);
+const needsRepair = e => e instanceof BankErr && REPAIR.has(e.code);
 
 /* ---------- turning bank lines into app entries ---------- */
-const CAT = {
-  groceries: 'Groceries', dining: 'Dining out', bar: 'Dining out', fuel: 'Gas',
-  transport: 'Car', transportation: 'Car', home: 'Home', utilities: 'Bills', phone: 'Bills', insurance: 'Bills',
-  loan: 'Bills', tax: 'Bills', charity: 'Giving', entertainment: 'Fun', sport: 'Fun', accommodation: 'Fun',
-};
-const SPENDY = new Set(['groceries', 'dining', 'bar', 'fuel', 'shopping', 'clothing', 'entertainment', 'electronics', 'general', 'home', 'transportation', 'transport', 'health', 'sport', 'accommodation']);
-function catOf(tx) {
-  const d = (tx.description || '') + ' ' + ((tx.details && tx.details.counterparty && tx.details.counterparty.name) || '');
-  if (/chewy|petco|petsmart|\bvet\b|veterinar|banfield|bark ?box|pet supplies/i.test(d)) return 'Dayla';
-  if (/church|tithe|offering|pushpay|tithe\.ly/i.test(d)) return 'Giving';
-  if (/shell|chevron|exxon|mobil|marathon|wawa|racetrac|speedway|sunoco|citgo|7-eleven/i.test(d) && !(tx.details && tx.details.category)) return 'Gas';
-  return CAT[tx.details && tx.details.category] || 'Other';
+// Plaid amounts: positive = money left the account, negative = money came in (all account types).
+function catOf(t) {
+  const d = (t.merchant_name || '') + ' ' + (t.name || '');
+  const pc = t.personal_finance_category || {}, p = pc.primary || '', det = pc.detailed || '';
+  if (/chewy|petco|petsmart|\bvet\b|veterinar|banfield|bark ?box|pet supplies/i.test(d) || /PET/.test(det)) return 'Dayla';
+  if (/church|tithe|offering|pushpay|tithe\.ly/i.test(d) || det === 'GOVERNMENT_AND_NON_PROFIT_DONATIONS') return 'Giving';
+  if (det === 'FOOD_AND_DRINK_GROCERIES') return 'Groceries';
+  if (det === 'TRANSPORTATION_GAS') return 'Gas';
+  if (p === 'FOOD_AND_DRINK') return 'Dining out';
+  if (p === 'TRANSPORTATION') return 'Car';
+  if (p === 'RENT_AND_UTILITIES' || p === 'LOAN_PAYMENTS' || p === 'BANK_FEES' || /INSURANCE/.test(det)) return 'Bills';
+  if (p === 'HOME_IMPROVEMENT') return 'Home';
+  if (p === 'ENTERTAINMENT' || p === 'TRAVEL') return 'Fun';
+  return 'Other';
 }
-const tidy = s => String(s || '').replace(/\s+/g, ' ').replace(/\b(pos|debit|purchase|card|recurring|ach|web|ppd|id:?)\b/gi, '').replace(/\s+\d{4,}.*$/, '').replace(/\s+/g, ' ').trim();
-const nameOfTx = tx => ((tx.details && tx.details.counterparty && tx.details.counterparty.name) || tidy(tx.description) || 'Bank purchase').slice(0, 80);
-// money moving between your own accounts or paying off a card: not spending, not income
-const MOVE = /transfer (to|from)|xfer|internal transfer|vault|round ?up|savings|credit card|card payment|crd ?pmt|cardmember|autopay|epay|e-payment|online (payment|pmt)|payment (thank|received)|discover|bk of amer|bank of america|chase (card|credit)|sofi (credit|money)|capital one|amex|american express|citi card|venmo cashout|instant transfer/i;
-const PAY = /payroll|direct ?dep|dir ?dep|salary|paycheck|pay ?roll|wages|adp|gusto|paychex|employer/i;
-function classify(tx, acct, outSign) {
-  const amt = Number(tx.amount);
-  if (!amt || tx.status !== 'posted') return null;
-  const d = tx.description + ' ' + ((tx.details && tx.details.counterparty && tx.details.counterparty.name) || '');
-  const out = Math.sign(amt) === outSign;
-  if (out) {
-    if (MOVE.test(d)) return null;
-    if (tx.type === 'transfer' && !(tx.details && tx.details.counterparty && tx.details.counterparty.type === 'person')) return null;
-    return { kind: 'spend', amt: round2(Math.abs(amt)), cat: catOf(tx), note: nameOfTx(tx) };
+const P2P = /zelle|venmo|cash ?app|paypal/i;
+const OWN = /transfer (to|from)|xfer|internal|vault|savings|round ?up/i;
+function classify(t, acct) {
+  const amt = Number(t.amount);
+  if (!amt || t.pending) return null;
+  const pc = t.personal_finance_category || {}, p = pc.primary || '', det = pc.detailed || '';
+  const d = (t.merchant_name || '') + ' ' + (t.name || '');
+  const label = (t.merchant_name || t.name || 'Bank purchase').replace(/\s+/g, ' ').trim().slice(0, 80);
+  if (amt > 0) { // money out
+    if (det === 'LOAN_PAYMENTS_CREDIT_CARD_PAYMENT') return null;            // paying off a card
+    if (p === 'TRANSFER_OUT' && !(P2P.test(d) && !OWN.test(d))) return null; // moving your own money
+    return { kind: 'spend', amt: round2(amt), cat: catOf(t), note: label };
   }
-  if (acct.type !== 'depository') return null; // card refunds and card payments
-  if ((tx.details && tx.details.category === 'income') || PAY.test(d)) return { kind: 'income', amt: round2(Math.abs(amt)), source: nameOfTx(tx).replace(/\b(payroll|dir dep|direct dep(osit)?)\b/gi, '').trim() || 'Paycheck' };
-  return null;
-}
-// Depository: money out is negative. Cards differ by bank, so look at the shopping lines.
-function outSignOf(acct, txs) {
-  if (acct.type === 'depository') return -1;
-  let pos = 0, neg = 0;
-  for (const t of txs) { if (!SPENDY.has(t.details && t.details.category)) continue; Number(t.amount) > 0 ? pos++ : neg++; }
-  return pos > neg ? 1 : -1;
+  if (acct.type !== 'depository') return null; // card refunds and payments
+  if (p === 'INCOME') return { kind: 'income', amt: round2(-amt), source: label.replace(/\b(payroll|dir dep|direct dep(osit)?|ppd)\b/gi, '').trim() || 'Paycheck' };
+  return null; // transfers in, refunds
 }
 
 /* ---------- syncing ---------- */
 async function syncLink(env, db, link, prefs, now) {
   const out = { added: 0, income: 0, accounts: [] };
-  const accounts = await teller(env, link.access_token, '/accounts');
-  const since = link.synced_at ? ymdNY(Date.parse(link.synced_at) - 10 * DAY) : ymdNY(now).slice(0, 8) + '01'; // first time: this month only
-  const docs = [], seen = [];
-  for (const a of accounts) {
-    if (a.status && a.status !== 'open') continue;
-    const p = prefs[a.id] || {};
-    const mode = p.mode || 'home';
-    let bal = null;
-    try { bal = await teller(env, link.access_token, `/accounts/${a.id}/balances`); } catch (e) { if (needsRepair(e)) throw e; }
+  const ar = await plaid(env, '/accounts/get', { access_token: link.access_token });
+  const byId = {};
+  for (const a of ar.accounts || []) {
+    const p = prefs[a.account_id] || {};
     const info = {
-      id: a.id, enr: link.enrollment_id, who: link.who, inst: (a.institution && a.institution.name) || link.institution || 'Bank',
-      name: a.name || '', type: a.type, sub: a.subtype || '', last4: a.last_four || '', mode,
-      ledger: bal && bal.ledger != null ? Number(bal.ledger) : null, avail: bal && bal.available != null ? Number(bal.available) : null, upd: ymdNY(now),
+      id: a.account_id, enr: link.item_id, who: link.who, inst: link.institution || 'Bank',
+      name: a.official_name || a.name || '', type: a.type, sub: a.subtype || '', last4: a.mask || '', mode: p.mode || 'home',
+      ledger: a.balances && a.balances.current != null ? Number(a.balances.current) : null,
+      avail: a.balances && a.balances.available != null ? Number(a.balances.available) : null, upd: ymdNY(now),
     };
-    out.accounts.push(info);
-    if (mode === 'off') continue;
-    const txs = await teller(env, link.access_token, `/accounts/${a.id}/transactions?start_date=${since}&count=250`);
-    if (mode === 'biz') { seen.push(...txs.filter(t => t.status === 'posted').map(t => ({ tx_id: t.id }))); continue; }
-    const sign = outSignOf(a, txs);
-    for (const t of txs) {
-      if (t.status !== 'posted') continue;
-      const c = classify(t, a, sign);
-      seen.push({ tx_id: t.id, kind: c ? c.kind : 'skip' });
-      if (!c) continue;
-      const base = { date: t.date, acct: 'bk_' + a.id, by: link.who, at: now, bank: { inst: info.inst, last4: info.last4, desc: String(t.description || '').slice(0, 120) } };
-      if (c.kind === 'spend') docs.push({ col: 'spend', id: 'bk_' + t.id, data: { ...base, amt: c.amt, cat: c.cat, note: c.note } });
-      else docs.push({ col: 'income', id: 'bk_' + t.id, data: { ...base, who: link.who, amt: c.amt, source: c.source } });
-    }
+    byId[a.account_id] = info;
+    if (a.type === 'depository' || a.type === 'credit') out.accounts.push(info);
   }
-  // only add lines we've never seen, so anything you delete in the app stays deleted
+  // new transactions since last time (Plaid keeps our place with a cursor)
+  let cursor = link.cursor || null, more = true, added = [], guard = 0;
+  while (more && guard++ < 20) {
+    const r = await plaid(env, '/transactions/sync', { access_token: link.access_token, cursor: cursor || undefined, count: 500 });
+    added = added.concat(r.added || []);
+    cursor = r.next_cursor; more = r.has_more;
+  }
+  const since = link.since || ymdNY(now).slice(0, 8) + '01'; // never bring in anything older than the month you linked
+  const docs = [], seen = [];
+  for (const t of added) {
+    const a = byId[t.account_id];
+    if (!a || t.date < since) continue;
+    if (a.mode !== 'home') { seen.push({ tx_id: t.transaction_id }); continue; }
+    const c = classify(t, a);
+    if (t.pending) continue; // it comes back as posted later with its own id
+    seen.push({ tx_id: t.transaction_id });
+    if (!c) continue;
+    const base = { date: t.date, acct: 'bk_' + a.id, by: link.who, at: now, bank: { inst: a.inst, last4: a.last4, desc: String(t.name || '').slice(0, 120) } };
+    if (c.kind === 'spend') docs.push({ col: 'spend', id: 'bk_' + t.transaction_id, data: { ...base, amt: c.amt, cat: c.cat, note: c.note } });
+    else docs.push({ col: 'income', id: 'bk_' + t.transaction_id, data: { ...base, who: link.who, amt: c.amt, source: c.source } });
+  }
+  // only add lines never seen before, so anything you delete in the app stays deleted
   if (seen.length) {
-    const ids = [...new Set(seen.map(s => s.tx_id))];
-    const old = new Set();
+    const ids = [...new Set(seen.map(s => s.tx_id))], old = new Set();
     for (let i = 0; i < ids.length; i += 100) {
       const r = await db.select('bank_seen', 'select=tx_id&tx_id=in.(' + ids.slice(i, i + 100).map(x => '"' + x + '"').join(',') + ')');
       (r || []).forEach(x => old.add(x.tx_id));
     }
     const fresh = docs.filter(d => !old.has(d.id.slice(3)));
     await db.insert('docs', fresh, 'col,id');
-    await db.insert('bank_seen', seen.filter(s => !old.has(s.tx_id)).map(s => ({ tx_id: s.tx_id })), 'tx_id');
+    await db.insert('bank_seen', ids.filter(x => !old.has(x)).map(tx_id => ({ tx_id })), 'tx_id');
     out.added = fresh.filter(d => d.col === 'spend').length;
     out.income = fresh.filter(d => d.col === 'income').length;
   }
+  out.cursor = cursor;
   return out;
 }
 
 // Linked checking/savings show up in the app's "Bank balances" card with the real balance.
 async function updateBalances(db, accounts, now) {
   const meta = (await getMeta(db, 'accts')) || {};
-  let list = (meta.list || []).slice();
-  const d = ymdNY(now);
+  const list = (meta.list || []).slice(), d = ymdNY(now);
+  const ours = new Set(accounts.map(a => 'bk_' + a.id));
+  for (let i = list.length - 1; i >= 0; i--) if (list[i].linked && !ours.has(list[i].id)) list.splice(i, 1);
   for (const a of accounts) {
     const id = 'bk_' + a.id, i = list.findIndex(x => x.id === id);
     const show = a.type === 'depository' && a.mode === 'home' && a.ledger != null;
     if (!show) { if (i >= 0) list.splice(i, 1); continue; }
-    const prev = i >= 0 ? list[i] : {};
-    const bal = round2(a.ledger);
+    const prev = i >= 0 ? list[i] : {}, bal = round2(a.ledger);
     const entry = {
       ...prev, id, linked: true, name: `${a.inst} ${a.name || a.sub}`.trim() + (a.last4 ? ` ••${a.last4}` : ''),
       kind: a.sub === 'savings' || /saving|vault/i.test(a.name) ? 'savings' : 'checking',
@@ -183,33 +179,35 @@ async function updateBalances(db, accounts, now) {
 
 async function syncAll(env, only) {
   const db = sb(env), now = Date.now();
-  let links = await db.select('bank_links', 'select=*');
-  if (only) links = links.filter(l => l.enrollment_id === only);
+  const all = await db.select('bank_links', 'select=*');
+  const links = only ? all.filter(l => l.item_id === only) : all;
   const bank = (await getMeta(db, 'bank')) || {};
   const prefs = bank.prefs || {};
-  const accounts = [];
-  const linkInfo = [];
+  const linkInfo = [], accounts = [];
   let added = 0, income = 0;
   for (const l of links) {
-    const li = { enr: l.enrollment_id, who: l.who, inst: l.institution, status: 'ok', synced: now, err: '' };
+    const old = (bank.links || []).find(x => x.enr === l.item_id) || {};
+    const li = { enr: l.item_id, who: l.who, inst: l.institution, status: 'ok', synced: now, err: '' };
     try {
       const r = await syncLink(env, db, l, prefs, now);
       added += r.added; income += r.income;
       accounts.push(...r.accounts);
-      await db.patch('bank_links', 'enrollment_id=eq.' + encodeURIComponent(l.enrollment_id), { synced_at: new Date(now).toISOString(), status: 'ok' });
+      await db.patch('bank_links', 'item_id=' + eq(l.item_id), { synced_at: new Date(now).toISOString(), status: 'ok', cursor: r.cursor });
     } catch (e) {
+      console.error('sync', l.institution, e.code, e.message);
       li.status = needsRepair(e) ? 'repair' : 'error';
-      li.err = String(e.message || e).slice(0, 160);
-      li.synced = (bank.links || []).find(x => x.enr === l.enrollment_id)?.synced || 0;
-      accounts.push(...(bank.accounts || []).filter(a => a.enr === l.enrollment_id));
-      await db.patch('bank_links', 'enrollment_id=eq.' + encodeURIComponent(l.enrollment_id), { status: li.status }).catch(() => {});
+      li.err = needsRepair(e) ? '' : String(e.message || e).slice(0, 160);
+      li.synced = old.synced || 0;
+      accounts.push(...(bank.accounts || []).filter(a => a.enr === l.item_id));
+      await db.patch('bank_links', 'item_id=' + eq(l.item_id), { status: li.status }).catch(() => {});
     }
     linkInfo.push(li);
   }
-  const allLinks = only ? (bank.links || []).filter(x => x.enr !== only).concat(linkInfo) : linkInfo;
-  const keepAccts = only ? (bank.accounts || []).filter(a => a.enr !== only).concat(accounts.filter(a => a.enr === only)) : accounts.filter(a => links.some(l => l.enrollment_id === a.enr));
-  await putMeta(db, 'bank', { ...bank, links: allLinks, accounts: keepAccts, last: now, lastAdded: added, lastIncome: income });
-  await updateBalances(db, keepAccts, now);
+  const keepIds = new Set(all.map(l => l.item_id));
+  const allLinks = (only ? (bank.links || []).filter(x => x.enr !== only && keepIds.has(x.enr)) : []).concat(linkInfo);
+  const allAccts = (only ? (bank.accounts || []).filter(a => a.enr !== only && keepIds.has(a.enr)) : []).concat(accounts);
+  await putMeta(db, 'bank', { ...bank, links: allLinks, accounts: allAccts, last: now, lastAdded: added, lastIncome: income });
+  await updateBalances(db, allAccts, now);
   return { ok: true, added, income, links: allLinks.map(l => ({ inst: l.inst, status: l.status })) };
 }
 
@@ -218,44 +216,59 @@ async function handle(req, env) {
   if (req.method !== 'POST') return json({ error: 'use POST' }, 405);
   const body = await req.json().catch(() => ({}));
   const miss = missing(env);
-  if (body.kind === 'config') return json({ ready: !miss.length, missing: miss, appId: env.TELLER_APP_ID || '', env: env.TELLER_ENV || 'development' });
+  if (body.kind === 'config') return json({ ready: !miss.length, missing: miss });
   if (miss.length) return json({ error: 'Bank sync isn’t set up yet (missing ' + miss.join(', ') + ').' }, 503);
   const db = sb(env);
   const token = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
   const u = token && await db.user(token);
   if (!u || !u.id) return json({ error: 'Sign in first.' }, 401);
+  const who = WHO.includes(body.who) ? body.who : 'david';
 
+  if (body.kind === 'linktoken') {
+    // a short-lived pass that opens Plaid's bank sign-in (for a new bank, or to repair one)
+    const opts = { client_name: 'Rhead Home', language: 'en', country_codes: ['US'], user: { client_user_id: u.id }, redirect_uri: env.REDIRECT_URI || APP_URL };
+    if (body.enr) {
+      const l = (await db.select('bank_links', 'select=access_token&item_id=' + eq(body.enr)))[0];
+      if (!l) return json({ error: 'That bank isn’t linked anymore.' }, 404);
+      opts.access_token = l.access_token;
+    } else {
+      opts.products = ['transactions'];
+      opts.transactions = { days_requested: 60 };
+    }
+    const r = await plaid(env, '/link/token/create', opts);
+    await db.upsert('bank_pending', [{ user_id: u.id, link_token: r.link_token, item_id: body.enr || null, who, at: new Date().toISOString() }], 'user_id');
+    return json({ link_token: r.link_token });
+  }
+  if (body.kind === 'pending') {
+    // after a bank's own sign-in page sends you back to the app
+    const p = (await db.select('bank_pending', 'select=*&user_id=' + eq(u.id)))[0];
+    if (!p || Date.now() - Date.parse(p.at) > 3.5 * 3600e3) return json({ link_token: null });
+    return json({ link_token: p.link_token, enr: p.item_id || '', who: p.who });
+  }
   if (body.kind === 'save') {
-    const e = body.enrollment || {};
-    const access = String(e.accessToken || ''), enr = String((e.enrollment && e.enrollment.id) || '');
-    if (!/^token_/.test(access) || !enr) return json({ error: 'That bank connection didn’t come through. Try again.' }, 400);
-    const who = WHO.includes(body.who) ? body.who : 'david';
-    // make sure the token really works before keeping it
-    await teller(env, access, '/accounts');
-    await db.upsert('bank_links', [{ enrollment_id: enr, who, institution: String((e.enrollment.institution && e.enrollment.institution.name) || 'Bank').slice(0, 60), access_token: access, status: 'ok', user_id: u.id }], 'enrollment_id');
-    return json(await syncAll(env, enr));
+    const pt = String(body.public_token || '');
+    if (!/^public-/.test(pt)) return json({ error: 'That bank connection didn’t come through. Try again.' }, 400);
+    const r = await plaid(env, '/item/public_token/exchange', { public_token: pt });
+    await db.upsert('bank_links', [{ item_id: r.item_id, who, institution: String(body.institution || 'Bank').slice(0, 60), access_token: r.access_token, status: 'ok', user_id: u.id, since: ymdNY().slice(0, 8) + '01' }], 'item_id');
+    await db.del('bank_pending', 'user_id=' + eq(u.id)).catch(() => {});
+    return json({ ...(await syncAll(env, r.item_id)), fresh: true });
   }
   if (body.kind === 'sync') return json(await syncAll(env));
-  if (body.kind === 'repaired') return json(await syncAll(env, String(body.enr || '')));
+  if (body.kind === 'repaired') {
+    await db.del('bank_pending', 'user_id=' + eq(u.id)).catch(() => {});
+    return json(await syncAll(env, String(body.enr || '')));
+  }
   if (body.kind === 'remove') {
     const enr = String(body.enr || '');
-    const rows = await db.select('bank_links', 'select=*&enrollment_id=eq.' + encodeURIComponent(enr));
-    const l = rows && rows[0];
+    const l = (await db.select('bank_links', 'select=*&item_id=' + eq(enr)))[0];
     if (l) {
-      // tell Teller to forget it too (best effort)
-      try {
-        const accts = await teller(env, l.access_token, '/accounts');
-        const f = env.TELLER_FETCH || ((u2, i) => env.TELLER_CERT.fetch(u2, i));
-        for (const a of accts) await f(`${TELLER}/accounts/${a.id}`, { method: 'DELETE', headers: { Authorization: 'Basic ' + btoa(l.access_token + ':') } });
-      } catch (e) {}
-      await db.del('bank_links', 'enrollment_id=eq.' + encodeURIComponent(enr));
+      try { await plaid(env, '/item/remove', { access_token: l.access_token }); } catch (e) {} // tell Plaid to forget it too
+      await db.del('bank_links', 'item_id=' + eq(enr));
     }
     const bank = (await getMeta(db, 'bank')) || {};
     const accounts = (bank.accounts || []).filter(a => a.enr !== enr);
     await putMeta(db, 'bank', { ...bank, links: (bank.links || []).filter(x => x.enr !== enr), accounts });
-    const meta = (await getMeta(db, 'accts')) || {};
-    const gone = new Set((bank.accounts || []).filter(a => a.enr === enr).map(a => 'bk_' + a.id));
-    await putMeta(db, 'accts', { ...meta, list: (meta.list || []).filter(x => !gone.has(x.id)) });
+    await updateBalances(db, accounts, Date.now());
     return json({ ok: true });
   }
   return json({ error: 'unknown request' }, 400);
@@ -268,7 +281,7 @@ export default {
       try { return await handle(req, env); }
       catch (e) {
         console.error(e);
-        if (e instanceof BankErr) return json({ error: needsRepair(e) ? 'The bank needs you to sign in again.' : 'The bank didn’t answer: ' + e.message }, 502);
+        if (e instanceof BankErr) return json({ error: needsRepair(e) ? 'The bank needs you to sign in again.' : e.message }, 502);
         return json({ error: String(e.message || e) }, 500);
       }
     }
@@ -279,4 +292,4 @@ export default {
     ctx.waitUntil(syncAll(env).catch(e => console.error('bank sync', e)));
   },
 };
-export { classify, outSignOf, catOf, syncAll, handle };
+export { classify, catOf, syncAll, handle };

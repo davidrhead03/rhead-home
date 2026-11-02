@@ -1749,7 +1749,7 @@ async function startDb(){
   schedule();
   try{ S.user = (await SB.auth.getUser()).data.user; }catch(e){}
   startLive();
-  refreshWeather(); pushRefresh(); setTimeout(handleHash, 50);
+  refreshWeather(); pushRefresh(); setTimeout(handleHash, 50); setTimeout(bankResume, 150);
 }
 const NOTIFY_COLS = ['msgs', 'notes', 'items'];
 function startLive(){
@@ -4529,31 +4529,46 @@ async function bankApi(kind, extra){
   return d;
 }
 let BANK_CFG = null;
-function loadTeller(){
-  if(window.TellerConnect) return Promise.resolve();
-  return new Promise((ok, no) => { const s = document.createElement('script'); s.src = 'https://cdn.teller.io/connect/connect.js'; s.onload = ok; s.onerror = () => no(new Error('Couldn’t load the bank sign-in. Check your connection.')); document.head.appendChild(s); });
+function loadPlaid(){
+  if(window.Plaid) return Promise.resolve();
+  return new Promise((ok, no) => { const s = document.createElement('script'); s.src = 'https://cdn.plaid.com/link/v2/stable/link-initialize.js'; s.onload = ok; s.onerror = () => no(new Error('Couldn’t load the bank sign-in. Check your connection.')); document.head.appendChild(s); });
 }
-async function bankConnect(repairEnr){
-  if(S.bankBusy) return;
-  S.bankBusy = repairEnr ? 'repair' : 'connect'; render();
+// Opens Plaid's bank sign-in. pend = { link_token, enr, who } when coming back from a bank's own site.
+async function bankConnect(repairEnr, pend){
+  if(S.bankBusy && !pend) return;
+  S.bankBusy = repairEnr || (pend && pend.enr) ? 'repair' : 'connect'; render();
   try{
     if(!BANK_CFG || !BANK_CFG.ready) BANK_CFG = await bankApi('config');
-    if(!BANK_CFG.ready){ S.bankSetup = true; toast('Bank sync needs a one-time setup first.'); return; }
-    await loadTeller();
-    const tc = window.TellerConnect.setup(Object.assign({
-      applicationId: BANK_CFG.appId, environment: BANK_CFG.env, products: ['balance', 'transactions'], selectAccount: 'disabled',
-      onSuccess: async enr => {
+    if(!BANK_CFG.ready){ S.bankSetup = true; toast('Bank sync needs a one-time setup first.'); throw 0; }
+    await loadPlaid();
+    const enr = pend ? pend.enr : (repairEnr || ''), who = (pend && pend.who) || S.me;
+    const token = pend ? pend.link_token : (await bankApi('linktoken', { enr, who })).link_token;
+    ls.set('plaidPend', { link_token: token, enr, who, at: Date.now() });
+    const h = window.Plaid.create(Object.assign({
+      token,
+      onSuccess: async (publicToken, md) => {
+        ls.set('plaidPend', null);
         S.bankBusy = 'saving'; render(); toast('Connected! Bringing in this month…');
-        try{ const r = repairEnr ? await bankApi('repaired', { enr: repairEnr }) : await bankApi('save', { enrollment: enr, who: S.me }); toast(bankMsg(r)); }
+        try{ const r = enr ? await bankApi('repaired', { enr }) : await bankApi('save', { public_token: publicToken, institution: (md && md.institution && md.institution.name) || 'Bank', who }); toast(bankMsg(r)); }
         catch(e){ toast(e.message); }
         S.bankBusy = null; render();
       },
-      onExit: () => { if(S.bankBusy !== 'saving'){ S.bankBusy = null; render(); } }
-    }, repairEnr ? { enrollmentId: repairEnr } : {}));
-    tc.open();
+      onExit: err => { ls.set('plaidPend', null); if(S.bankBusy !== 'saving'){ S.bankBusy = null; render(); if(err && err.display_message) toast(err.display_message); } }
+    }, pend ? { receivedRedirectUri: location.href } : {}));
+    if(pend) history.replaceState(null, '', location.pathname + location.hash);
+    h.open();
     return;
-  }catch(e){ toast(e.message); }
+  }catch(e){ if(e) toast(e.message); }
   S.bankBusy = null; render();
+}
+// Banks like Chase send you to their own site and back to the app with ?oauth_state_id=…
+async function bankResume(){
+  if(!/[?&]oauth_state_id=/.test(location.search)) return;
+  S.tab = 'money'; S.finTab = 'overview';
+  let pend = ls.get('plaidPend', null);
+  if(!pend || Date.now() - (pend.at || 0) > 3.5 * 3600e3){ try{ const r = await bankApi('pending'); pend = r.link_token ? r : null; }catch(e){ pend = null; } }
+  if(!pend){ history.replaceState(null, '', location.pathname + location.hash); toast('That bank sign-in timed out. Tap Connect bank to try again.'); render(); return; }
+  bankConnect(null, pend);
 }
 const bankMsg = r => (r.added || r.income) ? `Added ${r.added ? r.added + ' expense' + (r.added === 1 ? '' : 's') : ''}${r.added && r.income ? ' and ' : ''}${r.income ? r.income + ' paycheck' + (r.income === 1 ? '' : 's') : ''} 🏦` : 'All caught up, nothing new 🏦';
 async function bankSync(){
@@ -4591,7 +4606,7 @@ function bankCard(){
   return `<section class="card"><div class="between"><span class="eyebrow">Linked banks</span><button class="btn small primary" data-act="bank-connect" ${busy ? 'disabled' : ''}>${busy === 'connect' || busy === 'saving' ? 'Connecting…' : '+ Connect bank'}</button></div>
     ${links.length ? links.map(linkBlock).join('') + `<div class="between" style="border-top:1px solid var(--line);padding-top:10px"><span class="fine">New purchases come in by themselves every few hours.${b.last ? ' Last check ' + esc(bankAgo(b.last)) + '.' : ''}</span><button class="btn small" data-act="bank-sync" ${busy ? 'disabled' : ''}>${busy === 'sync' ? 'Syncing…' : 'Sync now'}</button></div>`
       : `<p class="fine" style="margin:6px 0 0">Connect SoFi, Chase, a credit card or any bank, and purchases and paychecks fill in by themselves. You sign in on your bank’s own secure screen; the app never sees your password. Each of you connects your own accounts.</p>`}
-    ${S.bankSetup ? `<p class="fine" style="margin:8px 0 0;padding:8px 10px;border-radius:10px;background:var(--soft, rgba(0,0,0,.04))">Almost there: the bank link needs its one-time setup (a free Teller account, plus two keys in Cloudflare). Claude has the steps.</p>` : ''}</section>`;
+    ${S.bankSetup ? `<p class="fine" style="margin:8px 0 0;padding:8px 10px;border-radius:10px;background:var(--soft, rgba(0,0,0,.04))">Almost there: the bank link needs its one-time setup (a free Plaid account, plus a few keys in Cloudflare). Claude has the steps.</p>` : ''}</section>`;
 }
 function vFinOverview(){
   const mk = monthKey(new Date()), spend = monthSpend(mk), total = spend.reduce((s, x) => s + (Number(x.amt) || 0), 0);

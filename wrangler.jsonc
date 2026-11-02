@@ -1,6 +1,6 @@
 {
   // Cloudflare publishes the "site" folder as the Rhead Home app.
-  // worker/index.js only answers /api/* (bank sync); everything else is the app.
+  // worker/index.js only answers /api/* (bank sync with Plaid); everything else is the app.
   "name": "rhead-home",
   "compatibility_date": "2025-09-01",
   "main": "worker/index.js",
@@ -9,6 +9,4 @@
   "triggers": { "crons": ["17 */6 * * *"] },
   // Keep secrets/variables added in the Cloudflare dashboard.
   "keep_vars": true
-  // After uploading the Teller certificate, add:
-  // "mtls_certificates": [{ "binding": "TELLER_CERT", "certificate_id": "<id>" }]
 }

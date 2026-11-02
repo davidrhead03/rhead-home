@@ -54,6 +54,81 @@ async function getMeta(db, id) {
 const putMeta = (db, id, data) => db.upsert('docs', [{ col: 'meta', id, data }], 'col,id');
 const eq = v => 'eq.' + encodeURIComponent(v);
 
+/* ---------- web push: RFC 8291 encryption + RFC 8292 VAPID (WebCrypto only) ---------- (same code as supabase/functions/notify) */
+const te = new TextEncoder();
+const b64u = (buf) => { const u = new Uint8Array(buf); let s = ''; for (let i = 0; i < u.length; i++) s += String.fromCharCode(u[i]); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
+const ub64 = (s) => { s = String(s).replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; const b = atob(s); const u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; };
+const cat = (...a) => { const o = new Uint8Array(a.reduce((n, x) => n + x.length, 0)); let p = 0; for (const x of a) { o.set(x, p); p += x.length; } return o; };
+async function hkdf(salt, ikm, info, len) {
+  const k = await crypto.subtle.importKey('raw', ikm, 'HKDF', false, ['deriveBits']);
+  return new Uint8Array(await crypto.subtle.deriveBits({ name: 'HKDF', hash: 'SHA-256', salt, info }, k, len * 8));
+}
+async function encryptPayload(sub, text, saltIn, asKeys) {
+  const uaPub = ub64(sub.keys.p256dh), authSecret = ub64(sub.keys.auth);
+  const as = asKeys || await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits']);
+  const asPub = new Uint8Array(await crypto.subtle.exportKey('raw', as.publicKey));
+  const uaKey = await crypto.subtle.importKey('raw', uaPub, { name: 'ECDH', namedCurve: 'P-256' }, false, []);
+  const shared = new Uint8Array(await crypto.subtle.deriveBits({ name: 'ECDH', public: uaKey }, as.privateKey, 256));
+  const ikm = await hkdf(authSecret, shared, cat(te.encode('WebPush: info\0'), uaPub, asPub), 32);
+  const salt = saltIn || crypto.getRandomValues(new Uint8Array(16));
+  const cek = await hkdf(salt, ikm, te.encode('Content-Encoding: aes128gcm\0'), 16);
+  const nonce = await hkdf(salt, ikm, te.encode('Content-Encoding: nonce\0'), 12);
+  const key = await crypto.subtle.importKey('raw', cek, 'AES-GCM', false, ['encrypt']);
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv: nonce }, key, cat(te.encode(text), new Uint8Array([2]))));
+  return cat(salt, new Uint8Array([0, 0, 16, 0]), new Uint8Array([asPub.length]), asPub, ct);
+}
+async function vapidHeader(endpoint, vapid, subject) {
+  const head = b64u(te.encode(JSON.stringify({ typ: 'JWT', alg: 'ES256' })));
+  const body = b64u(te.encode(JSON.stringify({ aud: new URL(endpoint).origin, exp: Math.floor(Date.now() / 1000) + 12 * 3600, sub: subject })));
+  const key = await crypto.subtle.importKey('jwk', vapid.privateJwk, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, key, te.encode(head + '.' + body));
+  return `vapid t=${head}.${body}.${b64u(sig)}, k=${vapid.publicKey}`;
+}
+async function makeVapid() {
+  const kp = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
+  return { publicKey: b64u(await crypto.subtle.exportKey('raw', kp.publicKey)), privateJwk: await crypto.subtle.exportKey('jwk', kp.privateKey) };
+}
+/* END-PUSH */
+
+/* ---------- money notifications (paycheck, bank needs you, bill paid) ---------- */
+const NAME = { david: 'David', laura: 'Laura' };
+const NOTE_DEF = { paycheck: true, bankfix: true, billpaid: true };
+const moneyTxt = n => '$' + (Number(n) || 0).toFixed(2).replace(/\.00$/, '');
+function nyHour(t = Date.now()) { return Number(new Date(t).toLocaleString('en-US', { timeZone: TZ, hour: 'numeric', hourCycle: 'h23' })) % 24; }
+function quietNow(q, h) {
+  if (!q || q.on === false) return false;
+  const f = Number(q.from ?? 22), t = Number(q.to ?? 7);
+  return f === t ? false : f < t ? h >= f && h < t : h >= f || h < t;
+}
+async function sendNotes(env, db, notes) {
+  // notes: [{ to:['david','laura'], kind, note:{ title, body, url, tag } }]; held during quiet hours, sent next time
+  const queue = ((await getMeta(db, 'bank-noteq')) || {}).list || [];
+  const all = queue.concat(notes);
+  if (!all.length) return 0;
+  const cfg = (await db.select('push_config', 'select=vapid_public,vapid_private&id=eq.1'))[0];
+  if (!cfg || !cfg.vapid_public || !cfg.vapid_private) return 0;
+  const vapid = { publicKey: cfg.vapid_public, privateJwk: cfg.vapid_private };
+  const f = env.PUSH_FETCH || fetch, h = nyHour(), held = [];
+  let sent = 0;
+  for (const who of ['david', 'laura']) {
+    const pm = (await getMeta(db, 'notify-' + who)) || {}, on = { ...NOTE_DEF, ...(pm.on || {}) };
+    const mine = all.filter(n => n.to.includes(who) && on[n.kind] !== false);
+    if (!mine.length) continue;
+    if (quietNow(pm.quiet, h)) { mine.forEach(n => held.push({ ...n, to: [who] })); continue; }
+    const subs = await db.select('push_subs', 'select=endpoint,sub&who=eq.' + who);
+    for (const n of mine) for (const s of subs || []) {
+      try {
+        const body = await encryptPayload(s.sub, JSON.stringify(n.note));
+        const r = await f(s.endpoint, { method: 'POST', body, headers: { TTL: '86400', Urgency: 'normal', 'Content-Encoding': 'aes128gcm', 'Content-Type': 'application/octet-stream', Authorization: await vapidHeader(s.endpoint, vapid, 'https://rhead-home.pages.dev') } });
+        if (r.status === 404 || r.status === 410) await db.del('push_subs', 'endpoint=' + eq(s.endpoint));
+        else if (r.ok) sent++;
+      } catch (e) { console.warn('push', String(e)); }
+    }
+  }
+  await putMeta(db, 'bank-noteq', { list: held.slice(-30) });
+  return sent;
+}
+
 /* ---------- Plaid ---------- */
 class BankErr extends Error { constructor(msg, code) { super(msg); this.code = code || ''; } }
 async function plaid(env, path, body) {
@@ -83,6 +158,7 @@ function catOf(t) {
   if (p === 'ENTERTAINMENT' || p === 'TRAVEL') return 'Fun';
   return 'Other';
 }
+const catKey = s => String(s || '').toLowerCase().replace(/[^a-z]+/g, ' ').trim().split(' ').slice(0, 3).join(' ');
 const P2P = /zelle|venmo|cash ?app|paypal/i;
 const OWN = /transfer (to|from)|xfer|internal|vault|savings|round ?up/i;
 function classify(t, acct) {
@@ -109,7 +185,7 @@ function dueGap(bill, date) {
   const due = new Date(y, m - 1, Math.min(Number(bill.due) || 1, last));
   return Math.abs((new Date(y, m - 1, d) - due) / 864e5);
 }
-async function matchBills(db, fresh, cardPays, now) {
+async function matchBills(db, fresh, cardPays, now, paidOut) {
   const cands = fresh.filter(d => d.col === 'spend').map(d => ({ doc: d, amt: d.data.amt, date: d.data.date, text: d.data.note + ' ' + (d.data.bank && d.data.bank.desc || '') }))
     .concat(cardPays.map(c => ({ doc: null, amt: c.amt, date: c.date, text: c.text })));
   if (!cands.length) return;
@@ -135,6 +211,7 @@ async function matchBills(db, fresh, cardPays, now) {
     best.paidBy = { ...(best.paidBy || {}), [mk]: 'bank' };
     if (best.variable) best.amounts = { ...(best.amounts || {}), [mk]: c.amt };
     touched.set(best.id, best);
+    if (paidOut) paidOut.push({ name: best.name, amt: c.amt });
     if (c.doc) c.doc.data.bill = best.id;
     if (best.debt) debtPays.push({ debt: best.debt, pay: { amt: c.amt, date: c.date, by: 'bank', bill: best.id, mk } });
   }
@@ -149,7 +226,7 @@ async function matchBills(db, fresh, cardPays, now) {
 
 /* ---------- syncing ---------- */
 async function syncLink(env, db, link, prefs, now, oldAccts) {
-  const out = { added: 0, income: 0, accounts: [] };
+  const out = { added: 0, income: 0, accounts: [], billsPaid: [], paychecks: [] };
   // live balances straight from the bank; fall back to Plaid's saved copy if the bank is slow
   let ar;
   try { ar = await plaid(env, '/accounts/balance/get', { access_token: link.access_token }); }
@@ -182,6 +259,7 @@ async function syncLink(env, db, link, prefs, now, oldAccts) {
   }
   const since = link.since || ymdNY(now).slice(0, 8) + '01'; // never bring in anything older than the month you linked
   const docs = [], seen = [], cardPays = [];
+  const rules = ((await getMeta(db, 'catrules')) || {}).map || {}; // categories you picked for a store before
   for (const t of added) {
     const a = byId[t.account_id];
     if (!a || t.date < since) continue;
@@ -197,7 +275,7 @@ async function syncLink(env, db, link, prefs, now, oldAccts) {
       continue;
     }
     const base = { date: t.date, acct: 'bk_' + a.id, by: link.who, at: now, bank: { inst: a.inst, last4: a.last4, desc: String(t.name || '').slice(0, 120) } };
-    if (c.kind === 'spend') docs.push({ col: 'spend', id: 'bk_' + t.transaction_id, data: { ...base, amt: c.amt, cat: c.cat, note: c.note } });
+    if (c.kind === 'spend') docs.push({ col: 'spend', id: 'bk_' + t.transaction_id, data: { ...base, amt: c.amt, cat: rules[catKey(c.note)] || c.cat, note: c.note } });
     else docs.push({ col: 'income', id: 'bk_' + t.transaction_id, data: { ...base, who: link.who, amt: c.amt, source: c.source } });
   }
   // only add lines never seen before, so anything you delete in the app stays deleted
@@ -208,11 +286,12 @@ async function syncLink(env, db, link, prefs, now, oldAccts) {
       (r || []).forEach(x => old.add(x.tx_id));
     }
     const fresh = docs.filter(d => !old.has(d.id.slice(3)));
-    await matchBills(db, fresh, cardPays.filter(c => !old.has(c.tx)), now);
+    await matchBills(db, fresh, cardPays.filter(c => !old.has(c.tx)), now, out.billsPaid);
     await db.insert('docs', fresh, 'col,id');
     await db.insert('bank_seen', ids.filter(x => !old.has(x)).map(tx_id => ({ tx_id })), 'tx_id');
     out.added = fresh.filter(d => d.col === 'spend').length;
     out.income = fresh.filter(d => d.col === 'income').length;
+    out.paychecks = fresh.filter(d => d.col === 'income').map(d => d.data);
   }
   // pending purchases (not final yet), kept per account so the app can show them
   const gone = new Set(removedIds);
@@ -256,7 +335,7 @@ async function syncAll(env, only) {
   const links = only ? all.filter(l => l.item_id === only) : all;
   const bank = (await getMeta(db, 'bank')) || {};
   const prefs = bank.prefs || {};
-  const linkInfo = [], accounts = [];
+  const linkInfo = [], accounts = [], notes = [];
   let added = 0, income = 0;
   for (const l of links) {
     const old = (bank.links || []).find(x => x.enr === l.item_id) || {};
@@ -264,11 +343,14 @@ async function syncAll(env, only) {
     try {
       const r = await syncLink(env, db, l, prefs, now, bank.accounts || []);
       added += r.added; income += r.income;
+      for (const pc of r.paychecks) notes.push({ to: ['david', 'laura'], kind: 'paycheck', note: { title: `💵 ${NAME[pc.who] || 'A'}’s paycheck came in`, body: `${moneyTxt(pc.amt)}${pc.source ? ' from ' + pc.source : ''}`, url: '/#money', tag: 'pay-' + pc.date } });
+      for (const bp of r.billsPaid) notes.push({ to: ['david', 'laura'], kind: 'billpaid', note: { title: `✓ ${bp.name} paid`, body: `${moneyTxt(bp.amt)} came out of the bank. It’s checked off in Bills.`, url: '/#money', tag: 'bill-' + bp.name } });
       accounts.push(...r.accounts);
       await db.patch('bank_links', 'item_id=' + eq(l.item_id), { synced_at: new Date(now).toISOString(), status: 'ok', cursor: r.cursor });
     } catch (e) {
       console.error('sync', l.institution, e.code, e.message);
       li.status = needsRepair(e) ? 'repair' : 'error';
+      if (li.status === 'repair' && old.status !== 'repair') notes.push({ to: [l.who], kind: 'bankfix', note: { title: `🔗 ${l.institution || 'Your bank'} needs you`, body: 'Sign in again so purchases keep coming in. Finance → Accounts → Sign in again.', url: '/#money', tag: 'bankfix-' + l.item_id } });
       li.err = needsRepair(e) ? '' : String(e.message || e).slice(0, 160);
       li.synced = old.synced || 0;
       accounts.push(...(bank.accounts || []).filter(a => a.enr === l.item_id));
@@ -281,6 +363,7 @@ async function syncAll(env, only) {
   const allAccts = (only ? (bank.accounts || []).filter(a => a.enr !== only && keepIds.has(a.enr)) : []).concat(accounts);
   await putMeta(db, 'bank', { ...bank, links: allLinks, accounts: allAccts, last: now, lastAdded: added, lastIncome: income });
   await updateBalances(db, allAccts, now);
+  try { await sendNotes(env, db, notes); } catch (e) { console.error('notes', e); }
   return { ok: true, added, income, links: allLinks.map(l => ({ inst: l.inst, status: l.status })) };
 }
 
@@ -365,4 +448,4 @@ export default {
     ctx.waitUntil(syncAll(env).catch(e => console.error('bank sync', e)));
   },
 };
-export { classify, catOf, syncAll, handle };
+export { classify, catOf, syncAll, handle, catKey };

@@ -1837,8 +1837,8 @@ async function pushTest(){
   try{ const { data, error } = await SB.functions.invoke('notify', { body: { kind: 'test', me: S.me } }); if(error) throw error; if(data && data.sent) toast('Test sent. It should pop up in a few seconds.'); else { toast('Couldn’t reach this phone. Tap “Turn on notifications” to refresh it.'); S.pushState = 'off'; render(); } }
   catch(e){ toast('The test didn’t go through. Try again in a minute.'); }
 }
-const NP_TYPES = [['chat','💬 Chat messages'],['note','💌 Love notes'],['list','🛒 Shopping list additions'],['event','📅 Calendar plans'],['bill','🧾 Bills due'],['task','✅ Tasks due'],['occasion','🎂 Birthdays & special days'],['trip','🧳 Trips'],['game','🎮 Game turns'],['dayla','🐾 Dayla’s daily message']];
-const NP_DEF = { on: { chat:true, note:true, list:true, event:true, bill:true, task:true, occasion:true, trip:true, game:true, dayla:false }, quiet: { on:true, from:22, to:7, chatThrough:true } };
+const NP_TYPES = [['chat','💬 Chat messages'],['note','💌 Love notes'],['list','🛒 Shopping list additions'],['event','📅 Calendar plans'],['bill','🧾 Bills due'],['task','✅ Tasks due'],['occasion','🎂 Birthdays & special days'],['trip','🧳 Trips'],['game','🎮 Game turns'],['dayla','🐾 Dayla’s daily message'],['paycheck','💵 Paycheck arrived'],['billpaid','✓ Bill paid from the bank'],['bankfix','🔗 Bank needs you to sign in again']];
+const NP_DEF = { on: { chat:true, note:true, list:true, event:true, bill:true, task:true, occasion:true, trip:true, game:true, dayla:false, paycheck:true, billpaid:true, bankfix:true }, quiet: { on:true, from:22, to:7, chatThrough:true } };
 function notifyPrefs(w){ const p = meta('notify-' + w) || {}; return { on: Object.assign({}, NP_DEF.on, p.on || {}), quiet: Object.assign({}, NP_DEF.quiet, p.quiet || {}) }; }
 function saveNotifyPrefs(p){ if(S.me) setDoc('meta/notify-' + S.me, { on: p.on, quiet: p.quiet }); }
 const hrLbl = h => (h % 12 || 12) + (h < 12 ? 'am' : 'pm');
@@ -7743,7 +7743,14 @@ document.addEventListener('change', ev => {
   const t = ev.target;
   if(t.dataset.avf) render();
   if(t.dataset.live === 'bank-mode'){ bankMode(t.dataset.id, t.value); return; }
-  if(t.dataset.live === 'sp-cat'){ updDoc('spend', t.dataset.id, { cat: t.value }).then(ok => ok && toast('Category changed to ' + t.value)); return; }
+  if(t.dataset.live === 'sp-cat'){
+    const x = get('spend', t.dataset.id), cat = t.value;
+    updDoc('spend', t.dataset.id, { cat }).then(ok => { if(!ok) return;
+      // remember it for this store, so the next purchase there lands in the same category
+      const k = x && x.bank ? String(x.note || '').toLowerCase().replace(/[^a-z]+/g, ' ').trim().split(' ').slice(0, 3).join(' ') : '';
+      if(k){ const m = Object.assign({}, (meta('catrules') || {}).map || {}); m[k] = cat; setDoc('meta/catrules', { map: m }); toast(`${cat} ✓ Future ${x.note} purchases will go there too`); }
+      else toast('Category changed to ' + cat); });
+    return; }
   if(t.dataset.live === 'msg-file' && t.files && t.files[0]){ const f = t.files[0]; t.value = ''; sendChatImage(f); return; }
   if(t.dataset.live === 'bg-photo' && t.files && t.files[0] && S.assets){ (async () => { try{ toast('Uploading photo…'); const id = await uploadPhoto(t.files[0]); SET.bgPhoto = id; SET.bgWash = SET.bgWash || 'soft'; ls.set('settings', SET); applySettings(); render(); toast('Background updated ✨'); }catch(e){ toast('Couldn’t upload that photo'); } })(); return; }
   if(t.dataset.live === 'dayla-up' && t.files && t.files.length && S.assets){

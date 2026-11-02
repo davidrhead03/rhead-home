@@ -1748,7 +1748,7 @@ async function startDb(){
   schedule();
   try{ S.user = (await SB.auth.getUser()).data.user; }catch(e){}
   startLive();
-  refreshWeather(); pushRefresh(); setTimeout(handleHash, 50); setTimeout(bankResume, 150);
+  refreshWeather(); pushRefresh(); setTimeout(handleHash, 50); setTimeout(bankResume, 150); setTimeout(() => { if(S.dbState === 'ok') quietOff(); }, 800);
 }
 const NOTIFY_COLS = ['msgs', 'notes', 'items'];
 function startLive(){
@@ -1838,10 +1838,12 @@ async function pushTest(){
   catch(e){ toast('The test didn’t go through. Try again in a minute.'); }
 }
 const NP_TYPES = [['chat','💬 Chat messages'],['note','💌 Love notes'],['list','🛒 Shopping list additions'],['event','📅 Calendar plans'],['bill','🧾 Bills due'],['task','✅ Tasks due'],['occasion','🎂 Birthdays & special days'],['trip','🧳 Trips'],['game','🎮 Game turns'],['dayla','🐾 Dayla’s daily message'],['paycheck','💵 Paycheck arrived'],['billpaid','✓ Bill paid from the bank'],['bankfix','🔗 Bank needs you to sign in again']];
-const NP_DEF = { on: { chat:true, note:true, list:true, event:true, bill:true, task:true, occasion:true, trip:true, game:true, dayla:false, paycheck:true, billpaid:true, bankfix:true }, quiet: { on:true, from:22, to:7, chatThrough:true } };
+const NP_DEF = { on: { chat:true, note:true, list:true, event:true, bill:true, task:true, occasion:true, trip:true, game:true, dayla:false, paycheck:true, billpaid:true, bankfix:true }, quiet: { on:false, from:22, to:7, chatThrough:true } };
 function notifyPrefs(w){ const p = meta('notify-' + w) || {}; return { on: Object.assign({}, NP_DEF.on, p.on || {}), quiet: Object.assign({}, NP_DEF.quiet, p.quiet || {}) }; }
 function saveNotifyPrefs(p){ if(S.me) setDoc('meta/notify-' + S.me, { on: p.on, quiet: p.quiet }); }
 const hrLbl = h => (h % 12 || 12) + (h < 12 ? 'am' : 'pm');
+// Quiet hours were removed: make sure both people's saved settings have them off (the notification sender reads these)
+function quietOff(){ ['david', 'laura'].forEach(w => { const p = meta('notify-' + w); if(!p || !p.quiet || p.quiet.on !== false) setDoc('meta/notify-' + w, { on: (p && p.on) || {}, quiet: Object.assign({}, NP_DEF.quiet, (p && p.quiet) || {}, { on:false }) }); }); }
 function notifyCard(){
   const st = S.pushState || 'checking', p = notifyPrefs(S.me || 'david');
   const label = { on:'On for this phone ✓', off:'Off on this phone', denied:'Blocked in phone settings', 'needs-install':'Needs the Home Screen app', unsupported:'Not available here', checking:'Checking…' }[st];
@@ -1855,10 +1857,6 @@ function notifyCard(){
     ${st === 'on' ? `<button class="btn small" data-act="push-test" style="align-self:flex-start">Send me a test</button>` : ''}
     <div class="eyebrow" style="margin-top:4px">Notify ${esc(nameOf(S.me || 'david'))} about</div>
     <div class="stack" style="gap:0">${NP_TYPES.map(([k, l]) => tg(k, l, p.on[k])).join('')}</div>
-    <div class="eyebrow" style="margin-top:6px">Quiet hours</div>
-    ${tg('on', 'Hold reminders overnight', p.quiet.on, 'quiet')}
-    ${p.quiet.on ? `<div class="row" style="gap:8px;align-items:center"><span class="muted">From</span><select id="np-from" data-np="1" data-live="np-hr" data-k="from">${hours(p.quiet.from)}</select><span class="muted">to</span><select id="np-to" data-np="1" data-live="np-hr" data-k="to">${hours(p.quiet.to)}</select></div>
-    ${tg('chatThrough', 'Still let chat and love notes through', p.quiet.chatThrough, 'quiet')}` : ''}
     <p class="fine" style="margin:0">These choices are saved for ${esc(nameOf(S.me || 'david'))} on every phone.</p></section>`;
 }
 function accountCard(){

@@ -101,7 +101,7 @@ function quietNow(q, h) {
   return f === t ? false : f < t ? h >= f && h < t : h >= f || h < t;
 }
 async function sendNotes(env, db, notes) {
-  // notes: [{ to:['david','laura'], kind, note:{ title, body, url, tag } }]; held during quiet hours, sent next time
+  // notes: [{ to:['david','laura'], kind, note:{ title, body, url, tag } }]
   const queue = ((await getMeta(db, 'bank-noteq')) || {}).list || [];
   const all = queue.concat(notes);
   if (!all.length) return 0;
@@ -114,7 +114,6 @@ async function sendNotes(env, db, notes) {
     const pm = (await getMeta(db, 'notify-' + who)) || {}, on = { ...NOTE_DEF, ...(pm.on || {}) };
     const mine = all.filter(n => n.to.includes(who) && on[n.kind] !== false);
     if (!mine.length) continue;
-    if (quietNow(pm.quiet, h)) { mine.forEach(n => held.push({ ...n, to: [who] })); continue; }
     const subs = await db.select('push_subs', 'select=endpoint,sub&who=eq.' + who);
     for (const n of mine) for (const s of subs || []) {
       try {

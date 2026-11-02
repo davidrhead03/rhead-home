@@ -6529,16 +6529,14 @@ async function seedFamily(){
 const famClocks = () => { const m = meta('clocks'); return m && Array.isArray(m.list) ? m.list : ['surrey','bogota','yekaterinburg']; };
 function clockCard(){
   const fam = S.data.family, keys = Array.from(new Set(fam.map(p => p.lives).filter(Boolean).concat(famClocks()))).filter(k => k !== 'home' && cityOf(k));
-  const who = k => fam.filter(p => p.lives === k).map(p => p.name);
   const me = tzInfo(HOME_TZ), edit = S.clockEdit;
-  return `<section class="card"><div class="between"><span class="eyebrow">World clock</span><button class="btn small ${edit ? 'primary' : 'soft'}" data-act="clock-edit">${edit ? 'Done' : 'Edit'}</button></div>
-    <div class="between" style="margin-top:6px;align-items:baseline"><div><div class="fine">🏠 Home · Deerfield Beach</div><b class="num" style="font-family:var(--display);font-size:30px">${me.time}</b></div><span style="font-size:26px">${me.sky}</span></div>
-    <div class="clock-grid">${keys.map(k => { const c = cityOf(k), t = tzInfo(c[2]), w = who(k), fixed = !famClocks().includes(k); return `<div class="clock">
-      <div class="between"><span class="fine" style="font-weight:700;color:var(--ink)">${esc(c[1])}</span><span>${t.sky}</span></div>
-      <b class="num" style="font-size:20px">${t.time}</b>${t.day !== me.day ? ` <span class="pill" style="font-size:11px">${t.day}</span>` : ''}
-      <div class="fine">${diffTxt(t.diff)}</div>
-      ${edit && !fixed ? `<button class="btn small" data-act="clock-rm" data-v="${k}" style="margin-top:6px">Remove</button>` : ''}</div>`; }).join('')}</div>
-    ${edit ? `<div class="row" style="margin-top:10px;flex-wrap:nowrap"><select id="clock-add" class="grow">${FAM_CITIES.filter(c => c[0] !== 'home' && !keys.includes(c[0])).map(c => `<option value="${c[0]}">${esc(c[1])}</option>`).join('')}</select><button class="btn small primary" data-act="clock-add">Add</button></div>` : ''}</section>`;
+  const one = (label, t, k, canRm) => `<section class="card clock-card"><div class="between"><span class="eyebrow">${label}</span><span style="font-size:26px">${t.sky}</span></div>
+    <div class="between" style="align-items:baseline;margin-top:4px"><b class="num" style="font-family:var(--display);font-size:32px">${t.time}</b><span class="fine">${k ? diffTxt(t.diff) : 'Your time'}${t.day !== me.day ? ' · ' + t.day : ''}</span></div>
+    ${edit && canRm ? `<button class="btn small" data-act="clock-rm" data-v="${k}" style="margin-top:8px">Remove</button>` : ''}</section>`;
+  return `<div class="row" style="justify-content:flex-end"><button class="btn small ${edit ? 'primary' : 'soft'}" data-act="clock-edit">${edit ? 'Done' : 'Edit clocks'}</button></div>`
+    + one('🏠 Home · Deerfield Beach', me, '', false)
+    + keys.map(k => { const c = cityOf(k); return one(esc(c[1]), tzInfo(c[2]), k, famClocks().includes(k)); }).join('')
+    + (edit ? `<section class="card"><div class="eyebrow">Add a clock</div><div class="row" style="margin-top:8px;flex-wrap:nowrap"><select id="clock-add" class="grow">${FAM_CITIES.filter(c => c[0] !== 'home' && !keys.includes(c[0])).map(c => `<option value="${c[0]}">${esc(c[1])}</option>`).join('')}</select><button class="btn small primary" data-act="clock-add">Add</button></div></section>` : '');
 }
 function famNode(p, me){
   const c = p && p.lives && cityOf(p.lives), t = c && c[2] !== HOME_TZ ? tzInfo(c[2]) : null;

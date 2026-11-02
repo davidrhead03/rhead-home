@@ -2941,6 +2941,7 @@ const ICON = {
   target:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r=".8"/>',
   lang:'<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v9a1.5 1.5 0 0 1-1.5 1.5H9l-5 4z"/><path d="M8.5 8.5h7M8.5 12h4.5"/>',
   paw:'<circle cx="7" cy="10" r="1.8"/><circle cx="10.5" cy="6.5" r="1.8"/><circle cx="15" cy="6.5" r="1.8"/><circle cx="18" cy="10" r="1.8"/><path d="M8 17c0-3 2-5 4.5-5S17 14 17 17c0 2-2 2.5-4.5 2S8 19 8 17z"/>',
+  clock:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
   family:'<circle cx="12" cy="6" r="2.6"/><circle cx="5.5" cy="15" r="2.3"/><circle cx="18.5" cy="15" r="2.3"/><path d="M12 8.6v3.4M12 12H5.5v.7M12 12h6.5v.7M2.5 21c.3-2 1.5-3 3-3s2.7 1 3 3M15.5 21c.3-2 1.5-3 3-3s2.7 1 3 3"/>',
   globe:'<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.6 3.7 5.4 3.7 8.5s-1.2 5.9-3.7 8.5c-2.5-2.6-3.7-5.4-3.7-8.5s1.2-5.9 3.7-8.5z"/>',
   plane:'<path d="M3 12.5l18-8-5.5 16-3.6-6.2z"/><path d="M11.9 14.3 21 4.5"/>',
@@ -3351,9 +3352,9 @@ const PLACES = [
   ['games','Games','game','--blush-soft','--blush'],['map','Love map','globe','--cocoa-soft','--cocoa'],['trips','Trips','plane','--sky-soft','--sky'],
   ['tasks','Tasks','todo','--sage-soft','--sage'],['dayla','Dayla','paw','--gold-soft','--gold'],['trophies','Trophies','trophy','--gold-soft','--gold'],['wrapped','Wrapped','sparkle','--blush-soft','--blush'],
   ['gifts','Gifts','gift','--blush-soft','--blush'],['house','House info','houseinfo','--cocoa-soft','--cocoa'],['cars','Car log','car','--sky-soft','--sky'],['translate','Translator','translate','--sage-soft','--sage'],
-  ['family','Family','family','--sky-soft','--sky']
+  ['family','Family','family','--sky-soft','--sky'],['clock','World clock','clock','--gold-soft','--gold']
 ];
-const PLACE_GROUPS = [['Us',['dates','notes','memories','map','family']],['Plans',['trips','goals','gifts','recipes']],['Home',['projects','house','cars','tasks']],['Every day',['workouts','faith','spanish','translate']],['Fun',['games','dayla','trophies','wrapped']]];
+const PLACE_GROUPS = [['Us',['dates','notes','memories','map','family']],['Plans',['trips','goals','gifts','recipes']],['Home',['projects','house','cars','tasks']],['Every day',['workouts','faith','spanish','translate','clock']],['Fun',['games','dayla','trophies','wrapped']]];
 const HOME_BLOCKS = [['note','Love note (when there’s a new one)'],['dayla','Dayla’s message'],['favs','Favorite apps + search'],['myday','My day'],['today','Coming up: bills due soon and other plans'],['trip','Next trip countdown'],['daily','Daily cards (verse, weather, word, fact, place)'],['married','Married counter']];
 if(SET.homeV !== 6){ delete SET.homeOrder; SET.challenge = false; SET.homeV = 6; try{ ls.set('settings', SET); }catch(e){} }
 const FAV_DEFAULT = ['faith','workouts','goals','projects','trips','games','tasks'];
@@ -6538,7 +6539,7 @@ function clockCard(){
       <div class="fine">${diffTxt(t.diff)}${t.late ? ' · probably asleep' : ''}</div>
       ${w.length ? `<div class="fine" style="margin-top:2px">👪 ${esc(w.join(', '))}</div>` : ''}
       ${edit && !fixed ? `<button class="btn small" data-act="clock-rm" data-v="${k}" style="margin-top:6px">Remove</button>` : ''}</div>`; }).join('')}</div>
-    ${edit ? `<div class="row" style="margin-top:10px;flex-wrap:nowrap"><select id="clock-add" class="grow">${FAM_CITIES.filter(c => c[0] !== 'home' && !keys.includes(c[0])).map(c => `<option value="${c[0]}">${esc(c[1])}</option>`).join('')}</select><button class="btn small primary" data-act="clock-add">Add</button></div><p class="fine" style="margin:6px 0 0">Places where family lives show up by themselves. Set where someone lives by tapping them in the tree.</p>` : ''}</section>`;
+    ${edit ? `<div class="row" style="margin-top:10px;flex-wrap:nowrap"><select id="clock-add" class="grow">${FAM_CITIES.filter(c => c[0] !== 'home' && !keys.includes(c[0])).map(c => `<option value="${c[0]}">${esc(c[1])}</option>`).join('')}</select><button class="btn small primary" data-act="clock-add">Add</button></div><p class="fine" style="margin:6px 0 0">Places where family lives show up by themselves. Set where someone lives in Family by tapping them.</p>` : ''}</section>`;
 }
 function famNode(p, me){
   const c = p && p.lives && cityOf(p.lives), t = c && c[2] !== HOME_TZ ? tzInfo(c[2]) : null;
@@ -6566,12 +6567,13 @@ function famDetail(p){
       <label class="f">Notes<input type="text" name="note" maxlength="160" value="${esc(p.note || '')}"></label>
       <div class="row"><button class="btn primary small">Save</button><span class="grow"></span>${delBtn('family', p.id, p.name)}</div></form></section>`;
 }
+function vClock(){ return pageHead('World clock', 'What time it is for everyone') + clockCard(); }
 function vFamily(){
   if(!S.data.family.length && !meta('family-seeded')) setTimeout(seedFamily, 0);
   const side = S.famSide || 'david', L = S.data.family.filter(p => p.side === side), g = n => L.filter(p => Number(p.gen) === n);
   const open = S.famOpen && get('family', S.famOpen);
   const genLbl = ['', 'Grandparents', 'Parents', side === 'david' ? 'David & siblings' : 'Laura & siblings'];
-  return pageHead('Family', 'Both sides, and what time it is for everyone') + clockCard()
+  return pageHead('Family', 'Both sides of the family')
     + `<div class="seg">${[['david','David’s family'],['laura','Laura’s family']].map(([k, l]) => `<button class="${side === k ? 'on' : ''}" data-act="fam-side" data-v="${k}">${l}</button>`).join('')}</div>`
     + `<section class="card ftree">${[1, 2].map(n => g(n).length ? `<div class="flbl">${genLbl[n]}</div>${famRow(g(n))}<div class="fline"></div>` : '').join('')}
       <div class="flbl">${genLbl[3]}</div>${famRow(g(3), famNode(null, side))}
@@ -6582,7 +6584,7 @@ function vFamily(){
         <div class="row"><label class="f grow">Name<input type="text" name="name" required maxlength="40"></label><label class="f grow">Who they are<input type="text" name="rel" maxlength="30" placeholder="Aunt, cousin, uncle…"></label></div>
         <div class="row"><label class="f grow">Generation<select name="gen"><option value="1">Grandparents</option><option value="2" selected>Parents, aunts & uncles</option><option value="3">Siblings & cousins</option></select></label><label class="f grow">Lives in<select name="lives"><option value="">Not set</option>${FAM_CITIES.map(x => `<option value="${x[0]}">${esc(x[0] === 'home' ? 'Near us (same time)' : x[1])}</option>`).join('')}</select></label></div>
         <button class="btn primary">Add</button></form>` : '')
-    + `<p class="fine">Tap anyone to add where they live, their birthday and phone number. Birthdays go on the calendar, and with a phone number you can call, FaceTime or WhatsApp them from here.</p>`;
+    + `<p class="fine">Tap anyone to add where they live, their birthday and phone number. Birthdays go on the calendar, where they live shows up in the World clock, and with a phone number you can call, FaceTime or WhatsApp them from here.</p>`;
 }
 function vGifts(){
   const tab = S.giftTab || 'up', vis = visGifts(), hiddenN = S.data.gifts.length - vis.length;
@@ -7143,7 +7145,7 @@ function vQuickAdd(){
 }
 
 try{ window.__rh = { avatarSVG, av, randomAv, rhStats, trophyUnlocks, gSearch, get S(){ return S; }, wdWord, TRIVIA, ymd, FEATURED, placeArt, sdkToday }; }catch(e){}
-const PAGES = { family:vFamily, apps:vApps, gifts:vGifts, house:vHouse, cars:vCars, translate:vTranslate, trophies:vTrophies, wrapped:vWrapped, search:vSearch, add:vQuickAdd, map:vLoveMap, trips:vTrips, tasks:vTasks, games:vGames, dayla:vDayla, goals:vGoals, spanish:vSpanish, dates:vDates, recipes:vRecipes, workouts:vWorkouts, faith:vFaith, projects:vProjects, memories:vMemories, notes:vNotes, avatars:vAvatars, settings:vSettings };
+const PAGES = { clock:vClock, family:vFamily, apps:vApps, gifts:vGifts, house:vHouse, cars:vCars, translate:vTranslate, trophies:vTrophies, wrapped:vWrapped, search:vSearch, add:vQuickAdd, map:vLoveMap, trips:vTrips, tasks:vTasks, games:vGames, dayla:vDayla, goals:vGoals, spanish:vSpanish, dates:vDates, recipes:vRecipes, workouts:vWorkouts, faith:vFaith, projects:vProjects, memories:vMemories, notes:vNotes, avatars:vAvatars, settings:vSettings };
 function render(){
   avN = 0;
   const main = $('#main');

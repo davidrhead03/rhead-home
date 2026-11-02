@@ -6536,10 +6536,9 @@ function clockCard(){
     <div class="clock-grid">${keys.map(k => { const c = cityOf(k), t = tzInfo(c[2]), w = who(k), fixed = !famClocks().includes(k); return `<div class="clock">
       <div class="between"><span class="fine" style="font-weight:700;color:var(--ink)">${esc(c[1])}</span><span>${t.sky}</span></div>
       <b class="num" style="font-size:20px">${t.time}</b>${t.day !== me.day ? ` <span class="pill" style="font-size:11px">${t.day}</span>` : ''}
-      <div class="fine">${diffTxt(t.diff)}${t.late ? ' · probably asleep' : ''}</div>
-      ${w.length ? `<div class="fine" style="margin-top:2px">👪 ${esc(w.join(', '))}</div>` : ''}
+      <div class="fine">${diffTxt(t.diff)}</div>
       ${edit && !fixed ? `<button class="btn small" data-act="clock-rm" data-v="${k}" style="margin-top:6px">Remove</button>` : ''}</div>`; }).join('')}</div>
-    ${edit ? `<div class="row" style="margin-top:10px;flex-wrap:nowrap"><select id="clock-add" class="grow">${FAM_CITIES.filter(c => c[0] !== 'home' && !keys.includes(c[0])).map(c => `<option value="${c[0]}">${esc(c[1])}</option>`).join('')}</select><button class="btn small primary" data-act="clock-add">Add</button></div><p class="fine" style="margin:6px 0 0">Places where family lives show up by themselves. Set where someone lives in Family by tapping them.</p>` : ''}</section>`;
+    ${edit ? `<div class="row" style="margin-top:10px;flex-wrap:nowrap"><select id="clock-add" class="grow">${FAM_CITIES.filter(c => c[0] !== 'home' && !keys.includes(c[0])).map(c => `<option value="${c[0]}">${esc(c[1])}</option>`).join('')}</select><button class="btn small primary" data-act="clock-add">Add</button></div>` : ''}</section>`;
 }
 function famNode(p, me){
   const c = p && p.lives && cityOf(p.lives), t = c && c[2] !== HOME_TZ ? tzInfo(c[2]) : null;
@@ -6557,7 +6556,7 @@ function famDetail(p){
   const same = S.data.family.filter(x => x.side === p.side && x.gen === p.gen && x.id !== p.id);
   return `<section class="card stack fam-detail" style="gap:10px;border:1.5px solid var(--line)">
     <div class="between"><div><h2 style="margin:0">${esc(p.name)}</h2><div class="muted">${esc(p.rel || '')}${p.side ? ' · ' + esc(nameOf(p.side)) + '’s family' : ''}</div></div><button class="icon-btn" data-act="fam-open" data-id="" aria-label="Close">${ic('x', 18)}</button></div>
-    ${t ? `<div class="banner" style="margin:0">${t.sky} It’s <b>${t.time}</b> in ${esc(c[1])} (${diffTxt(t.diff).toLowerCase()})${t.late ? ', so they’re probably asleep' : ''}.</div>` : ''}
+    ${t ? `<div class="banner" style="margin:0">${t.sky} It’s <b>${t.time}</b> in ${esc(c[1])} (${diffTxt(t.diff).toLowerCase()}).</div>` : ''}
     ${p.note ? `<p class="fine" style="margin:0">${esc(p.note)}</p>` : ''}
     ${digits ? `<div class="row" style="gap:8px"><a class="btn small primary" href="tel:${esc(digits)}">📞 Call</a><a class="btn small" href="facetime:${esc(digits)}">📹 FaceTime</a><a class="btn small" href="https://wa.me/${esc(wa)}" target="_blank" rel="noopener">💬 WhatsApp</a></div>` : ''}
     <form class="stack" data-form="fam-edit" data-id="${esc(p.id)}" style="gap:8px">

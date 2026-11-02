@@ -102,7 +102,7 @@ function classify(t, acct) {
 }
 
 /* ---------- syncing ---------- */
-async function syncLink(env, db, link, prefs, now) {
+async function syncLink(env, db, link, prefs, now, oldAccts) {
   const out = { added: 0, income: 0, accounts: [] };
   // live balances straight from the bank; fall back to Plaid's saved copy if the bank is slow
   let ar;
@@ -115,6 +115,7 @@ async function syncLink(env, db, link, prefs, now) {
       id: a.account_id, enr: link.item_id, who: link.who, inst: link.institution || 'Bank',
       name: a.official_name || a.name || '', type: a.type, sub: a.subtype || '', last4: a.mask || '', mode: p.mode || 'home',
       // checking/savings: the "available" number your bank app shows; cards: what you owe
+      posted: a.balances && a.balances.current != null ? Number(a.balances.current) : null,
       ledger: a.balances ? (a.type === 'depository' && a.balances.available != null ? Number(a.balances.available) : a.balances.current != null ? Number(a.balances.current) : null) : null,
       avail: a.balances && a.balances.available != null ? Number(a.balances.available) : null, upd: ymdNY(now),
     };
@@ -122,10 +123,15 @@ async function syncLink(env, db, link, prefs, now) {
     if (a.type === 'depository' || a.type === 'credit') out.accounts.push(info);
   }
   // new transactions since last time (Plaid keeps our place with a cursor)
-  let cursor = link.cursor || null, more = true, added = [], guard = 0;
+  // banks linked before pending tracking existed: start over once so today's pending purchases show
+  // (already-imported lines are skipped by bank_seen, so nothing doubles)
+  const hasPend = (oldAccts || []).some(a => a.enr === link.item_id && Array.isArray(a.pend));
+  let cursor = (hasPend || !(oldAccts || []).some(a => a.enr === link.item_id)) ? (link.cursor || null) : null, more = true, added = [], modified = [], removedIds = [], guard = 0;
   while (more && guard++ < 20) {
     const r = await plaid(env, '/transactions/sync', { access_token: link.access_token, cursor: cursor || undefined, count: 500 });
     added = added.concat(r.added || []);
+    modified = modified.concat(r.modified || []);
+    removedIds = removedIds.concat((r.removed || []).map(x => x.transaction_id));
     cursor = r.next_cursor; more = r.has_more;
   }
   const since = link.since || ymdNY(now).slice(0, 8) + '01'; // never bring in anything older than the month you linked
@@ -155,6 +161,15 @@ async function syncLink(env, db, link, prefs, now) {
     out.added = fresh.filter(d => d.col === 'spend').length;
     out.income = fresh.filter(d => d.col === 'income').length;
   }
+  // pending purchases (not final yet), kept per account so the app can show them
+  const gone = new Set(removedIds);
+  added.concat(modified).forEach(t => { if (t.pending_transaction_id) gone.add(t.pending_transaction_id); if (!t.pending) gone.add(t.transaction_id); });
+  for (const info of out.accounts) {
+    const prev = ((oldAccts || []).find(a => a.id === info.id) || {}).pend || [];
+    const map = new Map(prev.filter(x => !gone.has(x.id)).map(x => [x.id, x]));
+    added.concat(modified).filter(t => t.pending && t.account_id === info.id).forEach(t => map.set(t.transaction_id, { id: t.transaction_id, name: (t.merchant_name || t.name || 'Pending').slice(0, 40), amt: round2(Number(t.amount)), date: t.date }));
+    info.pend = [...map.values()].sort((x, y) => (y.date || '').localeCompare(x.date || '')).slice(0, 25);
+  }
   out.cursor = cursor;
   return out;
 }
@@ -174,6 +189,7 @@ async function updateBalances(db, accounts, now) {
       ...prev, id, linked: true, name: `${a.inst} ${a.name || a.sub}`.trim() + (a.last4 ? ` ••${a.last4}` : ''),
       kind: a.sub === 'savings' || /saving|vault/i.test(a.name) ? 'savings' : 'checking',
       bal, setAt: now + 1, upd: d, by: a.who,
+      posted: a.posted != null ? round2(a.posted) : null, pend: (a.pend || []).slice(0, 10),
       hist: (prev.hist || []).filter(h => h.date !== d).concat({ bal, date: d }).slice(-60),
     };
     if (i >= 0) list[i] = entry; else list.push(entry);
@@ -193,7 +209,7 @@ async function syncAll(env, only) {
     const old = (bank.links || []).find(x => x.enr === l.item_id) || {};
     const li = { enr: l.item_id, who: l.who, inst: l.institution, status: 'ok', synced: now, err: '' };
     try {
-      const r = await syncLink(env, db, l, prefs, now);
+      const r = await syncLink(env, db, l, prefs, now, bank.accounts || []);
       added += r.added; income += r.income;
       accounts.push(...r.accounts);
       await db.patch('bank_links', 'item_id=' + eq(l.item_id), { synced_at: new Date(now).toISOString(), status: 'ok', cursor: r.cursor });

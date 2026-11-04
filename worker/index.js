@@ -176,6 +176,14 @@ function classify(t, acct) {
   return null; // transfers in, refunds
 }
 
+/* ---------- whose paycheck is it? (shared SoFi, so go by the employer) ---------- */
+const PAYERS = [[/unilitina|united international/i, 'laura'], [/anthropologie|urbn|urban outfitters/i, 'laura'], [/laundry owners/i, 'david']];
+const payKey = s => String(s || '').toLowerCase().replace(/[^a-z]+/g, ' ').trim().split(' ').slice(0, 3).join(' ');
+function payWho(text, source, rules, fb) {
+  const k = payKey(source); if (k && rules[k]) return rules[k]; // someone tapped to change it before
+  const hit = PAYERS.find(([re]) => re.test(text)); return hit ? hit[1] : fb;
+}
+
 /* ---------- bank payments check off bills ---------- */
 const WORDS = s => String(s || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(w => w.length >= 3 && !['the', 'and', 'bill', 'payment', 'pay', 'monthly', 'llc', 'inc', 'com', 'online', 'card'].includes(w));
 const nameHit = (bill, text) => { const t = ' ' + String(text || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ') + ' '; return WORDS(bill.name).some(w => t.includes(' ' + w) || (w.length >= 5 && t.includes(w))); };
@@ -259,6 +267,7 @@ async function syncLink(env, db, link, prefs, now, oldAccts) {
   const since = link.since || ymdNY(now).slice(0, 8) + '01'; // never bring in anything older than the month you linked
   const docs = [], seen = [], cardPays = [];
   const rules = ((await getMeta(db, 'catrules')) || {}).map || {}; // categories you picked for a store before
+  const prules = ((await getMeta(db, 'payrules')) || {}).map || {}; // whose paycheck, picked in the app
   for (const t of added) {
     const a = byId[t.account_id];
     if (!a || t.date < since) continue;
@@ -275,7 +284,7 @@ async function syncLink(env, db, link, prefs, now, oldAccts) {
     }
     const base = { date: t.date, acct: 'bk_' + a.id, by: link.who, at: now, bank: { inst: a.inst, last4: a.last4, desc: String(t.name || '').slice(0, 120) } };
     if (c.kind === 'spend') docs.push({ col: 'spend', id: 'bk_' + t.transaction_id, data: { ...base, amt: c.amt, cat: rules[catKey(c.note)] || c.cat, note: c.note } });
-    else docs.push({ col: 'income', id: 'bk_' + t.transaction_id, data: { ...base, who: link.who, amt: c.amt, source: c.source } });
+    else docs.push({ col: 'income', id: 'bk_' + t.transaction_id, data: { ...base, who: payWho((t.merchant_name || '') + ' ' + (t.name || ''), c.source, prules, link.who), amt: c.amt, source: c.source } });
   }
   // only add lines never seen before, so anything you delete in the app stays deleted
   if (seen.length) {

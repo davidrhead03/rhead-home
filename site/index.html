@@ -1766,7 +1766,7 @@ async function startDb(){
       schedule();
     });
   });
-  try{ await db.loadAll(); S.dbState = 'ok'; }catch(e){ console.warn('load', e); S.dbState = 'err'; }
+  try{ await db.loadAll(); S.dbState = 'ok'; setTimeout(fixPayWho, 1500); }catch(e){ console.warn('load', e); S.dbState = 'err'; }
   S.assets = { async upload(blob, opt){ const id = hexId(); const { error } = await SB.storage.from('photos').upload(id, blob, { contentType: (opt && opt.type) || blob.type || 'image/jpeg', cacheControl: '31536000', upsert: false }); if(error) throw error; return { id, url: BLOBU + id }; } };
   S.downloads = { async save(o){ const bl = new Blob([o.data], { type: 'application/json' }), a = document.createElement('a'); a.href = URL.createObjectURL(bl); a.download = o.filename; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500); return { status: 'saved' }; } };
   S.sample = null;
@@ -4542,6 +4542,11 @@ function chalCard(){
 /* income */
 const FREQS = [['weekly','Every week',52 / 12],['biweekly','Every 2 weeks',26 / 12],['semimonthly','Twice a month',2],['monthly','Once a month',1]];
 const freqOf = k => FREQS.find(f => f[0] === k) || FREQS[1];
+// shared SoFi: whose paycheck it is goes by the employer, not by who linked the bank
+const PAYERS = [[/unilitina|united international/i, 'laura'], [/anthropologie|urbn|urban outfitters/i, 'laura'], [/laundry owners/i, 'david']];
+const payKey = s => String(s || '').toLowerCase().replace(/[^a-z]+/g, ' ').trim().split(' ').slice(0, 3).join(' ');
+function payWho(x){ const r = (meta('payrules') || {}).map || {}, k = payKey(x.source); if(k && r[k]) return r[k]; const t = (x.source || '') + ' ' + ((x.bank && x.bank.desc) || ''), h = PAYERS.find(([re]) => re.test(t)); return h ? h[1] : null; }
+function fixPayWho(){ (S.data.income || []).forEach(x => { if(!x.bank || x.whoSet) return; const w = payWho(x); if(w && w !== x.who) updDoc('income', x.id, { who: w }); }); }
 const monthIncome = mk => S.data.income.filter(x => (x.date || '').slice(0, 7) === mk);
 const expectedMonthly = w => 0;
 function cashFlow(mk){
@@ -4574,13 +4579,13 @@ function vIncome(){
   <section class="card" style="background:var(--sage-soft);border-color:transparent"><div class="between"><span class="eyebrow" style="color:var(--sage)">Received this month</span><b class="num" style="font-family:var(--display);font-size:28px">${money2(tot)}</b></div>
     ${exp ? `<div class="bar" style="margin-top:10px;background:var(--surface)"><i style="width:${Math.min(100, tot / exp * 100)}%"></i></div><div class="fine" style="margin-top:4px">${money(tot)} of about ${money(exp)} expected</div>` : ''}
     <div class="row" style="margin-top:10px;gap:16px">${['david','laura'].map(w => `<span class="row" style="gap:6px">${mini(w)}<span>${nameOf(w)}</span><b class="num">${money(by(w))}</b></span>`).join('')}</div></section>
-  <div class="between"><p class="fine" style="margin:0;flex:1">Paychecks into a linked bank come in by themselves.</p>${toggleForm('income', '+ Add')}</div>
+  <div class="between"><p class="fine" style="margin:0;flex:1">Paychecks into a linked bank come in by themselves. Tap a face to switch whose it is.</p>${toggleForm('income', '+ Add')}</div>
   ${S.showForm.income ? `<form class="card stack" data-form="income" style="gap:10px"><div class="eyebrow">Add income by hand</div>
     <div class="row"><input type="number" id="in-amt" name="amt" required min="0.01" step="0.01" inputmode="decimal" placeholder="$ Amount" style="width:130px"><select id="in-who" name="who" class="grow"><option value="${S.me || 'david'}">${nameOf(S.me || 'david')}</option><option value="${other(S.me || 'david')}">${nameOf(other(S.me || 'david'))}</option></select></div>
     <div class="row"><input class="grow" type="text" id="in-src" name="source" list="inc-srcs" maxlength="50" placeholder="From (job, side hustle, gift…)"><datalist id="inc-srcs">${srcNames.map(n => `<option value="${esc(n)}">`).join('')}</datalist><input type="date" id="in-date" name="date" value="${ymd(new Date())}" style="width:auto"></div>
     ${accts().length > 1 ? `<div class="row"><select id="in-acct" name="acct" class="grow">${accts().map(a => `<option value="${esc(a.id)}" ${a.id === defAcct() ? 'selected' : ''}>Into ${esc(a.name)}</option>`).join('')}</select></div>` : ''}
     <button class="btn primary">Add income</button></form>` : ''}
-  <section class="card"><div class="list">${list.map(x => `<div class="li">${mini(x.who)}<div class="txt">${esc(x.source || 'Income')}<div class="sub">${esc(nameOf(x.who))} · ${esc(fmtDate(parseYmd(x.date), { month:'short', day:'numeric' }))}</div></div><b class="num" style="color:var(--sage)">+${money2(x.amt)}</b>${delBtn('income', x.id, 'income')}</div>`).join('') || empty('No income yet this month', 'Paychecks show up here when they hit your bank.')}</div></section>
+  <section class="card"><div class="list">${list.map(x => `<div class="li"><button class="icon-btn" data-act="inc-who" data-id="${esc(x.id)}" aria-label="Change whose income this is" style="padding:0">${mini(x.who)}</button><div class="txt">${esc(x.source || 'Income')}<div class="sub">${esc(nameOf(x.who))} · ${esc(fmtDate(parseYmd(x.date), { month:'short', day:'numeric' }))}</div></div><b class="num" style="color:var(--sage)">+${money2(x.amt)}</b>${delBtn('income', x.id, 'income')}</div>`).join('') || empty('No income yet this month', 'Paychecks show up here when they hit your bank.')}</div></section>
   ${cashFlowCard(mk)}`;
 }
 
@@ -7843,6 +7848,10 @@ document.addEventListener('click', async ev => {
       if(await addDoc('wish', { title, url:'', price:0, room:x.room, project:'', note:'', prio:false, got:false, photo:x.asset })){ S.inspoSel = null; render(); toast('Added to the buy list and wishlist'); } break; }
     case 'inspo-tobuy': { const x = get('inspo', id); if(!x) break; if(await addDoc('wish', { title: x.title || hostOf(x.url) || 'Saved link', url:x.url, price:0, room:x.room, project:'', note:'', prio:false, got:false })) toast('Added to the buy list and wishlist'); break; }
     case 'incmonth': { const [y, m] = S.incMonth.split('-').map(Number); S.incMonth = monthKey(new Date(y, m - 1 + Number(t.dataset.d), 1)); render(); break; }
+    case 'inc-who': { const x = get('income', id); if(!x) break; const w = other(x.who || 'david');
+      if(await updDoc('income', id, { who: w, whoSet: true })){ const k = payKey(x.source);
+        if(x.bank && k){ const m = Object.assign({}, (meta('payrules') || {}).map || {}); m[k] = w; setDoc('meta/payrules', { map: m }); toast(`${nameOf(w)}’s ✓ Future ${x.source} paychecks will be too`); }
+        else toast(`Now ${nameOf(w)}’s`); } break; }
     case 'inc-quick': { const x = get('incsrc', id); if(x && await addDoc('income', { who:x.who, source:x.name, amt:Number(x.amt) || 0, date: ymd(new Date()) })) toast(`Logged ${money2(x.amt)} from ${x.name} 🎉`); break; }
     case 'chal-next': S.chalOff++; render(); break;
     case 'chal-done': { const w = t.dataset.who, dk = ymd(new Date()); if(chalDone(w, dk)) await delDoc('chal', w + '_' + dk); else if(await setDoc('chal/' + w + '_' + dk, { who:w, date:dk, text:t.dataset.t || '' })) { toast(`Nice job, ${nameOf(w)}! 🔥`); celebrate(); } break; }

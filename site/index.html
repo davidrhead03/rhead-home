@@ -3819,15 +3819,39 @@ const repSum = (w, from, to, ex) => S.data.reps.filter(r => r.who === w && r.dat
 function repsCard(){
   const ex = S.repEx || 'Pushups', today = ymd(new Date()), ws = ymd(weekStart());
   const todays = S.data.reps.filter(r => r.date === today).sort((a, b) => (b.at || 0) - (a.at || 0));
-  const steps = repUnit(ex) === 'sec' ? [30, 45, 60, 90] : [10, 15, 20, 25];
+  const steps = repUnit(ex) === 'sec' ? [30, 45, 60, 90] : ex === 'Counter pushups' ? [20, 25, 30, 40, 50] : [10, 15, 20, 25];
   return `<section class="card stack" style="gap:10px"><div class="between"><h2>Quick reps</h2><span class="pill">Not a workout</span></div>
     <p class="fine" style="margin:-4px 0 0">For pushups and other sets you do during the day. They're tracked here and don't count toward your streak.</p>${ex === 'Counter pushups' ? '<p class="fine" style="margin:-4px 0 0">Incline pushups with your hands on the bathroom counter.</p>' : ''}
     <div class="chips">${REP_EX.map(([e]) => `<button class="chip ${ex === e ? 'on' : ''}" data-act="rep-ex" data-v="${esc(e)}">${esc(e)}</button>`).join('')}</div>
-    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">${steps.map(n => `<button class="btn soft" data-act="rep-add" data-n="${n}">+${n}</button>`).join('')}</div>
+    <div style="display:grid;grid-template-columns:repeat(${steps.length},minmax(0,1fr));gap:8px">${steps.map(n => `<button class="btn soft" data-act="rep-add" data-n="${n}">+${n}</button>`).join('')}</div>
     <form class="row" data-form="rep" style="flex-wrap:nowrap"><input class="grow" type="number" id="rep-n" name="n" inputmode="numeric" min="1" max="2000" required placeholder="Other amount (${repUnit(ex)})"><button class="btn primary">Add</button></form>
     <div class="list">${['david','laura'].map(w => `<div class="li">${mini(w)}<div class="txt">${esc(nameOf(w))}<div class="sub">${repSum(w, ws, today, ex)} this week</div></div><b class="num" style="font-size:18px">${repSum(w, today, today, ex)}</b><span class="muted" style="font-size:13px">today</span></div>`).join('')}</div>
+    ${quickSetup()}
     ${todays.length ? `<details class="more"><summary>Today's sets · ${todays.length}</summary><div class="list">${todays.map(r => `<div class="li">${mini(r.who)}<div class="txt">${esc(repTxt(r.n, r.ex))}<div class="sub">${esc(fmtTime(hhmm(new Date(r.at || Date.now()))))}</div></div>${r.who === S.me ? delBtn('reps', r.id, 'set') : ''}</div>`).join('')}</div></details>` : ''}
   </section>`;
+}
+/* log reps from Siri, an iPhone Shortcut or a Home Screen widget without opening the app (worker: /api/quick) */
+const QUICK_SLUG = { 'Pushups':'pushups', 'Counter pushups':'counter', 'Squats':'squats', 'Sit-ups':'situps', 'Pull-ups':'pullups', 'Plank':'plank' };
+function quickSetup(){
+  if(!S.me) return '';
+  const key = ls.get('quickKey-' + S.me, ''), has = !!meta('quickkey-' + S.me), ex = S.repEx || 'Pushups', slug = QUICK_SLUG[ex] || 'pushups';
+  const base = location.origin + '/api/quick?k=' + key + '&ex=' + slug + '&n=';
+  const copyRow = (label, link) => `<div class="li"><div class="txt">${esc(label)}<div class="sub" style="word-break:break-all">${esc(link)}</div></div><button class="btn small" data-act="hi-copy" data-t="${esc(link)}">Copy</button></div>`;
+  const body = key && has ? `
+      <p class="fine" style="margin:0">Your private ${esc(ex.toLowerCase())} link. It logs as ${esc(nameOf(S.me))}, so keep it to yourself. Pick a different exercise above to get its link.</p>
+      <div class="list">${copyRow('Siri asks how many', base)}${copyRow('Fixed amount (for a widget button)', base + (repUnit(ex) === 'sec' ? 60 : ex === 'Counter pushups' ? 25 : 20))}</div>
+      <ol class="fine" style="margin:0;padding-left:18px;display:grid;gap:4px">
+        <li>Open the <b>Shortcuts</b> app, tap <b>+</b>.</li>
+        <li><b>For Siri:</b> add <b>Ask for Input</b> (Number, “How many?”). Then add <b>Get Contents of URL</b>, paste the first link and tap right after <b>n=</b> to insert <b>Provided Input</b>.</li>
+        <li><b>For a one-tap button:</b> just add <b>Get Contents of URL</b> with the second link. Change the number at the end if you want.</li>
+        <li>Add <b>Show Result</b> so it tells you your total for today.</li>
+        <li>Name it, like “Log ${esc(ex.toLowerCase())}”. Now say <b>“Hey Siri, log ${esc(ex.toLowerCase())}”</b>.</li>
+        <li>Widget: hold your Home Screen → <b>Edit</b> → <b>Add Widget</b> → <b>Shortcuts</b>.</li>
+      </ol>
+      <button class="btn small ${S.confirm === 'quick:new' ? 'danger' : ''}" data-act="quick-key" style="justify-self:start">${S.confirm === 'quick:new' ? 'Tap again. Old shortcuts stop working' : 'Make a new link'}</button>`
+    : `<p class="fine" style="margin:0">Log sets with “Hey Siri” or a Home Screen widget, without opening the app or signing in.${has ? ' You already have a link on another phone. Making one here turns that one off.' : ''}</p>
+      <button class="btn primary" data-act="quick-key" style="justify-self:start">${S.quickBusy ? 'Making your link…' : has ? 'Make a link on this phone' : 'Set it up'}</button>`;
+  return `<details class="more"${S.quickOpen ? ' open' : ''}><summary data-act="quick-open">📱 Log from Siri or a widget</summary><div class="stack" style="gap:10px;margin-top:8px">${body}</div></details>`;
 }
 function repWeekLine(w){
   const ws = ymd(weekStart()), today = ymd(new Date());
@@ -7536,6 +7560,20 @@ document.addEventListener('click', async ev => {
       else { S.confirm = null; const f0 = S.todoWho || 'all'; await Promise.all(S.data.todos.filter(x => x.done && (f0 === 'all' || x.who === f0 || x.who === 'both' || !x.who)).map(x => delDoc('todos', x.id))); render(); toast('Cleared'); }
       break; }
     case 'rep-ex': S.repEx = t.dataset.v; render(); break;
+    case 'quick-open': S.quickOpen = !S.quickOpen; break;
+    case 'quick-key': {
+      if(!S.me){ toast('Pick who you are first'); break; }
+      if(ls.get('quickKey-' + S.me, '') && meta('quickkey-' + S.me) && S.confirm !== 'quick:new'){ S.confirm = 'quick:new'; render(); break; }
+      S.confirm = null; S.quickBusy = true; S.quickOpen = true; render();
+      try{
+        let token = ''; try{ token = ((await SB.auth.getSession()).data.session || {}).access_token || ''; }catch(e){}
+        const r = await fetch('/api/quick', { method:'POST', headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + token }, body: JSON.stringify({ kind:'newkey', who: S.me }) });
+        const d = await r.json().catch(() => ({}));
+        if(!r.ok || !d.key) throw new Error(d.error || 'Couldn’t make your link right now.');
+        ls.set('quickKey-' + S.me, d.key); toast('Your link is ready 📱');
+      }catch(e){ toast(e.message || 'Couldn’t make your link right now.'); }
+      S.quickBusy = false; render(); break;
+    }
     case 'rep-add': { if(!S.me){ toast('Pick who you are first'); break; } const n = Number(t.dataset.n) || 0, ex = S.repEx || 'Pushups'; if(n > 0 && await addDoc('reps', { who: S.me, ex, n, date: ymd(new Date()) })) toast('+' + repTxt(n, ex) + ' 💪'); break; }
     case 'plan-open': S.planOpen = S.planOpen === id ? null : id; render(); break;
     case 'faithtab': S.faithTab = t.dataset.v; render(); break;

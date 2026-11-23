@@ -10,6 +10,7 @@
 //    PLAID_CLIENT_ID   from Plaid Dashboard > Developers > Keys
 //    PLAID_SECRET      the Production secret from the same page
 //    SUPABASE_SECRET   Supabase secret key (sb_secret_...)
+//  /api/quick (Siri, Shortcuts and widgets) only needs SUPABASE_SECRET.
 //    PLAID_ENV         optional: "sandbox" for testing (default production)
 // =============================================================
 
@@ -438,9 +439,63 @@ async function handle(req, env) {
   return json({ error: 'unknown request' }, 400);
 }
 
+
+/* ---------- quick reps from an iPhone Shortcut, Siri or a widget (no sign-in) ----------
+   GET or POST /api/quick?k=KEY&ex=counter&n=25
+   Each person gets their own private key from the app (Workouts > Quick reps).
+   Only a SHA-256 fingerprint of the key is stored (docs: meta/quickkey-<who>).
+   The app asks for a new key with POST /api/quick {kind:'newkey', who} while signed in. */
+const QUICK_EX = [['Pushups', 'reps'], ['Counter pushups', 'reps'], ['Squats', 'reps'], ['Sit-ups', 'reps'], ['Pull-ups', 'reps'], ['Plank', 'sec']];
+const QUICK_ALIAS = { pushups: 'Pushups', pushup: 'Pushups', push: 'Pushups', counter: 'Counter pushups', counterpushups: 'Counter pushups', counterpushup: 'Counter pushups', squats: 'Squats', squat: 'Squats', situps: 'Sit-ups', situp: 'Sit-ups', pullups: 'Pull-ups', pullup: 'Pull-ups', plank: 'Plank' };
+const text = (b, s = 200) => new Response(b, { status: s, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store', 'Access-Control-Allow-Origin': '*' } });
+const sha = async s => b64u(await crypto.subtle.digest('SHA-256', te.encode(String(s))));
+const quickEx = v => QUICK_ALIAS[String(v || 'pushups').toLowerCase().replace(/[^a-z]/g, '')] || null;
+const quickTxt = (n, ex) => (QUICK_EX.find(x => x[0] === ex) || [])[1] === 'sec' ? `${n} sec ${ex.toLowerCase()}` : `${n} ${ex.toLowerCase()}`;
+const randKey = () => { const a = crypto.getRandomValues(new Uint8Array(24)); return b64u(a); };
+const randId = () => { const c = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', a = crypto.getRandomValues(new Uint8Array(20)); return Array.from(a, x => c[x % 62]).join(''); };
+
+async function quick(req, env, url) {
+  if (!env.SUPABASE_SECRET) return text('Quick add isn’t set up yet (missing SUPABASE_SECRET).', 503);
+  const db = sb(env);
+  if (req.method === 'POST' && (req.headers.get('Content-Type') || '').includes('json')) {
+    const body = await req.json().catch(() => ({}));
+    if (body.kind === 'newkey') {
+      const token = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
+      const u = token && await db.user(token);
+      if (!u || !u.id) return json({ error: 'Sign in first.' }, 401);
+      if (!WHO.includes(body.who)) return json({ error: 'Pick who you are first.' }, 400);
+      const key = randKey();
+      await putMeta(db, 'quickkey-' + body.who, { hash: await sha(key), at: Date.now() });
+      return json({ ok: true, key });
+    }
+    if (body.k || body.key) { for (const f of ['k', 'key', 'ex', 'n']) if (body[f] != null) url.searchParams.set(f, body[f]); }
+  }
+  if (!['GET', 'POST'].includes(req.method)) return text('Use GET or POST.', 405);
+  const q = url.searchParams, key = q.get('k') || q.get('key') || '';
+  if (key.length < 20) return text('This link is missing its key. Copy it again from Rhead Home > Workouts > Quick reps.', 401);
+  const h = await sha(key);
+  const rows = await db.select('docs', `col=eq.meta&id=in.(quickkey-david,quickkey-laura)&select=id,data`) || [];
+  const hit = rows.find(r => r.data && r.data.hash === h);
+  if (!hit) return text('This quick-add link was replaced or turned off. Get a new one in Rhead Home > Workouts > Quick reps.', 401);
+  const who = hit.id.replace('quickkey-', '');
+  const ex = quickEx(q.get('ex'));
+  if (!ex) return text('Unknown exercise. Use pushups, counter, squats, situps, pullups or plank.', 400);
+  const n = Math.round(Number(String(q.get('n') || '').replace(/[^0-9.]/g, '')));
+  if (!(n >= 1 && n <= 2000)) return text('How many? Send a number from 1 to 2000.', 400);
+  const now = Date.now(), date = ymdNY(now);
+  await db.insert('docs', [{ col: 'reps', id: randId(), data: { who, ex, n, date, by: who, at: now, via: 'shortcut' } }]);
+  const today = await db.select('docs', `col=eq.reps&data->>who=${eq(who)}&data->>date=${eq(date)}&data->>ex=${eq(ex)}&select=data`) || [];
+  const total = today.reduce((s, r) => s + (Number(r.data && r.data.n) || 0), 0);
+  return text(`Logged ${quickTxt(n, ex)} 💪 That’s ${total} today.`);
+}
+
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
+    if (url.pathname === '/api/quick') {
+      try { return await quick(req, env, url); }
+      catch (e) { console.error(e); return text('Couldn’t log that right now. Try again in a moment.', 500); }
+    }
     if (url.pathname === '/api/bank') {
       try { return await handle(req, env); }
       catch (e) {
@@ -456,4 +511,4 @@ export default {
     ctx.waitUntil(syncAll(env).catch(e => console.error('bank sync', e)));
   },
 };
-export { classify, catOf, syncAll, handle, catKey };
+export { classify, catOf, syncAll, handle, catKey, quick };

@@ -3476,6 +3476,7 @@ function guessAisle(text){
   return best || 'other';
 }
 const aisleOf = i => i.sec || guessAisle(i.text);
+const capWords = t => String(t || '').replace(/(^|[\s(/-])(\p{Ll})/gu, (m, a, b) => a + b.toUpperCase());
 /* things you've bought before (from saved trips), newest wording and quantity win */
 function shopKnown(list){
   const m = new Map();
@@ -3488,14 +3489,14 @@ const onListKeys = list => new Set(S.data.items.filter(i => i.list === list && !
 async function addItems(list, arr){ // several at once, one notification
   const have = onListKeys(list); let n = 0, first = null;
   for(const x of arr){ const k = fold(x.text); if(!k || have.has(k)) continue; have.add(k);
-    try{ const r = await S.db.collection('items').add({ list, text: x.text, qty: x.qty || '', done: false, by: S.me, at: Date.now() + n }); if(!first) first = r.id; n++; }catch(e){ fail(e); break; } }
+    try{ const r = await S.db.collection('items').add({ list, text: capWords(x.text), qty: x.qty || '', done: false, by: S.me, at: Date.now() + n }); if(!first) first = r.id; n++; }catch(e){ fail(e); break; } }
   if(first) notifyEvent('items', first); return n;
 }
 function vPast(){
   const lists = ['All'].concat(Array.from(new Set(S.data.shoptrips.map(t => t.list).filter(Boolean))));
   const sel = lists.includes(S.tripList) ? S.tripList : 'All';
   const trips = S.data.shoptrips.filter(t => sel === 'All' || t.list === sel).sort((a, b) => (b.at || 0) - (a.at || 0));
-  const line = (x, miss) => `<div class="li${miss ? ' done' : ''}" style="padding:7px 0"><div class="txt">${esc(x.text)}${x.qty ? ` <span class="pill">${esc(x.qty)}</span>` : ''}</div></div>`;
+  const line = (x, miss) => `<div class="li${miss ? ' done' : ''}" style="padding:7px 0"><div class="txt">${esc(capWords(x.text))}${x.qty ? ` <span class="pill">${esc(x.qty)}</span>` : ''}</div></div>`;
   const card = t => { const got = t.got || [], miss = t.missed || [], open = S.tripOpen === t.id;
     return `<div class="li" style="flex-wrap:wrap;align-items:flex-start">
       <button class="txt" data-act="trip-open" data-id="${esc(t.id)}" style="border:0;background:none;padding:0;text-align:left;color:inherit;font:inherit;cursor:pointer"><b>${esc(t.list || 'Shopping')}</b> · ${esc(fmtDate(parseYmd(t.date)))}<div class="sub">${got.length} got${miss.length ? ` · ${miss.length} didn’t get` : ''}</div></button>${mini(t.by)}<span class="muted" aria-hidden="true">${open ? '▾' : '▸'}</span>
@@ -3515,15 +3516,15 @@ function vShop(){
   const left = items.filter(i => !i.done), got = items.filter(i => i.done);
   const known = shopKnown(S.listSel), have = onListKeys(S.listSel);
   const quick = known.filter(e => !have.has(fold(e.text))).sort((a, b) => (b.here - a.here) || (b.n - a.n) || (b.last - a.last)).slice(0, 14);
-  const row = i => `<div class="li ${i.done ? 'done' : ''}" style="flex-wrap:wrap"><button class="check ${i.done ? 'on' : ''}" data-act="item-tog" data-id="${esc(i.id)}" aria-label="${i.done ? 'Uncheck' : 'Check off'} ${esc(i.text)}">${ic('check', 15)}</button><button class="txt" data-act="item-sec-open" data-id="${esc(i.id)}" style="border:0;background:none;padding:0;text-align:left;color:inherit;font:inherit;cursor:pointer">${esc(i.text)}${i.qty ? ` <span class="pill">${esc(i.qty)}</span>` : ''}</button>${mini(i.by)}${delBtn('items', i.id, i.text)}
-    ${S.itemSecOpen === i.id ? `<form class="row" data-form="item-edit" data-id="${esc(i.id)}" style="flex-basis:100%;margin:8px 0 2px 38px;gap:8px;flex-wrap:nowrap"><input class="grow" type="text" id="ie-text-${esc(i.id)}" name="text" value="${esc(i.text)}" required maxlength="80" autocomplete="off" aria-label="Item"><input type="text" id="ie-qty-${esc(i.id)}" name="qty" value="${esc(i.qty || '')}" placeholder="Qty" style="width:64px" maxlength="12" aria-label="Quantity"><button class="btn primary small">Save</button></form><div class="row" style="flex-basis:100%;margin:6px 0 2px 38px;gap:8px;flex-wrap:nowrap"><span class="fine" style="flex:none">Section</span><select data-live="item-sec" data-id="${esc(i.id)}" class="grow">${AISLES.map(a => `<option value="${a[0]}" ${aisleOf(i) === a[0] ? 'selected' : ''}>${a[1]} ${esc(a[2])}</option>`).join('')}</select></div>` : ''}</div>`;
+  const row = i => `<div class="li ${i.done ? 'done' : ''}" style="flex-wrap:wrap"><button class="check ${i.done ? 'on' : ''}" data-act="item-tog" data-id="${esc(i.id)}" aria-label="${i.done ? 'Uncheck' : 'Check off'} ${esc(i.text)}">${ic('check', 15)}</button><button class="txt" data-act="item-sec-open" data-id="${esc(i.id)}" style="border:0;background:none;padding:0;text-align:left;color:inherit;font:inherit;cursor:pointer">${esc(capWords(i.text))}${i.qty ? ` <span class="pill">${esc(i.qty)}</span>` : ''}</button>${mini(i.by)}${delBtn('items', i.id, i.text)}
+    ${S.itemSecOpen === i.id ? `<form class="row" data-form="item-edit" data-id="${esc(i.id)}" style="flex-basis:100%;margin:8px 0 2px 38px;gap:8px;flex-wrap:nowrap"><input class="grow" type="text" id="ie-text-${esc(i.id)}" name="text" value="${esc(capWords(i.text))}" autocapitalize="words" required maxlength="80" autocomplete="off" aria-label="Item"><input type="text" id="ie-qty-${esc(i.id)}" name="qty" value="${esc(i.qty || '')}" placeholder="Qty" style="width:64px" maxlength="12" aria-label="Quantity"><button class="btn primary small">Save</button></form><div class="row" style="flex-basis:100%;margin:6px 0 2px 38px;gap:8px;flex-wrap:nowrap"><span class="fine" style="flex:none">Section</span><select data-live="item-sec" data-id="${esc(i.id)}" class="grow">${AISLES.map(a => `<option value="${a[0]}" ${aisleOf(i) === a[0] ? 'selected' : ''}>${a[1]} ${esc(a[2])}</option>`).join('')}</select></div>` : ''}</div>`;
   const grouped = L => AISLES.map(([k, e, name]) => { const g = L.filter(i => aisleOf(i) === k); return g.length ? `<div class="aisle-h">${e} ${esc(name)}<span>${g.length}</span></div>${g.map(row).join('')}` : ''; }).join('');
   return `
   <div class="chips">${names.map(n => `<button class="chip ${n === S.listSel ? 'on' : ''}" data-act="list" data-v="${esc(n)}">${esc(n)}<span class="n">${S.data.items.filter(i => i.list === n && !i.done).length}</span></button>`).join('')}<button class="chip" data-act="toggleform" data-key="newlist">+ List</button></div>
   ${S.showForm.newlist ? `<form class="card row" data-form="newlist"><input class="grow" type="text" id="nl-name" name="name" placeholder="New list name, e.g. Walmart" required maxlength="30"><button class="btn primary">Add list</button>${names.length > 1 ? `<button type="button" class="btn small danger" data-act="list-remove">Remove “${esc(S.listSel)}”</button>` : ''}</form>` : ''}
-  <form class="card" data-form="item"><div class="row"><input class="grow" type="text" id="item-text" name="text" list="item-sugs" placeholder="Add to ${esc(S.listSel)}…" required maxlength="80" autocomplete="off"><input type="text" id="item-qty" name="qty" placeholder="Qty" style="width:74px" maxlength="12"><button class="btn primary">Add</button></div>
-    <datalist id="item-sugs">${known.map(e => `<option value="${esc(e.text)}">`).join('')}</datalist>
-    ${quick.length ? `<div class="eyebrow" style="margin:12px 0 6px">Quick add</div><div class="chips" style="flex-wrap:wrap">${quick.map(e => `<button type="button" class="chip" data-act="item-quick" data-t="${esc(e.text)}" data-q="${esc(e.qty)}">+ ${esc(e.text)}${e.qty ? ` <span class="n">${esc(e.qty)}</span>` : ''}</button>`).join('')}</div>` : ''}</form>
+  <form class="card" data-form="item"><div class="row"><input class="grow" type="text" id="item-text" name="text" list="item-sugs" autocapitalize="words" placeholder="Add to ${esc(S.listSel)}…" required maxlength="80" autocomplete="off"><input type="text" id="item-qty" name="qty" placeholder="Qty" style="width:74px" maxlength="12"><button class="btn primary">Add</button></div>
+    <datalist id="item-sugs">${known.map(e => `<option value="${esc(capWords(e.text))}">`).join('')}</datalist>
+    ${quick.length ? `<div class="eyebrow" style="margin:12px 0 6px">Quick add</div><div class="chips" style="flex-wrap:wrap">${quick.map(e => `<button type="button" class="chip" data-act="item-quick" data-t="${esc(capWords(e.text))}" data-q="${esc(e.qty)}">+ ${esc(capWords(e.text))}${e.qty ? ` <span class="n">${esc(e.qty)}</span>` : ''}</button>`).join('')}</div>` : ''}</form>
   <section class="card"><div class="between"><h2>${esc(S.listSel)}</h2><span class="muted num">${left.length} to get</span></div>
     ${left.length ? `<p class="fine" style="margin:2px 0 0">Sorted by store section. Tap an item to fix what you typed or move it to another section.</p>` : ''}
     <div class="list" style="margin-top:4px">${left.length ? grouped(left) : empty('All set', 'Nothing left on this list.')}</div>
@@ -8156,10 +8157,10 @@ document.addEventListener('submit', async ev => {
     case 'room-wish': { const photo = await photoFrom(f, '#rw-photo'); if(await addDoc('wish', { title: v('title'), url: safeUrl(v('url')), price: parseFloat(v('price')) || 0, room: f.dataset.room, project:'', note:'', prio:false, got:false, photo })){ S.showForm.roomwish = false; render(); toast('Added. It’s on the wishlist too'); } break; }
     case 'income': if(await addDoc('income', { who: v('who') || S.me || 'david', source: v('source'), amt: parseFloat(v('amt')) || 0, date: v('date') || ymd(new Date()), acct: v('acct') || defAcct() })) toast('Income added'); break;
     case 'incsrc': if(await addDoc('incsrc', { who: v('who') || 'david', name: v('name'), amt: parseFloat(v('amt')) || 0, freq: v('freq') || 'biweekly' })){ S.showForm.incsrc = false; render(); } break;
-    case 'item-edit': { const it = get('items', fid), text = v('text'), qty = v('qty'); if(!it || !text) break;
+    case 'item-edit': { const it = get('items', fid), text = capWords(v('text')), qty = v('qty'); if(!it || !text) break;
       if(text === it.text && qty === (it.qty || '')){ S.itemSecOpen = null; render(); break; }
       if(await updDoc('items', fid, { text, qty })){ S.itemSecOpen = null; render(); toast('Saved ✓'); } break; }
-    case 'item': if(v('text')) addDoc('items', { list: S.listSel, text: v('text'), qty: v('qty'), done: false }); setTimeout(() => { const el = $('#item-text'); if(el) el.focus(); }, 30); break;
+    case 'item': if(v('text')) addDoc('items', { list: S.listSel, text: capWords(v('text')), qty: v('qty'), done: false }); setTimeout(() => { const el = $('#item-text'); if(el) el.focus(); }, 30); break;
     case 'newlist': {
       const n = v('name'), names = listNames(); if(!n) break;
       const ex = names.find(x => x.toLowerCase() === n.toLowerCase());

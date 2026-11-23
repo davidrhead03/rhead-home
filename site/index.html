@@ -1607,7 +1607,8 @@ if(S.me){ S.draft = ls.get('wkdraft:' + S.me, null); S.draftClearedAt = ls.get('
 const COLS = {
   items:null, wish:null, events:null, recipes:null, ideas:null, plans:null, prayers:null, projects:null,
   goals:null, memories:null, family:null, bills:null, people:null, meta:null, scheds:null, routine:null, pchk:null, drafts:null, bnotes:null, lifegoals:null, debts:null, spanish:null, dphotos:null, inspo:null, incsrc:null, chal:null, games:null, subs:null, trips:null, doodles:null, pins:null, xfers:null, todos:null, gifts:null, occasions:null, hinfo:null, cars:null, phrases:null,
-  reps: q => q.orderBy('at', 'desc').limit(800),
+  reps: q => q.orderBy('at', 'desc'),
+  shoptrips: q => q.orderBy('at', 'desc').limit(400),
   income: q => q.orderBy('at', 'desc').limit(500),
   msgs: q => q.orderBy('at', 'desc').limit(1000),
   logs: q => q.orderBy('at', 'desc').limit(400),
@@ -3426,7 +3427,7 @@ function vHome(){
   return xmas + homeOrder().filter(k => B[k]).map(k => B[k]()).join('\n');
 }
 function vLists(){
-  return seg('liststab', S.listsTab, [['shop','Shopping'],['wish','Wishlist']]) + (S.listsTab === 'shop' ? vShop() : vWish());
+  return seg('liststab', S.listsTab, [['shop','Shopping'],['past','Past trips'],['wish','Wishlist']]) + (S.listsTab === 'shop' ? vShop() : S.listsTab === 'past' ? vPast() : vWish());
 }
 /* ---------- shopping list: sort items into store sections ---------- */
 // Sections in the order you usually walk a store. Keywords in English and Spanish; the longest match wins
@@ -3475,21 +3476,58 @@ function guessAisle(text){
   return best || 'other';
 }
 const aisleOf = i => i.sec || guessAisle(i.text);
+/* things you've bought before (from saved trips), newest wording and quantity win */
+function shopKnown(list){
+  const m = new Map();
+  S.data.shoptrips.forEach(t => (t.got || []).concat(t.missed || []).forEach(x => { const k = fold(x.text); if(!k) return;
+    const e = m.get(k) || { text: x.text, qty: x.qty || '', n: 0, here: 0, last: 0 }; e.n++; if(t.list === list) e.here++;
+    if((t.at || 0) >= e.last){ e.last = t.at || 0; e.text = x.text; e.qty = x.qty || ''; } m.set(k, e); }));
+  return Array.from(m.values());
+}
+const onListKeys = list => new Set(S.data.items.filter(i => i.list === list && !i.done).map(i => fold(i.text)));
+async function addItems(list, arr){ // several at once, one notification
+  const have = onListKeys(list); let n = 0, first = null;
+  for(const x of arr){ const k = fold(x.text); if(!k || have.has(k)) continue; have.add(k);
+    try{ const r = await S.db.collection('items').add({ list, text: x.text, qty: x.qty || '', done: false, by: S.me, at: Date.now() + n }); if(!first) first = r.id; n++; }catch(e){ fail(e); break; } }
+  if(first) notifyEvent('items', first); return n;
+}
+function vPast(){
+  const lists = ['All'].concat(Array.from(new Set(S.data.shoptrips.map(t => t.list).filter(Boolean))));
+  const sel = lists.includes(S.tripList) ? S.tripList : 'All';
+  const trips = S.data.shoptrips.filter(t => sel === 'All' || t.list === sel).sort((a, b) => (b.at || 0) - (a.at || 0));
+  const line = (x, miss) => `<div class="li${miss ? ' done' : ''}" style="padding:7px 0"><div class="txt">${esc(x.text)}${x.qty ? ` <span class="pill">${esc(x.qty)}</span>` : ''}</div></div>`;
+  const card = t => { const got = t.got || [], miss = t.missed || [], open = S.tripOpen === t.id;
+    return `<div class="li" style="flex-wrap:wrap;align-items:flex-start">
+      <button class="txt" data-act="trip-open" data-id="${esc(t.id)}" style="border:0;background:none;padding:0;text-align:left;color:inherit;font:inherit;cursor:pointer"><b>${esc(t.list || 'Shopping')}</b> · ${esc(fmtDate(parseYmd(t.date)))}<div class="sub">${got.length} got${miss.length ? ` · ${miss.length} didn’t get` : ''}</div></button>${mini(t.by)}<span class="muted" aria-hidden="true">${open ? '▾' : '▸'}</span>
+      ${open ? `<div style="flex-basis:100%">
+        ${got.length ? `<div class="aisle-h">✓ Got<span>${got.length}</span></div>${got.map(x => line(x)).join('')}` : ''}
+        ${miss.length ? `<div class="aisle-h">Didn’t get<span>${miss.length}</span></div>${miss.map(x => line(x, true)).join('')}` : ''}
+        <div class="row" style="margin-top:10px;gap:8px"><button class="btn primary small" data-act="trip-again" data-id="${esc(t.id)}">Shop again</button>${miss.length ? `<button class="btn small" data-act="trip-again" data-id="${esc(t.id)}" data-miss="1">Add what we didn’t get</button>` : ''}<span class="grow"></span>${delBtn('shoptrips', t.id, 'this trip')}</div>
+      </div>` : ''}</div>`; };
+  return `
+  ${lists.length > 2 ? `<div class="chips">${lists.map(n => `<button class="chip ${n === sel ? 'on' : ''}" data-act="trip-list" data-v="${esc(n)}">${esc(n)}</button>`).join('')}</div>` : ''}
+  <section class="card"><div class="between"><h2>Past trips</h2><span class="muted num">${trips.length}</span></div>
+    <div class="list" style="margin-top:4px">${trips.length ? trips.map(card).join('') : empty('No trips saved yet', 'When you finish shopping, tap “Done shopping” on your list. The trip is saved here with what you got and what you didn’t.')}</div></section>`;
+}
 function vShop(){
   const names = listNames(); if(!names.includes(S.listSel)) S.listSel = names[0];
   const items = S.data.items.filter(i => i.list === S.listSel).sort((a, b) => (a.done - b.done) || (a.at - b.at));
   const left = items.filter(i => !i.done), got = items.filter(i => i.done);
+  const known = shopKnown(S.listSel), have = onListKeys(S.listSel);
+  const quick = known.filter(e => !have.has(fold(e.text))).sort((a, b) => (b.here - a.here) || (b.n - a.n) || (b.last - a.last)).slice(0, 14);
   const row = i => `<div class="li ${i.done ? 'done' : ''}" style="flex-wrap:wrap"><button class="check ${i.done ? 'on' : ''}" data-act="item-tog" data-id="${esc(i.id)}" aria-label="${i.done ? 'Uncheck' : 'Check off'} ${esc(i.text)}">${ic('check', 15)}</button><button class="txt" data-act="item-sec-open" data-id="${esc(i.id)}" style="border:0;background:none;padding:0;text-align:left;color:inherit;font:inherit;cursor:pointer">${esc(i.text)}${i.qty ? ` <span class="pill">${esc(i.qty)}</span>` : ''}</button>${mini(i.by)}${delBtn('items', i.id, i.text)}
     ${S.itemSecOpen === i.id ? `<form class="row" data-form="item-edit" data-id="${esc(i.id)}" style="flex-basis:100%;margin:8px 0 2px 38px;gap:8px;flex-wrap:nowrap"><input class="grow" type="text" id="ie-text-${esc(i.id)}" name="text" value="${esc(i.text)}" required maxlength="80" autocomplete="off" aria-label="Item"><input type="text" id="ie-qty-${esc(i.id)}" name="qty" value="${esc(i.qty || '')}" placeholder="Qty" style="width:64px" maxlength="12" aria-label="Quantity"><button class="btn primary small">Save</button></form><div class="row" style="flex-basis:100%;margin:6px 0 2px 38px;gap:8px;flex-wrap:nowrap"><span class="fine" style="flex:none">Section</span><select data-live="item-sec" data-id="${esc(i.id)}" class="grow">${AISLES.map(a => `<option value="${a[0]}" ${aisleOf(i) === a[0] ? 'selected' : ''}>${a[1]} ${esc(a[2])}</option>`).join('')}</select></div>` : ''}</div>`;
   const grouped = L => AISLES.map(([k, e, name]) => { const g = L.filter(i => aisleOf(i) === k); return g.length ? `<div class="aisle-h">${e} ${esc(name)}<span>${g.length}</span></div>${g.map(row).join('')}` : ''; }).join('');
   return `
   <div class="chips">${names.map(n => `<button class="chip ${n === S.listSel ? 'on' : ''}" data-act="list" data-v="${esc(n)}">${esc(n)}<span class="n">${S.data.items.filter(i => i.list === n && !i.done).length}</span></button>`).join('')}<button class="chip" data-act="toggleform" data-key="newlist">+ List</button></div>
   ${S.showForm.newlist ? `<form class="card row" data-form="newlist"><input class="grow" type="text" id="nl-name" name="name" placeholder="New list name, e.g. Walmart" required maxlength="30"><button class="btn primary">Add list</button>${names.length > 1 ? `<button type="button" class="btn small danger" data-act="list-remove">Remove “${esc(S.listSel)}”</button>` : ''}</form>` : ''}
-  <form class="card" data-form="item"><div class="row"><input class="grow" type="text" id="item-text" name="text" placeholder="Add to ${esc(S.listSel)}…" required maxlength="80" autocomplete="off"><input type="text" id="item-qty" name="qty" placeholder="Qty" style="width:74px" maxlength="12"><button class="btn primary">Add</button></div></form>
+  <form class="card" data-form="item"><div class="row"><input class="grow" type="text" id="item-text" name="text" list="item-sugs" placeholder="Add to ${esc(S.listSel)}…" required maxlength="80" autocomplete="off"><input type="text" id="item-qty" name="qty" placeholder="Qty" style="width:74px" maxlength="12"><button class="btn primary">Add</button></div>
+    <datalist id="item-sugs">${known.map(e => `<option value="${esc(e.text)}">`).join('')}</datalist>
+    ${quick.length ? `<div class="eyebrow" style="margin:12px 0 6px">Quick add</div><div class="chips" style="flex-wrap:wrap">${quick.map(e => `<button type="button" class="chip" data-act="item-quick" data-t="${esc(e.text)}" data-q="${esc(e.qty)}">+ ${esc(e.text)}${e.qty ? ` <span class="n">${esc(e.qty)}</span>` : ''}</button>`).join('')}</div>` : ''}</form>
   <section class="card"><div class="between"><h2>${esc(S.listSel)}</h2><span class="muted num">${left.length} to get</span></div>
     ${left.length ? `<p class="fine" style="margin:2px 0 0">Sorted by store section. Tap an item to fix what you typed or move it to another section.</p>` : ''}
     <div class="list" style="margin-top:4px">${left.length ? grouped(left) : empty('All set', 'Nothing left on this list.')}</div>
-    ${got.length ? `<div class="between" style="margin-top:12px"><span class="eyebrow">In the cart · ${got.length}</span><button class="btn small" data-act="clear-done">Clear checked</button></div><div class="list">${got.map(row).join('')}</div>` : ''}
+    ${got.length ? `<div class="between" style="margin-top:12px"><span class="eyebrow">In the cart · ${got.length}</span><button class="btn small primary" data-act="shop-done">Done shopping ✓</button></div><div class="list">${got.map(row).join('')}</div><p class="fine" style="margin:8px 0 0">Done shopping saves this trip to Past trips and clears what’s in the cart. Anything you didn’t get stays on the list.</p>` : ''}
   </section>`;
 }
 function vWish(){
@@ -3826,9 +3864,52 @@ function repsCard(){
     <div style="display:grid;grid-template-columns:repeat(${steps.length},minmax(0,1fr));gap:8px">${steps.map(n => `<button class="btn soft" data-act="rep-add" data-n="${n}">+${n}</button>`).join('')}</div>
     <form class="row" data-form="rep" style="flex-wrap:nowrap"><input class="grow" type="number" id="rep-n" name="n" inputmode="numeric" min="1" max="2000" required placeholder="Other amount (${repUnit(ex)})"><button class="btn primary">Add</button></form>
     <div class="list">${['david','laura'].map(w => `<div class="li">${mini(w)}<div class="txt">${esc(nameOf(w))}<div class="sub">${repSum(w, ws, today, ex)} this week</div></div><b class="num" style="font-size:18px">${repSum(w, today, today, ex)}</b><span class="muted" style="font-size:13px">today</span></div>`).join('')}</div>
+    <button class="btn soft" data-act="rep-hist">${S.repHist ? 'Hide history' : '📈 History & totals'}</button>
+    ${S.repHist ? repHistory() : ''}
     ${quickSetup()}
     ${todays.length ? `<details class="more"><summary>Today's sets · ${todays.length}</summary><div class="list">${todays.map(r => `<div class="li">${mini(r.who)}<div class="txt">${esc(repTxt(r.n, r.ex))}<div class="sub">${esc(fmtTime(hhmm(new Date(r.at || Date.now()))))}</div></div>${r.who === S.me ? delBtn('reps', r.id, 'set') : ''}</div>`).join('')}</div></details>` : ''}
   </section>`;
+}
+/* ---------- quick reps: history beyond this week ---------- */
+const REP_RANGES = [['30d','30 days'],['3m','3 months'],['1y','1 year'],['all','All time']];
+function repHistory(){
+  const ex = S.repEx || 'Pushups', unit = repUnit(ex), range = S.repRange || '3m';
+  const R = S.data.reps.filter(r => r.ex === ex && r.date);
+  const chips = `<div class="chips">${REP_RANGES.map(([k, l]) => `<button class="chip ${range === k ? 'on' : ''}" data-act="rep-range" data-v="${k}">${l}</button>`).join('')}</div>`;
+  if(!R.length) return `<div class="stack" style="gap:8px">${chips}<p class="fine" style="margin:0">No ${esc(ex.toLowerCase())} logged yet. Your history shows up here as you add sets.</p></div>`;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const W = ['david', 'laura'], daily = {}; W.forEach(w => daily[w] = {});
+  R.forEach(r => { if(daily[r.who]) daily[r.who][r.date] = (daily[r.who][r.date] || 0) + (Number(r.n) || 0); });
+  const first = R.reduce((m, r) => r.date < m ? r.date : m, ymd(today));
+  // buckets: days, weeks or months
+  const B = [];
+  if(range === '30d'){ for(let i = 29; i >= 0; i--){ const d = new Date(today); d.setDate(d.getDate() - i); const k = ymd(d); B.push({ from: k, to: k, label: String(d.getDate()), tip: fmtDate(d) }); } }
+  else if(range === '3m'){ const ws = weekStart(); for(let i = 12; i >= 0; i--){ const a = new Date(ws); a.setDate(a.getDate() - 7 * i); const b = new Date(a); b.setDate(b.getDate() + 6); B.push({ from: ymd(a), to: ymd(b), label: fmtDate(a, { month:'numeric', day:'numeric' }), tip: 'Week of ' + fmtDate(a, { month:'short', day:'numeric' }) }); } }
+  else { const f = parseYmd(first), n = range === '1y' ? 12 : Math.max(1, (today.getFullYear() - f.getFullYear()) * 12 + today.getMonth() - f.getMonth() + 1);
+    for(let i = n - 1; i >= 0; i--){ const a = new Date(today.getFullYear(), today.getMonth() - i, 1), b = new Date(a.getFullYear(), a.getMonth() + 1, 0);
+      B.push({ from: ymd(a), to: ymd(b), label: a.toLocaleDateString('en-US', { month:'narrow' }), tip: a.toLocaleDateString('en-US', { month:'short', year:'numeric' }) }); } }
+  const sumIn = (w, a, b) => Object.entries(daily[w]).reduce((s, [d, n]) => d >= a && d <= b ? s + n : s, 0);
+  B.forEach(b => b.v = W.map(w => sumIn(w, b.from, b.to)));
+  const max = Math.max(1, ...B.flatMap(b => b.v)), n = B.length;
+  const cw = 320, ch = 120, slot = cw / n, bw = Math.max(1.5, Math.min(12, slot / 2 - 1.5)), every = Math.ceil(n / 8);
+  const bars = B.map((b, i) => b.v.map((v, j) => { const h = v ? Math.max(2, v / max * ch) : 0, x = i * slot + slot / 2 + (j ? 0.75 : -bw - 0.75);
+    return h ? `<rect x="${x.toFixed(1)}" y="${(ch - h).toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="${Math.min(3, bw / 2).toFixed(1)}" fill="var(${j ? '--blush' : '--sky'})"><title>${esc(nameOf(W[j]))} · ${esc(b.tip)}: ${v} ${unit}</title></rect>` : ''; }).join('')).join('');
+  const labels = B.map((b, i) => (i % every === 0 && n - 1 - i >= Math.ceil(every / 2)) || i === n - 1 ? `<text x="${(i * slot + slot / 2).toFixed(1)}" y="${ch + 14}" text-anchor="middle" font-size="9.5" fill="var(--muted)">${esc(b.label)}</text>` : '').join('');
+  const svg = `<svg viewBox="0 0 ${cw} ${ch + 20}" width="100%" role="img" aria-label="${esc(ex)} per ${range === '30d' ? 'day' : range === '3m' ? 'week' : 'month'}" style="display:block;overflow:visible">
+    <line x1="0" y1="${ch}" x2="${cw}" y2="${ch}" stroke="var(--line)"/><line x1="0" y1="0" x2="${cw}" y2="0" stroke="var(--line)" stroke-dasharray="3 4"/>
+    <text x="${cw}" y="-4" text-anchor="end" font-size="9.5" fill="var(--muted)">${max} ${unit}</text>${bars}${labels}</svg>`;
+  const from = B[0].from, to = B[n - 1].to;
+  const stat = w => { const D = daily[w], days = Object.keys(D).filter(d => D[d] > 0);
+    const all = days.reduce((s, d) => s + D[d], 0), inR = sumIn(w, from, to);
+    const best = days.reduce((m, d) => D[d] > (m ? D[m] : 0) ? d : m, null);
+    let streak = 0; const c = new Date(today); if(!D[ymd(c)]) c.setDate(c.getDate() - 1); while(D[ymd(c)] > 0){ streak++; c.setDate(c.getDate() - 1); }
+    return `<div class="li" style="align-items:flex-start">${mini(w)}<div class="txt"><b>${esc(nameOf(w))}</b>
+      <div class="sub">${inR.toLocaleString()} ${unit} in this view · ${all.toLocaleString()} all-time</div>
+      <div class="sub">${best ? `Best day ${D[best]} (${esc(fmtDate(parseYmd(best), { month:'short', day:'numeric', year:'numeric' }))})` : 'No sets yet'} · ${days.length} day${days.length === 1 ? '' : 's'} active${streak > 1 ? ` · 🔥 ${streak}-day run` : ''}</div></div></div>`; };
+  return `<div class="stack" style="gap:10px">${chips}
+    <div class="row" style="gap:14px;font-size:12.5px"><span><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--sky);margin-right:5px"></span>${esc(nameOf('david'))}</span><span><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--blush);margin-right:5px"></span>${esc(nameOf('laura'))}</span><span class="muted" style="margin-left:auto">${esc(ex)} per ${range === '30d' ? 'day' : range === '3m' ? 'week' : 'month'}</span></div>
+    <div style="padding-top:12px">${svg}</div>
+    <div class="list">${W.map(stat).join('')}</div></div>`;
 }
 /* log reps from Siri, an iPhone Shortcut or a Home Screen widget without opening the app (worker: /api/quick) */
 const QUICK_SLUG = { 'Pushups':'pushups', 'Counter pushups':'counter', 'Squats':'squats', 'Sit-ups':'situps', 'Pull-ups':'pullups', 'Plank':'plank' };
@@ -6935,7 +7016,7 @@ function rhStats(){
     trivia10: P.some(w => tb[w] && tb[w].best >= 10), triviaBest: Math.max((tb.david || {}).best || 0, (tb.laura || {}).best || 0),
     kqPerfect: D.games.some(x => /^kq_/.test(x.id) && x.status === 'done' && Number(x.score) >= 5), kqRounds: D.games.filter(x => /^kq_/.test(x.id) && x.status === 'done').length,
     c4Wins: (c4.david || 0) + (c4.laura || 0), tttWins: (tt.david || 0) + (tt.laura || 0),
-    days: m.days, projectsDone: D.projects.filter(p => p.status === 'Done').length, listDone: D.items.filter(i => i.done).length,
+    days: m.days, projectsDone: D.projects.filter(p => p.status === 'Done').length, listDone: D.items.filter(i => i.done).length + (D.shoptrips || []).reduce((n, t) => n + (t.got || []).length, 0),
     projects: D.projects.length, wish: D.wish.length, lifegoals: D.lifegoals.length, subs: D.subs.length, bills: D.bills.length,
     spendN: D.spend.length, incomeN: D.income.length, debtPay: D.debts.some(d => (d.pays || []).length > 0),
     tttAny: (tt.david || 0) + (tt.laura || 0) > 0, c4Any: (c4.david || 0) + (c4.laura || 0) > 0,
@@ -7528,6 +7609,21 @@ document.addEventListener('click', async ev => {
       if(await setDoc('meta/lists', { names })){ S.listSel = names[0]; S.showForm.newlist = false; toast('List removed'); render(); }
       break; }
     case 'item-tog': { const it = get('items', id); if(it) updDoc('items', id, { done: !it.done }); break; }
+    case 'shop-done': {
+      const L = S.data.items.filter(i => i.list === S.listSel), got = L.filter(i => i.done), missed = L.filter(i => !i.done); if(!got.length) break;
+      const pick = i => ({ text: i.text, qty: i.qty || '', sec: aisleOf(i) });
+      if(!await addDoc('shoptrips', { list: S.listSel, date: ymd(new Date()), got: got.map(pick), missed: missed.map(pick) })) break;
+      for(const i of got){ await delDoc('items', i.id); }
+      toast(`Trip saved ✓ ${got.length} got${missed.length ? `, ${missed.length} still on the list` : ''}`); break; }
+    case 'item-quick': { const text = t.dataset.t; if(!text) break; if(await addDoc('items', { list: S.listSel, text, qty: t.dataset.q || '', done: false })) toast(`Added ${text}`); break; }
+    case 'rep-hist': S.repHist = !S.repHist; render(); break;
+    case 'rep-range': S.repRange = t.dataset.v; render(); break;
+    case 'trip-open': S.tripOpen = S.tripOpen === id ? null : id; render(); break;
+    case 'trip-list': S.tripList = t.dataset.v; render(); break;
+    case 'trip-again': { const tr = get('shoptrips', id); if(!tr) break; const list = tr.list && listNames().includes(tr.list) ? tr.list : S.listSel;
+      const arr = t.dataset.miss ? (tr.missed || []) : (tr.got || []).concat(tr.missed || []);
+      const n = await addItems(list, arr); S.listSel = list; ls.set('list', list); S.listsTab = 'shop'; ls.set('liststab', 'shop'); render();
+      toast(n ? `Added ${n} item${n === 1 ? '' : 's'} to ${list}` : `Everything is already on ${list}`); break; }
     case 'clear-done': {
       const done = S.data.items.filter(i => i.list === S.listSel && i.done);
       for(const i of done){ await delDoc('items', i.id); }
